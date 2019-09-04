@@ -48,15 +48,6 @@ const taskBootFlashLabel = 'Burn bootloader';
 const createAppMode: string = 'app';
 const createWorkerMode: string = 'worker';
 
-/* Interface for Stored Tasks list */
-interface TasksInterface {
-	[key: string]: {
-		[key: string]: vscode.Task
-	};
-}
-
-var spresenseTasks: TasksInterface = {};
-
 function win32ToPosixPath(win32Path: string): string {
 	let posixPath = win32Path;
 
@@ -571,29 +562,6 @@ function setSpresenseButton() {
 	}
 }
 
-function registerSpresenseTasks(tasks: vscode.Task[]) {
-	/* Store search result */
-	tasks.forEach((task) => {
-		let taskScope = task.scope;
-		if (taskScope &&
-			taskScope !== vscode.TaskScope.Global &&
-			taskScope !== vscode.TaskScope.Workspace) {
-
-			let path = taskScope.uri.fsPath;
-			let name = task.name;
-
-			if (!(path in spresenseTasks)) {
-				spresenseTasks[path] = {};
-			}
-
-			spresenseTasks[path][name] = task;
-		}
-	});
-
-	/* Set Spresense button */
-	setSpresenseButton();
-}
-
 function getTargetWorkspaceFolder(selectedUri: vscode.Uri | undefined): string | undefined {
 	if (selectedUri && vscode.workspace.getWorkspaceFolder(selectedUri)) {
 		/* Folder tree or Button case */
@@ -818,7 +786,7 @@ async function burnBootloader(context: vscode.ExtensionContext) {
 	await prepareBootloader(context);
 
 	/* Kick bootloader flash task */
-	vscode.tasks.executeTask(spresenseTasks[wsFolders[0].uri.fsPath][taskBootFlashLabel]);
+	triggerSpresenseTask(wsFolders[0].uri, taskBootFlashLabel);
 }
 
 /**
@@ -839,20 +807,38 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 	}
 
 	if (selectedUri) {
+		/* Trigger by file right click */
 		wsFolderPath = getTargetWorkspaceFolder(selectedUri);
 	} else if (wsFolders.length === 1) {
+		/* workspace has just only one folder, so use it */
 		wsFolderPath = wsFolders[0].uri.fsPath;
-	} else  {
+	} else {
+		/* Open by command pallet, use folder picker */
 		const wsFolder = await vscode.window.showWorkspaceFolderPick();
 		if (wsFolder) {
 			wsFolderPath = wsFolder.uri.fsPath;
 		}
 	}
 
-	if (wsFolderPath) {
-		/* Execute a task */
-		vscode.tasks.executeTask(spresenseTasks[wsFolderPath][label]);
+	if (!wsFolderPath) {
+		/* Canceled */
+		return;
 	}
+
+	vscode.tasks.fetchTasks().then((tasks: vscode.Task[]) => {
+		const targetTask = tasks.find((task) => {
+			return task.scope &&
+				   task.scope !== vscode.TaskScope.Global &&
+				   task.scope !== vscode.TaskScope.Workspace &&
+				   task.name === label &&
+				   task.scope.uri.fsPath === wsFolderPath;
+		});
+
+		if (targetTask) {
+			/* Execute a task */
+			vscode.tasks.executeTask(targetTask);
+		}
+	});
 }
 
 /* For Spresense workspace commands */
@@ -1272,9 +1258,6 @@ export function activate(context: vscode.ExtensionContext) {
 			event.added.forEach((addedFolder) => {
 				/* Create several json files for new folder */
 				spresenseEnvSetup(context, addedFolder.uri);
-
-				/* Update registered all tasks for button */
-				vscode.tasks.fetchTasks().then(registerSpresenseTasks);
 			});
 		}));
 
@@ -1295,9 +1278,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		/* Register Commands */
 		registerSpresenseCommands(context);
-
-		/* Register all tasks for button */
-		vscode.tasks.fetchTasks().then(registerSpresenseTasks);
 
 		/* Enable Spresense IDE */
 		vscode.commands.executeCommand('setContext', 'spresenseIdeEnabled', true);
