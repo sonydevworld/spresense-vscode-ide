@@ -1,0 +1,250 @@
+{
+	"name": "spresense-vscode-ide",
+	"publisher": "sony-spresense",
+	"displayName": "Spresense VSCode IDE",
+	"description": "Spresense Extension for VSCode",
+	"version": "1.0.0",
+	"license": "MIT",
+	"author": {
+		"name": "Sony Semiconductor Solutions"
+	},
+	"icon": "icons/Spresense.png",
+	"repository": "https://github.com/sonydevworld/spresense-vscode-ide",
+	"engines": {
+		"vscode": "^1.37.0"
+	},
+	"keywords": [
+		"Spresense",
+		"IoT",
+		"embedded",
+		"multicore",
+		"Audio",
+		"Camera",
+		"Deep learning",
+		"GPS",
+		"GNSS",
+		"Neural Network",
+		"Neural Network Console"
+	],
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"*"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"configuration": [
+			{
+				"title": "Spresense",
+				"properties": {
+					"spresense.sdk.path": {
+						"type": "string",
+						"default": "Do/not/modify",
+						"title": "%spresense.property.sdk.path.title%",
+						"description": "%spresense.property.sdk.path.desc%",
+						"scope": "window"
+					},
+					"spresense.sdk.tools.path": {
+						"type": "string",
+						"default": "Do/not/modify",
+						"title": "%spresense.property.sdk.tools.path.title%",
+						"description": "%spresense.property.sdk.tools.path.desc%",
+						"scope": "window"
+					},
+					"spresense.env.toolchain.path": {
+						"type": "string",
+						"default": "",
+						"title": "%spresense.property.env.toolchain.path.title%",
+						"description": "%spresense.property.env.toolchain.path.desc%",
+						"scope": "window"
+					},
+					"spresense.msys.path": {
+						"type": "string",
+						"default": "",
+						"title": "%spresense.property.msys.path.title%",
+						"description": "%spresense.property.msys.path.desc%",
+						"scope": "window"
+					},
+					"spresense.flashing.speed": {
+						"type": "string",
+						"enum": [
+							"115200",
+							"230400",
+							"460800",
+							"500000",
+							"576000",
+							"921600",
+							"1000000",
+							"1152000"
+						],
+						"default": "115200",
+						"title": "%spresense.property.flash.speed.title%",
+						"description": "%spresense.property.flash.speed.desc%",
+						"scope": "window"
+					},
+					"spresense.serial.baudrate": {
+						"type": "string",
+						"enum": [
+							"4800",
+							"9600",
+							"19200",
+							"38400",
+							"57600",
+							"115200"
+						],
+						"default": "115200",
+						"description": "%serial.property.baudrate%",
+						"scope": "window"
+					},
+					"spresense.serial.port": {
+						"type": "string",
+						"default": "/dev/ttyUSB0",
+						"description": "%serial.property.port%",
+						"scope": "window"
+					}
+				}
+			}
+		],
+		"commands": [
+			{
+				"command": "spresense.build.kernel",
+				"title": "%spresense.command.build.kernel%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.build",
+				"title": "%spresense.command.build.app%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.clean.kernel",
+				"title": "%spresense.command.clean.kernel%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.clean.sdk",
+				"title": "%spresense.command.clean.sdk%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.flash",
+				"title": "%spresense.command.flash%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.msys.path",
+				"title": "%spresense.command.msys.path%"
+			},
+			{
+				"command": "spresense.create.application",
+				"title": "%spresense.command.create.app%"
+			},
+			{
+				"command": "spresense.create.worker",
+				"title": "%spresense.command.create.worker%"
+			},
+			{
+				"command": "spresense.burn.bootloader",
+				"title": "%spresense.command.burn.bootloader%"
+			},
+			{
+				"command": "spresense.serial.open",
+				"title": "%serial.command.open%",
+				"icon": {
+					"dark": "icons/Button/terminal_dark.png",
+					"light": "icons/Button/terminal_light.png"
+				}
+			},
+			{
+				"command": "spresense.serial.close",
+				"title": "%serial.command.close%"
+			},
+			{
+				"command": "spresense.serial.port",
+				"title": "%serial.command.port%"
+			},
+			{
+				"command": "spresense.sdkconfig",
+				"title": "%sdkconfig.command.sdkconfig.title%"
+			},
+			{
+				"command": "spresense.kernelconfig",
+				"title": "%sdkconfig.command.kernelconfig.title%"
+			}
+		],
+		"menus": {
+			"editor/title": [
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.serial.open",
+					"group": "navigation@3"
+				}
+			],
+			"explorer/context": [
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.create.application",
+					"group": "11_SpresenseCreate@1"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.create.worker",
+					"group": "11_SpresenseCreate@2"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.build.kernel",
+					"group": "12_SpresenseBuild@4"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.build",
+					"group": "12_SpresenseBuild@2"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.clean.kernel",
+					"group": "12_SpresenseBuild@5"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.clean.sdk",
+					"group": "12_SpresenseBuild@3"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.flash",
+					"group": "12_SpresenseBuild@1"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "tslint ./src/*.ts",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"extensionDependencies": [
+		"ms-vscode.cpptools",
+		"marus25.cortex-debug"
+	],
+	"devDependencies": {
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^2.2.42",
+		"@types/node": "^10.12.21",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.35"
+	},
+	"dependencies": {
+		"@types/extract-zip": "^1.6.2",
+		"@types/md5": "^2.1.33",
+		"extract-zip": "^1.6.7",
+		"glob": "^7.1.4",
+		"md5": "^2.2.1"
+	}
+}

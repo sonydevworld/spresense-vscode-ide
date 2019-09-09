@@ -1,0 +1,15 @@
+{
+    "name": "Spresense SDK",
+    "intelliSenseMode": "${default}",
+    "includePath": [
+        "${mySpresenseSdkPath}/sdk/modules/include",
+        "${mySpresenseSdkPath}/sdk/modules/asmp/worker",
+        "${mySpresenseSdkPath}/sdk/system/include",
+        "${mySpresenseSdkPath}/sdk/bsp/include",
+        "${mySpresenseSdkPath}/nuttx/include",
+        "${workspaceFolder}/**"
+    ],
+    "cStandard": "c11",
+    "cppStandard": "c++11",
+    "compilerPath": "${config:spresense.env.toolchain.path}/arm-none-eabi-gcc"
+}
