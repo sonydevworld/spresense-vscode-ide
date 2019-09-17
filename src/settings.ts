@@ -491,23 +491,24 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 		/* Setup application folder, if necessary */
 		setupApplicationProjectFolder(wsFolder, resourcePath);
 
+		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
 		let msg: string = '';
 		if (mode === createAppMode) {
-			msg = nls.localize("spresense.src.create.app.input", 'Please input new application command name.');
+			msg = nls.localize("spresense.src.create.app.input", "Please enter the name of new application command. {0}", example);
 		} else if (mode === createWorkerMode) {
-			msg = nls.localize("spresense.src.create.app.worker", 'Please input new worker name.');
+			msg = nls.localize("spresense.src.create.app.worker", "Please enter the name of new worker. {0}", example);
 		}
 
 		/* Show dialog for inputing component name */
 		const name = await vscode.window.showInputBox({
-			prompt: `${msg}(a~z, A~Z, 0~9, \'_\')`,
+			prompt: msg,
 			validateInput: (input) => {
 				const namePattern = /^[a-zA-Z][\w]*$/;
 				const dirlist = fs.readdirSync(wsFolder);
 				const reservedName = ['out', 'Makefile'];
 
 				if (!namePattern.test(input)) {
-					return nls.localize("spresense.src.create.app.error.startalpha", 'Please start with alphabet.');
+					return nls.localize("spresense.src.create.app.error.invalid", "Invalid name entered.");
 				} else if (dirlist.indexOf(input) !== -1) {
 					return nls.localize("spresense.src.create.app.error.existed", "Directory or file '{0}' is already exists.", input);
 				} else if (reservedName.indexOf(input) !== -1) {

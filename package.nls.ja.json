@@ -22,9 +22,10 @@
 
 	"spresense.src.cpp.config.error": "Spresense拡張機能が破損しています。再インストールしてください。",
 	"spresense.src.create.app.error.file": "ファイルの作成中にエラーが発生しました。{0}.",
-	"spresense.src.create.app.input": "アプリケーションの名前を入力してください。",
-	"spresense.src.create.app.worker": "ワーカーの名前を入力してください。",
-	"spresense.src.create.app.error.startalpha": "名前の最初の文字はアルファベットである必要があります。",
+	"spresense.src.create.app.input": "アプリケーションの名前を入力してください。 {0}",
+	"spresense.src.create.app.worker": "ワーカーの名前を入力してください。 {0}",
+	"spresense.src.create.app.example": "(例：app, Gps_01, Camera02, ...)",
+	"spresense.src.create.app.error.invalid": "無効な名前が入力されました。",
 	"spresense.src.create.app.error.existed": "指定された名前は既に存在しています。{0}",
 	"spresense.src.create.app.error.reserved": "名前に'{0}'は使用できません。",
 	"spresense.src.create.app.confirm": "新しいASMPワーカーを使用したアプリケーションを作成しますか？",
