@@ -366,9 +366,9 @@ function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) 
  * @param appname Path to template file
  */
 
-function createFileByTemplate (srcFile: string, destFile: string, project: string, appname: string) {
+function createFileByTemplate (srcFile: string, destFile: string, appname: string) {
 	const targetDir = path.dirname(destFile);
-	const upper = `${project}_${appname}`.toUpperCase();
+	const upper = `${appname}`.toUpperCase();
 	let buff = fs.readFileSync(srcFile).toString();
 
 	/* Replace app name strings */
@@ -403,7 +403,6 @@ function createFileByTemplate (srcFile: string, destFile: string, project: strin
 
 function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 	const fileList = fs.readdirSync(tempPath);
-	const project = path.basename(wsFolder);
 	const destDir = path.join(wsFolder, `${name}_worker`);
 
 	/* Create worker directory */
@@ -424,7 +423,7 @@ function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, project, name);
+		createFileByTemplate(srcFile, destFile, name);
 	});
 }
 
@@ -443,7 +442,6 @@ function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 
 function createApplicationFiles (name: string, wsFolder: string, tempPath: string) {
 	const fileList = fs.readdirSync(tempPath);
-	const project = path.basename(wsFolder);
 	const destDir = path.join(wsFolder, name);
 
 	/* Create worker directory */
@@ -462,7 +460,7 @@ function createApplicationFiles (name: string, wsFolder: string, tempPath: strin
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, project, name);
+		createFileByTemplate(srcFile, destFile, name);
 	});
 }
 
