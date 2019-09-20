@@ -48,6 +48,11 @@ const taskBootFlashLabel = 'Burn bootloader';
 const createAppMode: string = 'app';
 const createWorkerMode: string = 'worker';
 
+/* Interface for Configuration definition */
+interface ConfigInterface {
+	[key: string]: string | object;
+}
+
 function win32ToPosixPath(win32Path: string): string {
 	let posixPath = win32Path;
 
@@ -155,23 +160,29 @@ function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 	fs.writeFileSync(configurationPath, JSON.stringify(jsonObj, null, 4));
 }
 
-async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.ExtensionContext) {
-	/* Interface for Task definition */
-	interface TaskInterface {
-		[key: string]: string | object;
+async function updateConfiguration(config: vscode.WorkspaceConfiguration, section: string, configs: ConfigInterface[], version?: string | undefined) {
+	let configVersion: string = '2.0.0';
+
+	if (version) {
+		configVersion = version;
 	}
 
+	await config.update('version', configVersion, vscode.ConfigurationTarget.WorkspaceFolder);
+	await config.update(section, configs, vscode.ConfigurationTarget.WorkspaceFolder);
+}
+
+async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.ExtensionContext) {
 	const newFolderPath = newFolderUri.fsPath;
 	const extensionPath = context.extensionPath;
-	let tasks = vscode.workspace.getConfiguration('tasks', newFolderUri);
-	let buildKenelTask: TaskInterface = {};
-	let buildTask: TaskInterface = {};
-	let sdkCleanTask: TaskInterface = {};
-	let kernelCleanTask: TaskInterface = {};
-	let flashTask: TaskInterface = {};
-	let flashWrokerTask: TaskInterface = {};
-	let flashCleanTask: TaskInterface = {};
-	let flashBootTask: TaskInterface = {};
+	let tasksConfig = vscode.workspace.getConfiguration('tasks', newFolderUri);
+	let buildKenelTask: ConfigInterface = {};
+	let buildTask: ConfigInterface = {};
+	let sdkCleanTask: ConfigInterface = {};
+	let kernelCleanTask: ConfigInterface = {};
+	let flashTask: ConfigInterface = {};
+	let flashWrokerTask: ConfigInterface = {};
+	let flashCleanTask: ConfigInterface = {};
+	let flashBootTask: ConfigInterface = {};
 	let isAppfolder: boolean | undefined;
 
 	if (!vscode.workspace.workspaceFolders) {
@@ -276,8 +287,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	];
 
 	/* Apply into tasks.json */
-	await tasks.update('version', '2.0.0', vscode.ConfigurationTarget.WorkspaceFolder);
-	await tasks.update('tasks', allTasks, vscode.ConfigurationTarget.WorkspaceFolder);
+	await updateConfiguration(tasksConfig, 'tasks', allTasks);
 
 	/* Copy script file */
 	try {
@@ -292,13 +302,8 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 }
 
 async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
-	/* Interface for Launch definition */
-	interface LaunchInterface {
-		[key: string]: string | object;
-	}
-
 	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
-	let cortexDebug: LaunchInterface = {};
+	let cortexDebug: ConfigInterface = {};
 	let elfFile: string | undefined;
 
 	if (!vscode.workspace.workspaceFolders) {
@@ -331,8 +336,7 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 	];
 
 	/* Apply into tasks.json */
-	await launch.update('version', '2.0.0', vscode.ConfigurationTarget.WorkspaceFolder);
-	await launch.update('configurations', [cortexDebug], vscode.ConfigurationTarget.WorkspaceFolder);
+	await updateConfiguration(launch, 'configurations', [cortexDebug]);
 }
 
 function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
