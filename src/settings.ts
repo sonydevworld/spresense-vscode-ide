@@ -160,15 +160,44 @@ function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 	fs.writeFileSync(configurationPath, JSON.stringify(jsonObj, null, 4));
 }
 
-async function updateConfiguration(config: vscode.WorkspaceConfiguration, section: string, configs: ConfigInterface[], version?: string | undefined) {
+/**
+ * Update tasks/launch config file from new configuration
+ *
+ * This function update a configuration file (tasks.json/launch.json) from
+ * new configurations. And keep user original configuration.
+ *
+ * @param config Workspace configuration from 'vscode.workspace.getConfiguration'
+ * @param section Key of configuration list from workspace configuration
+ * @param configs New configurations
+ * @param identKey Key of label name in configuration list
+ * @param version Version number for configuration format
+ */
+async function updateConfiguration(config: vscode.WorkspaceConfiguration, section: string, configs: ConfigInterface[], identKey: string, version?: string | undefined) {
 	let configVersion: string = '2.0.0';
+	let currentConfigs = config.get(section);
+	let updateConfigs: ConfigInterface[] = configs;
 
+	/* If configuration is set, use it for configuration format */
 	if (version) {
 		configVersion = version;
 	}
 
+	/* Filter current configurations for just update spresense configurations.
+	 * If not a auto generated spresense configuration, keep it in configuration.
+	 */
+	if (Array.isArray(currentConfigs)) {
+		currentConfigs.forEach((conf) => {
+			if (!configs.some((item) => {
+				return conf[identKey] === item[identKey];
+			})) {
+				updateConfigs.push(conf);
+			}
+		});
+	}
+
+	/* Write updated configurations into json file */
 	await config.update('version', configVersion, vscode.ConfigurationTarget.WorkspaceFolder);
-	await config.update(section, configs, vscode.ConfigurationTarget.WorkspaceFolder);
+	await config.update(section, updateConfigs, vscode.ConfigurationTarget.WorkspaceFolder);
 }
 
 async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.ExtensionContext) {
@@ -287,7 +316,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	];
 
 	/* Apply into tasks.json */
-	await updateConfiguration(tasksConfig, 'tasks', allTasks);
+	await updateConfiguration(tasksConfig, 'tasks', allTasks, 'label');
 
 	/* Copy script file */
 	try {
@@ -336,7 +365,7 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 	];
 
 	/* Apply into tasks.json */
-	await updateConfiguration(launch, 'configurations', [cortexDebug]);
+	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
 }
 
 function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
