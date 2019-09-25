@@ -1064,7 +1064,7 @@ function generateConfigFileContent() {
 
 function parseConfig(line) {
 	let m;
-	if ((m = line.match(/^CONFIG_(?<symbol>.*)="?(?<value>[\w\./]*)"?/))) {
+	if ((m = line.match(/^CONFIG_(?<symbol>.*)=(?<value>.*)/))) {
 		return [m.groups.symbol, m.groups.value];
 	} else if ((m = line.match(/^# CONFIG_(?<symbol>\w*) is not set/))) {
 		return [m.groups.symbol, "n"];
@@ -1096,7 +1096,18 @@ function loadConfig(buf) {
 	}
 
 	for (let opt of optiondb) {
-		opt.set_value(enablement[opt.name]);
+		let val = enablement[opt.name];
+		if (val && opt instanceof StringWidget) {
+			// Peek string value and check it is welformed.
+			let m = val.match(/"((?:[^"]|.)*)"/);
+			if (!m) {
+				console.warn(`Found malformed string value. Ignored. ${m[0]}`);
+				continue;
+			}
+			// Unescape
+			val = m[1].replace(/\\(.)/g, "$1");
+		}
+		opt.set_value(val);
 	}
 }
 
