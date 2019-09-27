@@ -627,8 +627,8 @@ class SDKConfigView {
 		})
 		.catch((reason) => {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.prepare", "Preparing configuration failed."));
-			this._progress.emit("update", "abort", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
@@ -657,9 +657,9 @@ class SDKConfigView {
 
 		child_process.execFile(python, args, options, (err, stdout, stderr) => {
 			if (err) {
-				console.log(err);
-				this._progress.emit("update", "error", 100);
+				console.error(err);
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
+				this.dispose();
 			} else {
 				this._progress.emit("update",
 					nls.localize("sdkconfig.src.progress.menu", "Construct menu"), 40);
@@ -681,7 +681,7 @@ class SDKConfigView {
 					tweakPlatform(dotconfig);
 				} catch (e) {
 					// XXX: show error message
-					console.log(e);
+					console.error(e);
 					return Promise.reject(e);
 				}
 
@@ -707,8 +707,8 @@ class SDKConfigView {
 			this._genKernelConfigMenuData();
 		})
 		.catch((reason) => {
-			this._progress.emit("update", "error", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
@@ -768,7 +768,8 @@ class SDKConfigView {
 			console.log("parse config");
 			child_process.execFile(python, args, options, (err, stdout, stderr) => {
 				if (err) {
-					console.log(err);
+					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
+					this.dispose();
 				} else {
 					this._progress.emit("update",
 						nls.localize("sdkconfig.src.progress.menu", "Construct menu"), 40);
@@ -777,8 +778,8 @@ class SDKConfigView {
 			});
 		})
 		.catch((reason) => {
-			this._progress.emit("update", "error", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
