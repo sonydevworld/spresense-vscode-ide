@@ -116,8 +116,17 @@ function getRootDir(): string | undefined {
  * @return Path to python, return undefined if both of 'python' and 'python3' are not found.
  */
 
-function getPythonPath(): string {
+function getPythonPath(): string | undefined {
 	let python = 'python';
+	try {
+		return cp.execSync('which python3').toString().trim();
+	} catch {
+		try {
+			return cp.execSync('which python').toString().trim();
+		} catch {
+			return undefined;
+		}
+	}
 
 	/* In MSYS2, append MSYS2 install path */
 	if (process.platform === 'win32') {
@@ -277,6 +286,7 @@ class SDKConfigView {
 	private _isUserConfig: boolean;
 	private _sdkDir: string;
 	private _kernelDir: string;
+	private _python: string;
 	private _progress: EventEmitter;
 	private _currentProcess: cp.ChildProcess | undefined = undefined;
 
@@ -287,6 +297,12 @@ class SDKConfigView {
 		if (BuildTaskIsRunning()) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.task",
 				"Can not open configuration while in the build task is running"));
+			return;
+		}
+
+		if (getPythonPath() === undefined) {
+			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.python",
+				"Couldn't find necessary tools."));
 			return;
 		}
 
@@ -326,6 +342,7 @@ class SDKConfigView {
 		this._mode = mode;
 		this._configFile = '';
 		this._isUserConfig = targetConfig !== undefined;
+		this._python = getPythonPath() || "python";
 		this._sdkDir = "";
 		this._kernelDir = "";
 		this._progress = new EventEmitter();
@@ -638,7 +655,6 @@ class SDKConfigView {
 		 * python /path/to/helper/kconfig2json.py -o /path/to/menu.js
 		 */
 
-		const python = getPythonPath();
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		args.push(this._sdkTmpKconfig);
 
@@ -655,7 +671,7 @@ class SDKConfigView {
 			maxBuffer: 1024 * 1024
 		};
 
-		child_process.execFile(python, args, options, (err, stdout, stderr) => {
+		cp.execFile(this._python, args, options, (err, stdout, stderr) => {
 			if (err) {
 				console.error(err);
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
@@ -713,7 +729,6 @@ class SDKConfigView {
 	}
 
 	private _genKernelConfigMenuData() {
-		const python = getPythonPath();
 		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
@@ -766,7 +781,7 @@ class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			child_process.execFile(python, args, options, (err, stdout, stderr) => {
+			cp.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
 					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
 					this.dispose();
