@@ -78,6 +78,7 @@
 	"sdkconfig.src.webview.title.kernel": "カーネルコンフィグ ({0})",
 	"sdkconfig.src.open.error.repository": "Spresenseリポジトリが見つかりません",
 	"sdkconfig.src.open.error.task": "ビルドタスクが実行中のため、コンフィグメニューを開けません",
+	"sdkconfig.src.open.error.python": "コンフィグレーションに必要なツールが見つかりませんでした。",
 	"sdkconfig.src.open.error.multiple": "{0}コンフィグメニューを開けません。現在開いている別のコンフィグメニューを閉じてください。",
 	"sdkconfig.src.save.error.task": "ビルドタスクが実行中のため、コンフィグファイルを保存できませんでした",
 	"sdkconfig.src.save.done": "コンフィグレーションが保存されました。{0}",

@@ -78,6 +78,7 @@
 	"sdkconfig.src.webview.title.kernel": "Kernel Config ({0})",
 	"sdkconfig.src.open.error.repository": "Spresense repository not found.",
 	"sdkconfig.src.open.error.task": "Can not open configuration while in the build task is running",
+	"sdkconfig.src.open.error.python": "Couldn't find necessary tools.",
 	"sdkconfig.src.open.error.multiple": "Can not open {0} configuration. Please close other configuration tab first.",
 	"sdkconfig.src.save.error.task": "Save configuration failed because of the build task is running.",
 	"sdkconfig.src.save.done": "Configuration has been saved. {0}",
