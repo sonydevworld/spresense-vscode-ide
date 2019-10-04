@@ -22,9 +22,10 @@
 
 	"spresense.src.cpp.config.error": "Preset configuration not exist. Please re-install extension.",
 	"spresense.src.create.app.error.file": "Error in creating file {0}.",
-	"spresense.src.create.app.input": "Please input new application command name",
-	"spresense.src.create.app.worker": "Please input new worker name",
-	"spresense.src.create.app.error.startalpha": "Please start with alphabet.",
+	"spresense.src.create.app.input": "Please enter the name of new application command. {0}",
+	"spresense.src.create.app.worker": "Please enter the name of new worker. {0}",
+	"spresense.src.create.app.example": "(ex. app, Gps_01, Camera02, ...)",
+	"spresense.src.create.app.error.invalid": "Invalid name entered.",
 	"spresense.src.create.app.error.existed": "Directory or file '{0}' is already exists.",
 	"spresense.src.create.app.error.reserved": "Cannot use '{0}'",
 	"spresense.src.create.app.confirm": "Do you want to create a sample application to use new worker?",

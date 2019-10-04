@@ -48,14 +48,10 @@ const taskBootFlashLabel = 'Burn bootloader';
 const createAppMode: string = 'app';
 const createWorkerMode: string = 'worker';
 
-/* Interface for Stored Tasks list */
-interface TasksInterface {
-	[key: string]: {
-		[key: string]: vscode.Task
-	};
+/* Interface for Configuration definition */
+interface ConfigInterface {
+	[key: string]: string | object;
 }
-
-var spresenseTasks: TasksInterface = {};
 
 function win32ToPosixPath(win32Path: string): string {
 	let posixPath = win32Path;
@@ -164,23 +160,58 @@ function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 	fs.writeFileSync(configurationPath, JSON.stringify(jsonObj, null, 4));
 }
 
-async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.ExtensionContext) {
-	/* Interface for Task definition */
-	interface TaskInterface {
-		[key: string]: string | object;
+/**
+ * Update tasks/launch config file from new configuration
+ *
+ * This function update a configuration file (tasks.json/launch.json) from
+ * new configurations. And keep user original configuration.
+ *
+ * @param config Workspace configuration from 'vscode.workspace.getConfiguration'
+ * @param section Key of configuration list from workspace configuration
+ * @param configs New configurations
+ * @param identKey Key of label name in configuration list
+ * @param version Version number for configuration format
+ */
+async function updateConfiguration(config: vscode.WorkspaceConfiguration, section: string, configs: ConfigInterface[], identKey: string, version?: string | undefined) {
+	let configVersion: string = '2.0.0';
+	let currentConfigs = config.get(section);
+	let updateConfigs: ConfigInterface[] = configs;
+
+	/* If configuration is set, use it for configuration format */
+	if (version) {
+		configVersion = version;
 	}
 
+	/* Filter current configurations for just update spresense configurations.
+	 * If not a auto generated spresense configuration, keep it in configuration.
+	 */
+	if (Array.isArray(currentConfigs)) {
+		currentConfigs.forEach((conf) => {
+			if (!configs.some((item) => {
+				return conf[identKey] === item[identKey];
+			})) {
+				updateConfigs.push(conf);
+			}
+		});
+	}
+
+	/* Write updated configurations into json file */
+	await config.update('version', configVersion, vscode.ConfigurationTarget.WorkspaceFolder);
+	await config.update(section, updateConfigs, vscode.ConfigurationTarget.WorkspaceFolder);
+}
+
+async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.ExtensionContext) {
 	const newFolderPath = newFolderUri.fsPath;
 	const extensionPath = context.extensionPath;
-	let tasks = vscode.workspace.getConfiguration('tasks', newFolderUri);
-	let buildKenelTask: TaskInterface = {};
-	let buildTask: TaskInterface = {};
-	let sdkCleanTask: TaskInterface = {};
-	let kernelCleanTask: TaskInterface = {};
-	let flashTask: TaskInterface = {};
-	let flashWrokerTask: TaskInterface = {};
-	let flashCleanTask: TaskInterface = {};
-	let flashBootTask: TaskInterface = {};
+	let tasksConfig = vscode.workspace.getConfiguration('tasks', newFolderUri);
+	let buildKenelTask: ConfigInterface = {};
+	let buildTask: ConfigInterface = {};
+	let sdkCleanTask: ConfigInterface = {};
+	let kernelCleanTask: ConfigInterface = {};
+	let flashTask: ConfigInterface = {};
+	let flashWrokerTask: ConfigInterface = {};
+	let flashCleanTask: ConfigInterface = {};
+	let flashBootTask: ConfigInterface = {};
 	let isAppfolder: boolean | undefined;
 
 	if (!vscode.workspace.workspaceFolders) {
@@ -285,8 +316,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	];
 
 	/* Apply into tasks.json */
-	await tasks.update('version', '2.0.0', vscode.ConfigurationTarget.WorkspaceFolder);
-	await tasks.update('tasks', allTasks, vscode.ConfigurationTarget.WorkspaceFolder);
+	await updateConfiguration(tasksConfig, 'tasks', allTasks, 'label');
 
 	/* Copy script file */
 	try {
@@ -301,13 +331,8 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 }
 
 async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
-	/* Interface for Launch definition */
-	interface LaunchInterface {
-		[key: string]: string | object;
-	}
-
 	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
-	let cortexDebug: LaunchInterface = {};
+	let cortexDebug: ConfigInterface = {};
 	let elfFile: string | undefined;
 
 	if (!vscode.workspace.workspaceFolders) {
@@ -340,8 +365,7 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 	];
 
 	/* Apply into tasks.json */
-	await launch.update('version', '2.0.0', vscode.ConfigurationTarget.WorkspaceFolder);
-	await launch.update('configurations', [cortexDebug], vscode.ConfigurationTarget.WorkspaceFolder);
+	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
 }
 
 function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
@@ -375,9 +399,9 @@ function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) 
  * @param appname Path to template file
  */
 
-function createFileByTemplate (srcFile: string, destFile: string, project: string, appname: string) {
+function createFileByTemplate (srcFile: string, destFile: string, appname: string) {
 	const targetDir = path.dirname(destFile);
-	const upper = `${project}_${appname}`.toUpperCase();
+	const upper = `${appname}`.toUpperCase();
 	let buff = fs.readFileSync(srcFile).toString();
 
 	/* Replace app name strings */
@@ -412,7 +436,6 @@ function createFileByTemplate (srcFile: string, destFile: string, project: strin
 
 function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 	const fileList = fs.readdirSync(tempPath);
-	const project = path.basename(wsFolder);
 	const destDir = path.join(wsFolder, `${name}_worker`);
 
 	/* Create worker directory */
@@ -433,7 +456,7 @@ function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, project, name);
+		createFileByTemplate(srcFile, destFile, name);
 	});
 }
 
@@ -452,7 +475,6 @@ function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
 
 function createApplicationFiles (name: string, wsFolder: string, tempPath: string) {
 	const fileList = fs.readdirSync(tempPath);
-	const project = path.basename(wsFolder);
 	const destDir = path.join(wsFolder, name);
 
 	/* Create worker directory */
@@ -471,7 +493,7 @@ function createApplicationFiles (name: string, wsFolder: string, tempPath: strin
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, project, name);
+		createFileByTemplate(srcFile, destFile, name);
 	});
 }
 
@@ -502,23 +524,24 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 		/* Setup application folder, if necessary */
 		setupApplicationProjectFolder(wsFolder, resourcePath);
 
+		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
 		let msg: string = '';
 		if (mode === createAppMode) {
-			msg = nls.localize("spresense.src.create.app.input", 'Please input new application command name.');
+			msg = nls.localize("spresense.src.create.app.input", "Please enter the name of new application command. {0}", example);
 		} else if (mode === createWorkerMode) {
-			msg = nls.localize("spresense.src.create.app.worker", 'Please input new worker name.');
+			msg = nls.localize("spresense.src.create.app.worker", "Please enter the name of new worker. {0}", example);
 		}
 
 		/* Show dialog for inputing component name */
 		const name = await vscode.window.showInputBox({
-			prompt: `${msg}(a~z, A~Z, 0~9, \'_\')`,
+			prompt: msg,
 			validateInput: (input) => {
 				const namePattern = /^[a-zA-Z][\w]*$/;
 				const dirlist = fs.readdirSync(wsFolder);
 				const reservedName = ['out', 'Makefile'];
 
 				if (!namePattern.test(input)) {
-					return nls.localize("spresense.src.create.app.error.startalpha", 'Please start with alphabet.');
+					return nls.localize("spresense.src.create.app.error.invalid", "Invalid name entered.");
 				} else if (dirlist.indexOf(input) !== -1) {
 					return nls.localize("spresense.src.create.app.error.existed", "Directory or file '{0}' is already exists.", input);
 				} else if (reservedName.indexOf(input) !== -1) {
@@ -569,29 +592,6 @@ function setSpresenseButton() {
 		/* Disable Spresense button */
 		vscode.commands.executeCommand('setContext', 'spresenseButtonEnabled', false);
 	}
-}
-
-function registerSpresenseTasks(tasks: vscode.Task[]) {
-	/* Store search result */
-	tasks.forEach((task) => {
-		let taskScope = task.scope;
-		if (taskScope &&
-			taskScope !== vscode.TaskScope.Global &&
-			taskScope !== vscode.TaskScope.Workspace) {
-
-			let path = taskScope.uri.fsPath;
-			let name = task.name;
-
-			if (!(path in spresenseTasks)) {
-				spresenseTasks[path] = {};
-			}
-
-			spresenseTasks[path][name] = task;
-		}
-	});
-
-	/* Set Spresense button */
-	setSpresenseButton();
 }
 
 function getTargetWorkspaceFolder(selectedUri: vscode.Uri | undefined): string | undefined {
@@ -818,7 +818,7 @@ async function burnBootloader(context: vscode.ExtensionContext) {
 	await prepareBootloader(context);
 
 	/* Kick bootloader flash task */
-	vscode.tasks.executeTask(spresenseTasks[wsFolders[0].uri.fsPath][taskBootFlashLabel]);
+	triggerSpresenseTask(wsFolders[0].uri, taskBootFlashLabel);
 }
 
 /**
@@ -839,20 +839,38 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 	}
 
 	if (selectedUri) {
+		/* Trigger by file right click */
 		wsFolderPath = getTargetWorkspaceFolder(selectedUri);
 	} else if (wsFolders.length === 1) {
+		/* workspace has just only one folder, so use it */
 		wsFolderPath = wsFolders[0].uri.fsPath;
-	} else  {
+	} else {
+		/* Open by command pallet, use folder picker */
 		const wsFolder = await vscode.window.showWorkspaceFolderPick();
 		if (wsFolder) {
 			wsFolderPath = wsFolder.uri.fsPath;
 		}
 	}
 
-	if (wsFolderPath) {
-		/* Execute a task */
-		vscode.tasks.executeTask(spresenseTasks[wsFolderPath][label]);
+	if (!wsFolderPath) {
+		/* Canceled */
+		return;
 	}
+
+	vscode.tasks.fetchTasks().then((tasks: vscode.Task[]) => {
+		const targetTask = tasks.find((task) => {
+			return task.scope &&
+				   task.scope !== vscode.TaskScope.Global &&
+				   task.scope !== vscode.TaskScope.Workspace &&
+				   task.name === label &&
+				   task.scope.uri.fsPath === wsFolderPath;
+		});
+
+		if (targetTask) {
+			/* Execute a task */
+			vscode.tasks.executeTask(targetTask);
+		}
+	});
 }
 
 /* For Spresense workspace commands */
@@ -1272,9 +1290,6 @@ export function activate(context: vscode.ExtensionContext) {
 			event.added.forEach((addedFolder) => {
 				/* Create several json files for new folder */
 				spresenseEnvSetup(context, addedFolder.uri);
-
-				/* Update registered all tasks for button */
-				vscode.tasks.fetchTasks().then(registerSpresenseTasks);
 			});
 		}));
 
@@ -1295,9 +1310,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		/* Register Commands */
 		registerSpresenseCommands(context);
-
-		/* Register all tasks for button */
-		vscode.tasks.fetchTasks().then(registerSpresenseTasks);
 
 		/* Enable Spresense IDE */
 		vscode.commands.executeCommand('setContext', 'spresenseIdeEnabled', true);

@@ -8,10 +8,10 @@ APPNAME = __app_name__
 PRIORITY = $(CONFIG___APP_NAME___PRIORITY)
 STACKSIZE = $(CONFIG___APP_NAME___STACKSIZE)
 
-ASRCS =
-CSRCS = $(wildcard *.c) $(wildcard */*.c)
-CXXSRCS = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
 MAINSRC = __app_name___main.c
+ASRCS =
+CSRCS = $(filter-out $(MAINSRC),$(wildcard *.c) $(wildcard */*.c))
+CXXSRCS = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
 
 CFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
 CXXFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
