@@ -371,6 +371,10 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
 	cortexDebug['preLaunchTask'] = taskCleanFlashLabel;
 	cortexDebug['configFiles'] = ['interface/cmsis-dap.cfg', '${config:spresense.sdk.tools.path}/cxd5602.cfg'];
 	cortexDebug['svdFile'] = '${config:spresense.sdk.tools.path}/SVD/cxd5602.svd';
+	cortexDebug['debuggerArgs'] = [
+		'-ix',
+		'.vscode/.gdbinit'
+	];
 	cortexDebug['overrideRestartCommands'] = [
 		"monitor sleep 3000",
 		"load",
