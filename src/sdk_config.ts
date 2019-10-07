@@ -69,19 +69,6 @@ export function activate(context: vscode.ExtensionContext) {
 			SDKConfigView.createOrShow(context.extensionPath, config, SDKConfigView.kernelMode);
 		})
 	);
-
-	context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((textDoc: vscode.TextDocument) => {
-		if (detectSpresenseSDK()) {
-			const wsFolder = vscode.workspace.getWorkspaceFolder(textDoc.uri);
-			if (wsFolder) {
-				if (path.basename(textDoc.fileName) === 'sdk.config') {
-					SDKConfigView.createOrShow(context.extensionPath, textDoc.fileName, SDKConfigView.sdkMode);
-				} else if (path.basename(textDoc.fileName) === 'kernel.config') {
-					SDKConfigView.createOrShow(context.extensionPath, textDoc.fileName, SDKConfigView.kernelMode);
-				}
-			}
-		}
-	}));
 }
 
 /**
