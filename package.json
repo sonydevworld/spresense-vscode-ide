@@ -216,6 +216,16 @@
 					"when": "spresenseIdeEnabled",
 					"command": "spresense.flash",
 					"group": "12_SpresenseBuild@1"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.sdkconfig",
+					"group": "13_SpresenseConfig@1"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.kernelconfig",
+					"group": "13_SpresenseConfig@2"
 				}
 			]
 		}
