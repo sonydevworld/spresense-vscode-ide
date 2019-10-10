@@ -330,13 +330,26 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	}
 }
 
-async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
+/**
+ * Update launch.json file for application debug
+ *
+ * This function update a launch.json file for debugging application code
+ * with ICE JTAG.
+ * Replace rules:
+ *
+ * @param newFolderUri Path to target project folder
+ * @returns true if success to update, false otherwise.
+ */
+
+async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
+	const sdkFolder = getFirstFolderPath();
+	const vsocodeFolder = path.join(newFolderUri.fsPath, '.vscode');
 	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
 	let cortexDebug: ConfigInterface = {};
 	let elfFile: string | undefined;
 
-	if (!vscode.workspace.workspaceFolders) {
-		return;
+	if (!vscode.workspace.workspaceFolders || !sdkFolder) {
+		return false;
 	}
 
 	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
@@ -366,6 +379,16 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 
 	/* Apply into tasks.json */
 	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
+
+	try {
+		/* Copy Spresense specific .gdbinit */
+		fs.copyFileSync(path.join(sdkFolder, 'sdk', '.gdbinit'), path.join(vsocodeFolder, '.gdbinit'));
+	} catch (err) {
+		vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
+		return false;
+	}
+
+	return true;
 }
 
 function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
@@ -1245,7 +1268,9 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	await sdkTaskConfig(folderUri, context);
 
 	/* For debug */
-	await sdkLaunchConfig(folderUri);
+	if (! await sdkLaunchConfig(folderUri)) {
+		return;
+	}
 
 	/* Create file for storing spresense environment */
 	createSpresenseConfFile(folderPath);

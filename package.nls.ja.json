@@ -21,6 +21,7 @@
 	"spresense.command.burn.bootloader": "Spresense: ブートローダの書き込み",
 
 	"spresense.src.cpp.config.error": "Spresense拡張機能が破損しています。再インストールしてください。",
+	"spresense.src.debug.gdbinit.error": ".gdbinitファイルをコピーできませんでした。",
 	"spresense.src.create.app.error.file": "ファイルの作成中にエラーが発生しました。{0}.",
 	"spresense.src.create.app.input": "アプリケーションの名前を入力してください。 {0}",
 	"spresense.src.create.app.worker": "ワーカーの名前を入力してください。 {0}",
