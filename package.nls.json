@@ -1,6 +1,6 @@
 {
-	"spresense.property.sdk.path.title": "SDK Path",
-	"spresense.property.sdk.path.desc": "SDK path: Location about spresense sdk repository(This parmeter will auto generate. Do not modify)",
+	"spresense.property.sdk.path.title": "SDK Path(Automatically generated, please do not change this parameter.)",
+	"spresense.property.sdk.path.desc": "SDK path: Location about spresense sdk repository(Automatically generated, please do not change this parameter.)",
 	"spresense.property.sdk.tools.path.title": "SDK Tools Path",
 	"spresense.property.sdk.tools.path.desc": "SDK tools path: Location about spresense sdk tools directory that contain debug configuration files.(This parmeter will auto generate. Do not modify)",
 	"spresense.property.env.toolchain.path.title": "Env Toolchain Path",

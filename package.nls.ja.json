@@ -1,6 +1,6 @@
 {
-	"spresense.property.sdk.path.title": "SDKパス",
-	"spresense.property.sdk.path.desc": "Spresenseリポジトリへのパスを設定します。（自動で設定されているものを使用してください。）",
+	"spresense.property.sdk.path.title": "SDKパス(このパラメータは自動生成されます。変更しないでください。)",
+	"spresense.property.sdk.path.desc": "Spresenseリポジトリへのパスを設定します。(このパラメータは自動生成されます。変更しないでください。)",
 	"spresense.property.sdk.tools.path.title": "SDKツールパス",
 	"spresense.property.sdk.tools.path.desc": "SDKツールへのお使いのOSに依存したパスを設定します。(自動で設定されているものを使用してください。)",
 	"spresense.property.env.toolchain.path.title": "ツールチェインパス",

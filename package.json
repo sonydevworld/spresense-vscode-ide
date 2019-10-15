@@ -40,14 +40,14 @@
 				"properties": {
 					"spresense.sdk.path": {
 						"type": "string",
-						"default": "Do/not/modify",
+						"default": "",
 						"title": "%spresense.property.sdk.path.title%",
 						"description": "%spresense.property.sdk.path.desc%",
 						"scope": "window"
 					},
 					"spresense.sdk.tools.path": {
 						"type": "string",
-						"default": "Do/not/modify",
+						"default": "",
 						"title": "%spresense.property.sdk.tools.path.title%",
 						"description": "%spresense.property.sdk.tools.path.desc%",
 						"scope": "window"
