@@ -64,7 +64,7 @@
 						"default": "",
 						"title": "%spresense.property.msys.path.title%",
 						"description": "%spresense.property.msys.path.desc%",
-						"scope": "window"
+						"scope": "application"
 					},
 					"spresense.flashing.speed": {
 						"type": "string",
@@ -101,7 +101,7 @@
 						"type": "string",
 						"default": "/dev/ttyUSB0",
 						"description": "%serial.property.port%",
-						"scope": "window"
+						"scope": "application"
 					}
 				}
 			}
