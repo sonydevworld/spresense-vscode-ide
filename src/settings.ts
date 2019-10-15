@@ -616,7 +616,7 @@ async function prepareBootloader(context: vscode.ExtensionContext) {
 	}
 
 	/* Show pop up for confirm to jump download page at browser */
-	const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.bootloader.confirm", "To install the bootloader, you must download the bootloader archive with a web browser. Are you sure to open the download page? {0}", downloadUrl), "OK", "Cancel");
+	const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.bootloader.confirm", "To install the bootloader, you must download the bootloader archive with a web browser. Are you sure to open the download page? {0}", downloadUrl), { modal: true }, "OK");
 	if (reply === 'OK') {
 		/* Jump to download page */
 		vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(downloadUrl));

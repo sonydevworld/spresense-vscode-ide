@@ -303,7 +303,7 @@ class SDKConfigView {
 
 		if (getPythonPath() === undefined) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.python",
-				"Couldn't find necessary tools."));
+				"Couldn't find necessary tools."), { modal: true });
 			return;
 		}
 
