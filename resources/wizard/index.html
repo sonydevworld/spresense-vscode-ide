@@ -48,7 +48,7 @@
                                 <div class="wizard-item-form" id="wizard-sdk-path-form">
                                     <form name="sdkpath">
                                         <input type="text" class="folder-box" name="path">
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('sdk-path')">
                                     </form>
                                 </div>
                             </div>
@@ -66,7 +66,7 @@
                                 <div class="wizard-item-form" id="wizard-project-path-form">
                                     <form name="projectpath">
                                         <input type="text" class="folder-box" name="path">
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('project-path')">
                                     </form>
                                 </div>
                             </div>
@@ -84,7 +84,7 @@
                                 <div class="wizard-item-form" id="wizard-msys2-path-form">
                                     <form name="msys2path">
                                         <input type="text" class="folder-box" name="path">
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('msys2-path')">
                                     </form>
                                 </div>
                             </div>
@@ -94,13 +94,14 @@
                 <!-- Operation buttons -->
                 <div id="wizard-footer">
                     <div>
-                        <input type="button" value="Cancel">
+                        <input class="operation-button" name="cancelButton" type="button" value="Cancel" onclick="handleButton('Cancel')">
                     </div>
                     <div>
-                        <input type="button" value="Create" disabled>
+                        <input class="operation-button" name="createButton" type="button" value="Create"  onclick="handleButton('Create')" disabled>
                     </div>
                 </div>
             </div>
         </div>
+        <script src="__WORKSPACE_WIZARD_SCRIPT__"></script>
     </body>
 </html>
