@@ -21,6 +21,9 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+
+const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
@@ -36,6 +39,7 @@ export function deactivate() {
 }
 
 class WorkspaceWizard {
+
     public static currentPanel: WorkspaceWizard | undefined;
 
     public static readonly viewType = 'WorkspaceWizardView';
@@ -72,10 +76,30 @@ class WorkspaceWizard {
         this._panel = panel;
         
         this._panel.onDidDispose(() => this.dispose(), null, undefined);
+
+        this._panel.webview.html = this.getViewContent();
     }
 
     private dispose() {
         WorkspaceWizard.currentPanel = undefined;
         this._panel.dispose();
+    }
+
+    private getViewContent(): string {
+        if (!this._resourcePath) {
+            /* TODO: Show error message */
+            return "";
+        }
+
+        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
+			scheme: 'vscode-resource'
+        });
+
+        let content = fs.readFileSync(path.join(this._resourcePath, 'index.html')).toString();
+
+        /* Replace style sheet Uri */
+        content = content.replace(WS_STYLE_SHEET_URI, cssUri.toString());
+
+        return content;
     }
 }
