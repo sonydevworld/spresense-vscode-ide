@@ -20,13 +20,62 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
+    const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
+
 	/* Register workspace setup wizard command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.workspace.wizard', () => {
-
+        /* Open Workspace wizard */
+        WorkspaceWizard.openWizard(resourcePath);
 	}));
 }
 
 export function deactivate() {
+}
+
+class WorkspaceWizard {
+    public static currentPanel: WorkspaceWizard | undefined;
+
+    public static readonly viewType = 'WorkspaceWizardView';
+
+    private readonly _panel: vscode.WebviewPanel;
+    private readonly _resourcePath: string | undefined;
+
+    public static openWizard(resourcePath: string) {
+        const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
+
+        if (WorkspaceWizard.currentPanel) {
+            WorkspaceWizard.currentPanel._panel.reveal(column);
+            return;
+        }
+
+        const panel = vscode.window.createWebviewPanel(
+            WorkspaceWizard.viewType,
+            "Workspace setup wizard",
+            column || vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [
+                    vscode.Uri.file(resourcePath)
+                ]
+            });
+
+        /* Create new panel */
+        WorkspaceWizard.currentPanel = new WorkspaceWizard(panel, resourcePath);
+    }
+
+    private constructor(panel: vscode.WebviewPanel, resourcePath: string) {
+        this._resourcePath = resourcePath;
+        this._panel = panel;
+        
+        this._panel.onDidDispose(() => this.dispose(), null, undefined);
+    }
+
+    private dispose() {
+        WorkspaceWizard.currentPanel = undefined;
+        this._panel.dispose();
+    }
 }
