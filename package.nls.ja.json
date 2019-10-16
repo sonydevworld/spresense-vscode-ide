@@ -93,5 +93,7 @@
 	"sdkconfig.src.menu.new": "新規作成",
 	"sdkconfig.src.menu.save": "保存",
 	"sdkconfig.src.menu.load": "読み込み...",
-	"sdkconfig.src.menu.saveas": "名前を付けて保存..."
+	"sdkconfig.src.menu.saveas": "名前を付けて保存...",
+
+	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード"
 }

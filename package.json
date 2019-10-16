@@ -171,6 +171,10 @@
 			{
 				"command": "spresense.kernelconfig",
 				"title": "%sdkconfig.command.kernelconfig.title%"
+			},
+			{
+				"command": "spresense.workspace.wizard",
+				"title": "%spresense.workspace.wizard.title%"
 			}
 		],
 		"menus": {

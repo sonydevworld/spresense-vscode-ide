@@ -20,33 +20,13 @@
  */
 
 import * as vscode from 'vscode';
-import * as settings from './settings';
-import * as serial_terminal from './serial_terminal';
-import * as sdk_config from './sdk_config';
-import * as wizard_workspace from './wizard_workspace';
-
 
 export function activate(context: vscode.ExtensionContext) {
-	/* Activate Spresense settings */
-	settings.activate(context);
+	/* Register workspace setup wizard command */
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.workspace.wizard', () => {
 
-	/* Activate Serial terminal */
-	serial_terminal.activate(context);
-
-	/* Activate SDK Config */
-	sdk_config.activate(context);
-
-	/* Activate Workspace Wizard */
-	wizard_workspace.activate(context);
+	}));
 }
 
 export function deactivate() {
-	/* Deactivate Spresense settings */
-	settings.deactivate();
-
-	/* Deactivate Serial terminal */
-	serial_terminal.deactivate();
-
-	/* Deactivate Workspace Wizard */
-	wizard_workspace.deactivate();
 }

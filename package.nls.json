@@ -93,5 +93,7 @@
 	"sdkconfig.src.menu.new": "New",
 	"sdkconfig.src.menu.save": "Save",
 	"sdkconfig.src.menu.load": "Load...",
-	"sdkconfig.src.menu.saveas": "Save as..."
+	"sdkconfig.src.menu.saveas": "Save as...",
+
+	"spresense.workspace.wizard.title": "Spresense: Workspace setup wizard"
 }
