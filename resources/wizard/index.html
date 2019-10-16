@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" type="text/css" href="__WORKSPACE_WIZARD_STYLE_SHEET__">
+        <title>Configuration</title>
+        <style>
+            body {
+                /* Windows */
+                /*
+                font-family: Consolas, "Courier New", monospace;
+                font-size: 14;
+                font-weight: normal;
+                */
+        
+                /* mac, linux */
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", ans-serif;
+                font-size: 13px;
+                font-weight: normal;
+            }
+        </style>
+    </head>
+
+    <body>
+
+
+        <div class="background">
+            <div class="wizard-dialog">
+                <!-- Title -->
+                <div id="wizard-header">
+                    <h1>Workspace setup wizard</h1>
+                </div>
+
+                <!-- Configurations -->
+                <div id="wizard-body">
+
+                    <!-- SDK PATH Setting -->
+                    <div class="wizard-item" id="sdk-path">
+                            <div class="wizard-item-label" id="wizard-sdk-path-label">
+                                <h3>Spresense SDK Path</h3>
+                            </div>
+                            <div class="wizard-item-body" id="wizard-sdk-path-body">
+                                <div class="wizard-item-description" id="wizard-sdk-path-description">
+                                    Spresense SDK Path Description
+                                </div>
+                                <div class="wizard-item-form" id="wizard-sdk-path-form">
+                                    <form name="sdkpath">
+                                        <input type="text" class="folder-box" name="path">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                    </form>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Project PATH Setting -->
+                    <div class="wizard-item" id="project-path">
+                            <div class="wizard-item-label" id="wizard-project-path-label">
+                                <h3>Project folder path</h3>
+                            </div>
+                            <div class="wizard-item-body" id="wizard-project-path-body">
+                                <div class="wizard-item-description" id="wizard-project-path-description">
+                                    Project folder path description
+                                </div>
+                                <div class="wizard-item-form" id="wizard-project-path-form">
+                                    <form name="projectpath">
+                                        <input type="text" class="folder-box" name="path">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                    </form>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- MSYS2 PATH Setting -->
+                    <div class="wizard-item" id="msys2-path">
+                            <div class="wizard-item-label" id="wizard-msys2-path-label">
+                                <h3>MSYS2 install path</h3>
+                            </div>
+                            <div class="wizard-item-body" id="wizard-msys2s-path-body">
+                                <div class="wizard-item-description" id="wizard-msys2-path-description">
+                                    Msys2 path description
+                                </div>
+                                <div class="wizard-item-form" id="wizard-msys2-path-form">
+                                    <form name="msys2path">
+                                        <input type="text" class="folder-box" name="path">
+                                        <input type="button" class="folder-button" name="button" value="Select" onclick="">
+                                    </form>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <!-- Operation buttons -->
+                <div id="wizard-footer">
+                    <div>
+                        <input type="button" value="Cancel">
+                    </div>
+                    <div>
+                        <input type="button" value="Create" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

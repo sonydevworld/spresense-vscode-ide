@@ -1,0 +1,70 @@
+.background {
+    display: block;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0,0.4);
+}
+
+.wizard-dialog {
+    width: 600px;
+    height: 75%;
+    background-color: #fefefe;
+    color: rgb(32, 32, 32);
+    margin: 30px auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 10px 10px 10px 10px;
+}
+
+#wizard-header {
+    text-align: left;
+}
+
+#wizard-body {
+    display: inherit;
+    margin: 30px auto;
+    height: calc(100% - 140px);
+}
+
+.wizard-item {
+    display: inline;
+}
+
+.wizard-item-body {
+    margin-left: 10px;
+}
+
+.wizard-item-description {
+    margin: 10px auto;
+}
+
+.folder-box {
+    width: 70%;
+}
+
+.folder-button {
+    width: 10%;
+}
+
+#wizard-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+
+#wizard-footer > div {
+    color: rgb(64, 64, 64);
+    text-align: center;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+#wizard-footer > div:hover {
+    cursor: pointer;
+}
