@@ -23,6 +23,8 @@
 
 #wizard-header {
     text-align: left;
+    font-weight: bold;
+    font-size: large;
 }
 
 #wizard-body {
@@ -33,10 +35,16 @@
 
 .wizard-item {
     display: inline;
+    margin: 20px;
 }
 
 .wizard-item-body {
     margin-left: 10px;
+}
+
+.wizard-item-label {
+    font-weight: bold;
+    font-size: medium;
 }
 
 .wizard-item-description {

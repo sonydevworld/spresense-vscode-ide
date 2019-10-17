@@ -95,5 +95,13 @@
 	"sdkconfig.src.menu.load": "読み込み...",
 	"sdkconfig.src.menu.saveas": "名前を付けて保存...",
 
-	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード"
+	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード",
+	"spresense.workspace.wizard.label": "ワークスペースセットアップウィザード",
+	"spresense.workspace.wizard.sdk.label": "Spresense SDK パス",
+	"spresense.workspace.wizard.sdk.desc": "ダウンロードあるいはクローンしたSpresense SDKのパスを指定してください。 (例：/home/myspresense/spresense). ",
+	"spresense.workspace.wizard.project.label": "プロジェクトフォルダーパス",
+	"spresense.workspace.wizard.project.desc": "作成するアプリケーションを保存するプロジェクトフォルダーのパスを指定してください。",
+	"spresense.workspace.wizard.select.button": "参照",
+	"spresense.workspace.wizard.create.button": "作成",
+	"spresense.workspace.wizard.cancel.button": "キャンセル"
 }

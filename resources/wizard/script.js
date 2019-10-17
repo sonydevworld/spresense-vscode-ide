@@ -39,14 +39,15 @@ function addVscodeEventListner() {
     window.addEventListener('message', event => {
         const message = event.data;
 
-        if ('command' in message && 'id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+        if ('command' in message) {
             switch (message.command) {
                 case 'selectFolder':
-                    /* Update textbox */
-                    PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
-
-                    /* Update dialog state */
-                    updateState();
+                    /* Update folder box text */
+                    updateFolderText(message);
+                    break;
+                case 'updateText':
+                    /* Update description text */
+                    updateText(message);
                     break;
             }
         }
@@ -74,6 +75,23 @@ function addButtonEventListner() {
         // Cancel to create workspace
         vscode.postMessage({command: "cancel"});
     });
+}
+
+function updateText(message) {
+    if ('id' in message && 'text' in message) {
+        var item = document.getElementById(message.id);
+        item.textContent = message.text;
+    }
+}
+
+function updateFolderText(message) {
+    if ('id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+        /* Update textbox */
+        PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+
+        /* Update dialog state */
+        updateState();
+    }
 }
 
 function updateState() {

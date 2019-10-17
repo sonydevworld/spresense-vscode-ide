@@ -23,6 +23,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+import * as nls from './localize';
+
 const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
 const WS_SCRIPT_URI = '__WORKSPACE_WIZARD_SCRIPT__';
 const NONCE = '__NONCE__';
@@ -33,6 +35,9 @@ const MSYS2_PATH_ID = 'msys2-path';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
+
+    /* Localize config */
+    nls.config(context);
 
 	/* Register workspace setup wizard command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.workspace.wizard', () => {
@@ -65,7 +70,7 @@ class WorkspaceWizard {
 
         const panel = vscode.window.createWebviewPanel(
             WorkspaceWizard.viewType,
-            "Workspace setup wizard",
+            nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"),
             column || vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -87,6 +92,8 @@ class WorkspaceWizard {
         this._panel.onDidDispose(() => this.dispose(), null, undefined);
 
         this._panel.webview.html = this.getViewContent();
+
+        this.updateAllDescription();
     }
 
     private dispose() {
@@ -138,6 +145,43 @@ class WorkspaceWizard {
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         }
         return text;
+    }
+
+    private updateDescriptionById(id:string, text: string) {
+        /* Post description message */
+        this._panel.webview.postMessage({command: 'updateText', id: id, text: text});
+    }
+
+    private updateAllDescription() {
+        interface LocaleInterface {
+            [key: string]: string;
+        }
+
+        const locale: LocaleInterface = {
+            'wizard-header':
+                nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"),
+            'wizard-sdk-path-label':
+                nls.localize("spresense.workspace.wizard.sdk.label", "Spresense SDK Path"),
+            'wizard-sdk-path-description':
+                nls.localize("spresense.workspace.wizard.sdk.desc", "Please select Spresense SDK path (e.g. /home/myspresense/spresense)"),
+            'sdk-path-button':
+                nls.localize("spresense.workspace.wizard.select.button", "Select"),
+            'wizard-project-path-label':
+                nls.localize("spresense.workspace.wizard.project.label", "Project folder path"),
+            'wizard-project-path-description':
+                nls.localize("spresense.workspace.wizard.project.desc", "Please select Project folder path."),
+            'project-path-button':
+                nls.localize("spresense.workspace.wizard.select.button", "Select"),
+            'create-button':
+                nls.localize("spresense.workspace.wizard.create.button", "Create"),
+            'cancel-button':
+                nls.localize("spresense.workspace.wizard.cancel.button", "Cancel")
+            
+        };
+    
+        Object.keys(locale).forEach((key) => {
+            this.updateDescriptionById(key, locale[key]);
+        })
     }
 
     private postSelectedFolder(id: string, path: string) {
