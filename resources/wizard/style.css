@@ -65,6 +65,36 @@
     font-size: 14px;
 }
 
-#wizard-footer > div:hover {
+.enabledButton {
+    display: inline-block;
+    padding: 0.5em 1em;
+    text-decoration: none;
+    background: rgb(230, 226, 221);
+    color: black;
+    border: 1px solid #888;
+    border-radius: 3px;
+    border-bottom: solid 1px rgb(105, 103, 100);
+}
+
+.enabledButton:active {
+    background: rgb(167, 163, 160);
+    transform: translateY(1px);
+    box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
+    border-bottom: none;
+}
+
+.enabledButton:hover {
+    border: 1px solid black;
     cursor: pointer;
+}
+
+.disabledButton {
+    display: inline-block;
+    padding: 0.5em 1em;
+    text-decoration: none;
+    background: rgb(230, 226, 221);
+    color: gray;
+    border: 1px solid #888;
+    border-radius: 3px;
+    border-bottom: solid 1px rgb(105, 103, 100);
 }

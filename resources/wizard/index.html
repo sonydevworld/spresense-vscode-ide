@@ -48,7 +48,7 @@
                                 <div class="wizard-item-form" id="wizard-sdk-path-form">
                                     <form name="sdkpath">
                                         <input type="text" class="folder-box" name="path" readonly>
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('sdk-path')">
+                                        <div class="enabledButton" id="sdk-path-button">Select</div>
                                     </form>
                                 </div>
                             </div>
@@ -66,7 +66,7 @@
                                 <div class="wizard-item-form" id="wizard-project-path-form">
                                     <form name="projectpath">
                                         <input type="text" class="folder-box" name="path" readonly>
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('project-path')">
+                                        <div class="enabledButton" id="project-path-button">Select</div>
                                     </form>
                                 </div>
                             </div>
@@ -84,7 +84,7 @@
                                 <div class="wizard-item-form" id="wizard-msys2-path-form">
                                     <form name="msys2path">
                                         <input type="text" class="folder-box" name="path" readonly>
-                                        <input type="button" class="folder-button" name="button" value="Select" onclick="openFolder('msys2-path')">
+                                        <div class="enabledButton" id="msys2-path-button">Select</div>
                                     </form>
                                 </div>
                             </div>
@@ -94,10 +94,10 @@
                 <!-- Operation buttons -->
                 <div id="wizard-footer">
                     <div>
-                        <input class="operation-button" name="cancelButton" id="cancelButton" type="button" value="Cancel" onclick="handleButton('Cancel')">
+                        <div class="enabledButton" id="cancel-button">Cancel</div>
                     </div>
                     <div>
-                        <input class="operation-button" name="createButton" id="createButton" type="button" value="Create"  onclick="handleButton('Create')" disabled>
+                        <div class="disabledButton" id="create-button">Create</div>
                     </div>
                 </div>
             </div>

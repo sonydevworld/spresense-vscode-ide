@@ -27,29 +27,73 @@ const PROJECT_WIZARD_TABLE = {
     'msys2-path': msys2path,
 }
 
-window.addEventListener('message', event => {
-    const message = event.data;
+function main() {
+    /* Event listner for communicate with vscode */
+    addVscodeEventListner();
 
-    if ('command' in message && 'id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
-        switch (message.command) {
-            case 'selectFolder':
-                /* Update textbox */
-                PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+    /* Evento listner for button */
+    addButtonEventListner();
+}
 
-                /* Update dialog state */
-                updateState();
-                break;
+function addVscodeEventListner() {
+    window.addEventListener('message', event => {
+        const message = event.data;
+
+        if ('command' in message && 'id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+            switch (message.command) {
+                case 'selectFolder':
+                    /* Update textbox */
+                    PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+
+                    /* Update dialog state */
+                    updateState();
+                    break;
+            }
         }
-    }
-});
+    });
+}
+
+function addButtonEventListner() {
+    /* SDK Path button */
+    document.getElementById('sdk-path-button').addEventListener("click", () => {
+        openFolder('sdk-path');
+    });
+
+    /* Project Path button */
+    document.getElementById('project-path-button').addEventListener("click", () => {
+        openFolder('project-path');
+    });
+
+    /* MSYS2 Path button */
+    document.getElementById('msys2-path-button').addEventListener("click", () => {
+        openFolder('msys2-path');
+    });
+
+    /* MSYS2 Path button */
+    document.getElementById('cancel-button').addEventListener("click", () => {
+        // Cancel to create workspace
+        vscode.postMessage({command: "cancel"});
+    });
+}
 
 function updateState() {
-    var createBtn = document.getElementById('createButton');
+    var createBtn = document.getElementById('create-button');
 
     if (sdkpath.path.value !== "" && projectpath.path.value !== "") {
-        createBtn.removeAttribute("disabled");
+        // Change button to enable
+        createBtn.className = "enabledButton"
+
+        // Enable event
+        createBtn.addEventListener("click", () => {
+            // Create workspace with settings
+            doCreate();
+        });
     } else {
-        createBtn.setAttribute("disabled");
+        // Change button to disable
+        createBtn.className = "disabledButton"
+
+        // Disable event
+        createBtn.removeEventListener();
     }
 }
 
@@ -71,15 +115,4 @@ function doCreate() {
     vscode.postMessage({command: "create", settings: settings});
 }
 
-function handleButton(id) {
-    switch (id) {
-        case 'Create':
-            // Create workspace with settings
-            doCreate();
-            return;
-        case 'Cancel':
-            // Cancel to create workspace
-            vscode.postMessage({command: "cancel"});
-            return;
-    }
-}
+main();
