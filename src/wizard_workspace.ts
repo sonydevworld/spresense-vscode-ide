@@ -33,6 +33,9 @@ const NONCE = '__NONCE__';
 const SDK_PATH_ID = 'sdk-path';
 const PROJECT_PATH_ID = 'project-path';
 
+const SDK_PATH_HISTORY_KEY = 'spresense.history.sdk.path';
+const PROJECT_PATH_HISTORY_KEY = 'spresense.history.project.path';
+
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
 
@@ -42,8 +45,8 @@ export function activate(context: vscode.ExtensionContext) {
 	/* Register workspace setup wizard command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.workspace.wizard', () => {
         /* Open Workspace wizard */
-        WorkspaceWizard.openWizard(resourcePath);
-	}));
+        WorkspaceWizard.openWizard(resourcePath, context.globalState);
+    }));
 }
 
 export function deactivate() {
@@ -57,10 +60,11 @@ class WorkspaceWizard {
 
     private readonly _panel: vscode.WebviewPanel;
     private readonly _resourcePath: string | undefined;
+    private readonly _globalState: vscode.Memento | undefined;
 
 	private _disposables: vscode.Disposable[] = [];
 
-    public static openWizard(resourcePath: string) {
+    public static openWizard(resourcePath: string, globalState: vscode.Memento) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         if (WorkspaceWizard.currentPanel) {
@@ -81,12 +85,13 @@ class WorkspaceWizard {
             });
 
         /* Create new panel */
-        WorkspaceWizard.currentPanel = new WorkspaceWizard(panel, resourcePath);
+        WorkspaceWizard.currentPanel = new WorkspaceWizard(panel, resourcePath, globalState);
     }
 
-    private constructor(panel: vscode.WebviewPanel, resourcePath: string) {
+    private constructor(panel: vscode.WebviewPanel, resourcePath: string, globalState: vscode.Memento) {
         this._resourcePath = resourcePath;
         this._panel = panel;
+        this._globalState = globalState;
 
         this._panel.webview.onDidReceiveMessage(this.handleWebViewEvents, this, this._disposables);
         this._panel.onDidDispose(() => this.dispose(), null, undefined);
@@ -223,10 +228,20 @@ class WorkspaceWizard {
         if ('id' in message && 'path' in message) {
             switch (message.id) {
                 case SDK_PATH_ID:
-                    // TODO: Store previous path into defaultUri
+                    if (this._globalState) {
+                        const sdkPath: string | undefined = this._globalState.get(SDK_PATH_HISTORY_KEY);
+                        if (sdkPath) {
+                            defaultUri = vscode.Uri.file(sdkPath);
+                        }
+                    }
                     break;
                 case PROJECT_PATH_ID:
-                    // TODO: Store previous path into defaultUri
+                    if (this._globalState) {
+                        const prjPath: string | undefined = this._globalState.get(PROJECT_PATH_HISTORY_KEY);
+                        if (prjPath) {
+                            defaultUri = vscode.Uri.file(prjPath);
+                        }
+                    }
                     break;
                 default:
                     console.log("ERR");
@@ -262,6 +277,12 @@ class WorkspaceWizard {
                 {uri: vscode.Uri.file(sdkPath)},
                 {uri: vscode.Uri.file(projectPath)}
                 );
+
+            if (this._globalState) {
+                /* Store path into history */
+                this._globalState.update(SDK_PATH_HISTORY_KEY, sdkPath);
+                this._globalState.update(PROJECT_PATH_HISTORY_KEY, path.dirname(projectPath));
+            }
 
             /* Close wizard */
             this.dispose();
