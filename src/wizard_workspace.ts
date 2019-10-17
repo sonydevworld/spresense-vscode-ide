@@ -95,6 +95,13 @@ class WorkspaceWizard {
         this._panel.webview.html = this.getViewContent();
 
         this.updateAllDescription();
+
+        /* If workspace is already opened, show error message to close current workspace */
+        if (vscode.workspace.workspaceFolders &&
+            vscode.workspace.workspaceFolders.length > 0) {
+            /* Post description message */
+            this._panel.webview.postMessage({command: 'disableWizard'});
+        }
     }
 
     private dispose() {
@@ -159,6 +166,8 @@ class WorkspaceWizard {
         }
 
         const locale: LocaleInterface = {
+            'wizard-error':
+                nls.localize("spresense.workspace.wizard.error", "This setup wizard is working on empty window. Please close opened workspace first."),
             'wizard-header':
                 nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"),
             'wizard-sdk-path-label':

@@ -53,6 +53,9 @@ function addVscodeEventListner() {
                     /* Update description text */
                     updateText(message);
                     break;
+                case 'disableWizard':
+                    disableWizardDialog();
+                    break;
             }
         }
     });
@@ -79,6 +82,11 @@ function addButtonEventListner() {
         // Cancel to create workspace
         vscode.postMessage({command: "cancel"});
     });
+}
+
+function disableWizardDialog() {
+    document.getElementById("wizard-body").style.display = 'none';
+    document.getElementById("wizard-error").style.display = 'inherit';
 }
 
 function updateText(message) {

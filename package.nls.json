@@ -97,6 +97,7 @@
 
 	"spresense.workspace.wizard.title": "Spresense: Workspace setup wizard",
 	"spresense.workspace.wizard.label": "Workspace setup wizard",
+	"spresense.workspace.wizard.error": "This setup wizard is working on empty window. Please close opened workspace first.",
 	"spresense.workspace.wizard.sdk.label": "Spresense SDK Path",
 	"spresense.workspace.wizard.sdk.desc": "Please select your Spresense SDK folder path (e.g. /home/myspresense/spresense). If you did not download it, please download.",
 	"spresense.workspace.wizard.sdk.error": "Invalid SDK Path selected. Please re-select correct SDK path.",

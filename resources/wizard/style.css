@@ -27,6 +27,14 @@
     font-size: large;
 }
 
+#wizard-error {
+    display: none;
+    margin: 30px auto;
+    text-align: justify;
+    height: calc(100% - 140px);
+    font-size: medium;
+}
+
 #wizard-body {
     display: inherit;
     margin: 30px auto;
