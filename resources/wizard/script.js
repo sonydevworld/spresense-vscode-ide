@@ -73,11 +73,13 @@ function addButtonEventListner() {
         openFolder(PROJECT_PATH_ID);
     });
 
-    /* MSYS2 Path button */
+    /* Cancel button */
     document.getElementById('cancel-button').addEventListener("click", () => {
         // Cancel to create workspace
         vscode.postMessage({command: "cancel"});
     });
+
+    /* Create button will handle by updateState() */
 }
 
 function disableWizardDialog() {
