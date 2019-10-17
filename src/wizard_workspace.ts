@@ -25,6 +25,7 @@ import * as fs from 'fs';
 
 const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
 const WS_SCRIPT_URI = '__WORKSPACE_WIZARD_SCRIPT__';
+const NONCE = '__NONCE__';
 
 const SDK_PATH_ID = 'sdk-path';
 const PROJECT_PATH_ID = 'project-path';
@@ -114,15 +115,29 @@ class WorkspaceWizard {
 			scheme: 'vscode-resource'
         });
 
+        const nonce = this.getNonce();
+
         let content = fs.readFileSync(path.join(this._resourcePath, 'index.html')).toString();
 
         /* Replace style sheet Uri */
-        content = content.replace(WS_STYLE_SHEET_URI, cssUri.toString());
+        content = content.replace(new RegExp(WS_STYLE_SHEET_URI, "g"), cssUri.toString());
 
         /* Replace script Uri */
-        content = content.replace(WS_SCRIPT_URI, scriptUri.toString());
+        content = content.replace(new RegExp(WS_SCRIPT_URI, "g"), scriptUri.toString());
+
+        /* Replace script content */
+        content = content.replace(new RegExp(NONCE, "g"), nonce);
 
         return content;
+    }
+
+    private getNonce(): string {
+        let text = '';
+        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (let i = 0; i < 32; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
     }
 
     private postSelectedFolder(id: string, path: string) {
