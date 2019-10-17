@@ -72,6 +72,14 @@
     width: 10%;
 }
 
+#environment-problems {
+    display: none;
+}
+
+#wizard-environment-problems-description {
+    color: red;
+}
+
 #wizard-footer {
     display: flex;
     flex-direction: row;

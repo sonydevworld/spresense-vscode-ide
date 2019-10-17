@@ -23,12 +23,10 @@ const vscode = acquireVsCodeApi();
 
 const SDK_PATH_ID = 'sdk-path';
 const PROJECT_PATH_ID = 'project-path';
-const MSYS2_PATH_ID = 'msys2-path';
 
 const PROJECT_WIZARD_TABLE = {
     [SDK_PATH_ID]: sdkpath,
     [PROJECT_PATH_ID]: projectpath,
-    [MSYS2_PATH_ID]: msys2path,
 }
 
 function main() {
@@ -56,6 +54,9 @@ function addVscodeEventListner() {
                 case 'disableWizard':
                     disableWizardDialog();
                     break;
+                case 'showProblems':
+                    showProblems();
+                    break;
             }
         }
     });
@@ -70,11 +71,6 @@ function addButtonEventListner() {
     /* Project Path button */
     document.getElementById('project-path-button').addEventListener("click", () => {
         openFolder(PROJECT_PATH_ID);
-    });
-
-    /* MSYS2 Path button */
-    document.getElementById('msys2-path-button').addEventListener("click", () => {
-        openFolder(MSYS2_PATH_ID);
     });
 
     /* MSYS2 Path button */
@@ -134,6 +130,10 @@ function updateState() {
         // Disable event
         createBtn.removeEventListener();
     }
+}
+
+function showProblems() {
+    document.getElementById("environment-problems").style.display = 'inline';
 }
 
 function openFolder(id) {

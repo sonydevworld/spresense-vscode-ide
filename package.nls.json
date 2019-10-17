@@ -105,5 +105,7 @@
 	"spresense.workspace.wizard.project.desc": "Please select project folder path to create your application.",
 	"spresense.workspace.wizard.select.button": "Select",
 	"spresense.workspace.wizard.create.button": "Create",
-	"spresense.workspace.wizard.cancel.button": "Cancel"
+	"spresense.workspace.wizard.cancel.button": "Cancel",
+	"spresense.workspace.wizard.problems.label": "Problems",
+	"spresense.workspace.wizard.problems.desc": "Necessary setting 'MSYS2 path' is not set yet. Please set MSYS2 path by 'F1' -> 'Spresense: Set MSYS install location'."
 }

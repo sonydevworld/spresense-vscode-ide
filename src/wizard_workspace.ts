@@ -32,7 +32,6 @@ const NONCE = '__NONCE__';
 
 const SDK_PATH_ID = 'sdk-path';
 const PROJECT_PATH_ID = 'project-path';
-const MSYS2_PATH_ID = 'msys2-path';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
@@ -101,6 +100,13 @@ class WorkspaceWizard {
             vscode.workspace.workspaceFolders.length > 0) {
             /* Post description message */
             this._panel.webview.postMessage({command: 'disableWizard'});
+        }
+
+        /* If MSYS2 path is not set in windows environment, show message to set it */
+        if (process.platform === 'win32' &&
+            !vscode.workspace.getConfiguration().get('spresense.msys.path')) {
+            /* Send request to show problems */
+            this._panel.webview.postMessage({command: 'showProblems'});
         }
     }
 
@@ -187,8 +193,11 @@ class WorkspaceWizard {
             'create-button':
                 nls.localize("spresense.workspace.wizard.create.button", "Create"),
             'cancel-button':
-                nls.localize("spresense.workspace.wizard.cancel.button", "Cancel")
-            
+                nls.localize("spresense.workspace.wizard.cancel.button", "Cancel"),
+            'wizard-environment-problems-label':
+                nls.localize("spresense.workspace.wizard.problems.label", "Problems"),
+            'wizard-environment-problems-description':
+                nls.localize("spresense.workspace.wizard.problems.desc", "Environment problems message")
         };
     
         Object.keys(locale).forEach((key) => {
@@ -219,9 +228,6 @@ class WorkspaceWizard {
                 case PROJECT_PATH_ID:
                     // TODO: Store previous path into defaultUri
                     break;
-                case MSYS2_PATH_ID:
-                    // TODO: Store previous path into defaultUri
-                    break;
                 default:
                     console.log("ERR");
                     return;
@@ -248,7 +254,6 @@ class WorkspaceWizard {
         if ('settings' in message) {
             const sdkPath = message.settings[SDK_PATH_ID];
             const projectPath = message.settings[PROJECT_PATH_ID];
-            const msys2Path = message.settings[MSYS2_PATH_ID];
 
             /* Create workspace */
             vscode.workspace.updateWorkspaceFolders(
