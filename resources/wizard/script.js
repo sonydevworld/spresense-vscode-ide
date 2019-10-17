@@ -33,11 +33,25 @@ window.addEventListener('message', event => {
     if ('command' in message && 'id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
         switch (message.command) {
             case 'selectFolder':
+                /* Update textbox */
                 PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+
+                /* Update dialog state */
+                updateState();
                 break;
         }
     }
 });
+
+function updateState() {
+    var createBtn = document.getElementById('createButton');
+
+    if (sdkpath.path.value !== "" && projectpath.path.value !== "") {
+        createBtn.removeAttribute("disabled");
+    } else {
+        createBtn.setAttribute("disabled");
+    }
+}
 
 function openFolder(id) {
     if (id in PROJECT_WIZARD_TABLE) {
@@ -46,11 +60,22 @@ function openFolder(id) {
     }
 }
 
+function doCreate() {
+    const keys = Object.keys(PROJECT_WIZARD_TABLE);
+    let settings = {};
+
+    keys.forEach((key) => {
+        settings[key] = PROJECT_WIZARD_TABLE[key].path.value;
+    });
+
+    vscode.postMessage({command: "create", settings: settings});
+}
+
 function handleButton(id) {
     switch (id) {
         case 'Create':
             // Create workspace with settings
-            vscode.postMessage({command: "create"});
+            doCreate();
             return;
         case 'Cancel':
             // Cancel to create workspace

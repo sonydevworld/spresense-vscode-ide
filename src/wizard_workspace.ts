@@ -125,6 +125,13 @@ class WorkspaceWizard {
         return content;
     }
 
+    private postSelectedFolder(id: string, path: string) {
+        /* TODO: Check selected folder */
+
+        /* Post selected folder message */
+        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path});
+    }
+
     private handleOpenFolder(message: any) {
         let defaultUri: vscode.Uri | undefined;
 
@@ -155,9 +162,28 @@ class WorkspaceWizard {
                 canSelectMany: false
             }).then((uri) => {
                 if (uri) {
-                    this._panel.webview.postMessage({command: 'selectFolder', id: message.id, path: uri[0].fsPath});
+                    this.postSelectedFolder(message.id, uri[0].fsPath);
                 }
             });
+        }
+    }
+
+    private handleCreateWorkspace(message:any) {
+        if ('settings' in message) {
+            const sdkPath = message.settings[SDK_PATH_ID];
+            const projectPath = message.settings[PROJECT_PATH_ID];
+            const msys2Path = message.settings[MSYS2_PATH_ID];
+
+            /* Create workspace */
+            vscode.workspace.updateWorkspaceFolders(
+                0,
+                0,
+                {uri: vscode.Uri.file(sdkPath)},
+                {uri: vscode.Uri.file(projectPath)}
+                );
+
+            /* Close wizard */
+            this.dispose();
         }
     }
 
@@ -166,6 +192,9 @@ class WorkspaceWizard {
             switch (message.command) {
                 case 'openFolder':
                     this.handleOpenFolder(message);
+                    return;
+                case 'create':
+                    this.handleCreateWorkspace(message);
                     return;
                 case 'cancel':
                     this.dispose();
