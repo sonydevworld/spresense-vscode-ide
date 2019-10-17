@@ -1079,28 +1079,6 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 }
 
 /**
- * Check spresense sdk folder
- *
- * This function detecting folder as spresense sdk or not.
- *
- * @param folderPath Path to target folder for detecting.
- * @returns If target folder is spresense sdk, return true. If not, return false.
- */
-
-function isSpresenseSdkFolder(folderPath: string): boolean {
-	/* If first folder is spresense, set sdk path to settings */
-	if (fs.existsSync(path.join(folderPath, 'sdk'))
-		&& fs.existsSync(path.join(folderPath, 'nuttx'))
-		&& fs.statSync(path.join(folderPath, 'sdk')).isDirectory()
-		&& fs.statSync(path.join(folderPath, 'nuttx')).isDirectory()) {
-		/* This folder is spresense sdk */
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/**
  * Check Msys folder
  *
  * This function detecting folder as Msys install path or not.
@@ -1375,4 +1353,26 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+}
+
+/**
+ * Check spresense sdk folder
+ *
+ * This function detecting folder as spresense sdk or not.
+ *
+ * @param folderPath Path to target folder for detecting.
+ * @returns If target folder is spresense sdk, return true. If not, return false.
+ */
+
+export function isSpresenseSdkFolder(folderPath: string): boolean {
+	/* If first folder is spresense, set sdk path to settings */
+	if (fs.existsSync(path.join(folderPath, 'sdk'))
+		&& fs.existsSync(path.join(folderPath, 'nuttx'))
+		&& fs.statSync(path.join(folderPath, 'sdk')).isDirectory()
+		&& fs.statSync(path.join(folderPath, 'nuttx')).isDirectory()) {
+		/* This folder is spresense sdk */
+		return true;
+	} else {
+		return false;
+	}
 }

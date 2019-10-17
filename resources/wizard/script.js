@@ -21,10 +21,14 @@
 
 const vscode = acquireVsCodeApi();
 
+const SDK_PATH_ID = 'sdk-path';
+const PROJECT_PATH_ID = 'project-path';
+const MSYS2_PATH_ID = 'msys2-path';
+
 const PROJECT_WIZARD_TABLE = {
-    'sdk-path': sdkpath,
-    'project-path': projectpath,
-    'msys2-path': msys2path,
+    [SDK_PATH_ID]: sdkpath,
+    [PROJECT_PATH_ID]: projectpath,
+    [MSYS2_PATH_ID]: msys2path,
 }
 
 function main() {
@@ -57,17 +61,17 @@ function addVscodeEventListner() {
 function addButtonEventListner() {
     /* SDK Path button */
     document.getElementById('sdk-path-button').addEventListener("click", () => {
-        openFolder('sdk-path');
+        openFolder(SDK_PATH_ID);
     });
 
     /* Project Path button */
     document.getElementById('project-path-button').addEventListener("click", () => {
-        openFolder('project-path');
+        openFolder(PROJECT_PATH_ID);
     });
 
     /* MSYS2 Path button */
     document.getElementById('msys2-path-button').addEventListener("click", () => {
-        openFolder('msys2-path');
+        openFolder(MSYS2_PATH_ID);
     });
 
     /* MSYS2 Path button */
@@ -85,7 +89,16 @@ function updateText(message) {
 }
 
 function updateFolderText(message) {
-    if ('id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+    if ('id' in message && 'path' in message && 'result' in message && message.id in PROJECT_WIZARD_TABLE) {
+        if (message.id === SDK_PATH_ID) {
+            var sdkErr = document.getElementById('sdk-path-error');
+
+            if (message.result === 'OK') {
+                sdkErr.style.display = 'none';
+            } else {
+                sdkErr.style.display = 'inline';
+            }
+        }
         /* Update textbox */
         PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
 
@@ -97,7 +110,7 @@ function updateFolderText(message) {
 function updateState() {
     var createBtn = document.getElementById('create-button');
 
-    if (sdkpath.path.value !== "" && projectpath.path.value !== "") {
+    if (isReadyToCreate()) {
         // Change button to enable
         createBtn.className = "enabledButton"
 
@@ -131,6 +144,22 @@ function doCreate() {
     });
 
     vscode.postMessage({command: "create", settings: settings});
+}
+
+function isReadyToCreate() {
+    var sdkErr = document.getElementById('sdk-path-error');
+
+    /* If not complete to select all path, cannot create */
+    if (sdkpath.path.value === "" || projectpath.path.value === "") {
+        return false;
+    }
+
+    /* If SDK path select invalid path, cannot create */
+    if (sdkErr.style.display !== 'none') {
+        return false;
+    }
+
+    return true;
 }
 
 main();

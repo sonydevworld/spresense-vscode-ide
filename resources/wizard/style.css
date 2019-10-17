@@ -51,6 +51,11 @@
     margin: 10px auto;
 }
 
+.wizard-item-error-message {
+    display: none;
+    color: red;
+}
+
 .folder-box {
     width: 70%;
 }

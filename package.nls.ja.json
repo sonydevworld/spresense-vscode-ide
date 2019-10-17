@@ -99,6 +99,7 @@
 	"spresense.workspace.wizard.label": "ワークスペースセットアップウィザード",
 	"spresense.workspace.wizard.sdk.label": "Spresense SDK パス",
 	"spresense.workspace.wizard.sdk.desc": "ダウンロードあるいはクローンしたSpresense SDKのパスを指定してください。 (例：/home/myspresense/spresense). ",
+	"spresense.workspace.wizard.sdk.error": "正しくないSpresense SDKのパスが選択されました。例に従い正しいパスを指定してください。",
 	"spresense.workspace.wizard.project.label": "プロジェクトフォルダーパス",
 	"spresense.workspace.wizard.project.desc": "作成するアプリケーションを保存するプロジェクトフォルダーのパスを指定してください。",
 	"spresense.workspace.wizard.select.button": "参照",

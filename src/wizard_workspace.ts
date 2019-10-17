@@ -23,6 +23,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+import * as settings from './settings';
 import * as nls from './localize';
 
 const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
@@ -164,6 +165,8 @@ class WorkspaceWizard {
                 nls.localize("spresense.workspace.wizard.sdk.label", "Spresense SDK Path"),
             'wizard-sdk-path-description':
                 nls.localize("spresense.workspace.wizard.sdk.desc", "Please select Spresense SDK path (e.g. /home/myspresense/spresense)"),
+            'sdk-path-error':
+                nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path."),
             'sdk-path-button':
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
             'wizard-project-path-label':
@@ -185,10 +188,15 @@ class WorkspaceWizard {
     }
 
     private postSelectedFolder(id: string, path: string) {
-        /* TODO: Check selected folder */
+        let result = 'OK';
+
+        /* Check SDK Path */
+        if (id === SDK_PATH_ID && !settings.isSpresenseSdkFolder(path)) {
+            result = 'NG';
+        }
 
         /* Post selected folder message */
-        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path});
+        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path, result: result});
     }
 
     private handleOpenFolder(message: any) {
