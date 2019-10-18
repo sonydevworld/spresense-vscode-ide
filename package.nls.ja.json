@@ -96,7 +96,7 @@
 	"sdkconfig.src.menu.saveas": "名前を付けて保存...",
 
 	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード",
-	"spresense.workspace.wizard.label": "ワークスペースセットアップウィザード",
+	"spresense.workspace.wizard.label": "ワークスペースの作成",
 	"spresense.workspace.wizard.error": "このセットアップウィザードは新しいウィンドウで使うことができます。 開いているワークスペースを閉じてから再度ウィザードを開いてください。",
 	"spresense.workspace.wizard.sdk.label": "Spresense SDK パス",
 	"spresense.workspace.wizard.sdk.desc": "ダウンロードあるいはクローンしたSpresense SDKのパスを指定してください。 (例：/home/myspresense/spresense). ",
