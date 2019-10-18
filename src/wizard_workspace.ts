@@ -23,8 +23,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import * as settings from './settings';
 import * as nls from './localize';
+import * as common from './common';
 
 const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
 const WS_SCRIPT_URI = '__WORKSPACE_WIZARD_SCRIPT__';
@@ -214,7 +214,7 @@ class WorkspaceWizard {
         let result = 'OK';
 
         /* Check SDK Path */
-        if (id === SDK_PATH_ID && !settings.isSpresenseSdkFolder(path)) {
+        if (id === SDK_PATH_ID && !common.isSpresenseSdkFolder(path)) {
             result = 'NG';
         }
 

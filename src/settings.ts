@@ -27,6 +27,7 @@ import * as md5 from 'md5';
 import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
+import * as common from './common';
 
 const spresenseExtInterfaceVersion: number = 1000;
 
@@ -238,7 +239,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	}
 
 	/* If folder is not a SDK's onem, it is app folder */
-	isAppfolder = !isSpresenseSdkFolder(newFolderPath);
+	isAppfolder = !common.isSpresenseSdkFolder(newFolderPath);
 
 	/* Build Kernel Task */
 	buildKenelTask['label'] = taskBuildKernelLabel;
@@ -371,7 +372,7 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
 		return false;
 	}
 
-	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
+	if (common.isSpresenseSdkFolder(newFolderUri.fsPath)) {
 		/* SDK task definition */
 		elfFile = 'sdk/nuttx';
 	} else {
@@ -1111,7 +1112,7 @@ function isSpresenseEnvironment() {
 	}
 
 	/* If first folder is spresense, set sdk path to settings */
-	if (isSpresenseSdkFolder(firstFolder)) {
+	if (common.isSpresenseSdkFolder(firstFolder)) {
 		return true;
 	} else {
 		if (fs.existsSync(path.join(firstFolder, '.vscode', 'spresense_prj.json'))) {
@@ -1244,7 +1245,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
-	if (isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
+	if (common.isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
 		/* Remove 2nd Spresense SDK folder */
 		removeWorkspaceFolder(folderUri);
 
@@ -1290,7 +1291,7 @@ function checkErrorUsage() {
 	}
 
 	wsFolders.slice(1).forEach((folder) => {
-		if (isSpresenseSdkFolder(folder.uri.fsPath)) {
+		if (common.isSpresenseSdkFolder(folder.uri.fsPath)) {
 			/* If new folder is spresense sdk repository,
 			 * inform usage about spresense extension.
 			 */
@@ -1353,26 +1354,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-}
-
-/**
- * Check spresense sdk folder
- *
- * This function detecting folder as spresense sdk or not.
- *
- * @param folderPath Path to target folder for detecting.
- * @returns If target folder is spresense sdk, return true. If not, return false.
- */
-
-export function isSpresenseSdkFolder(folderPath: string): boolean {
-	/* If first folder is spresense, set sdk path to settings */
-	if (fs.existsSync(path.join(folderPath, 'sdk'))
-		&& fs.existsSync(path.join(folderPath, 'nuttx'))
-		&& fs.statSync(path.join(folderPath, 'sdk')).isDirectory()
-		&& fs.statSync(path.join(folderPath, 'nuttx')).isDirectory()) {
-		/* This folder is spresense sdk */
-		return true;
-	} else {
-		return false;
-	}
 }
