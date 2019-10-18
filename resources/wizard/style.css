@@ -39,6 +39,7 @@
     display: inherit;
     margin: 30px auto;
     height: calc(100% - 140px);
+    overflow: auto;
 }
 
 .wizard-item {
