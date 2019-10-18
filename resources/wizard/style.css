@@ -66,11 +66,9 @@
 }
 
 .folder-box {
-    width: 70%;
-}
-
-.folder-button {
-    width: 10%;
+    width: 85%;
+    height: 26px;
+    font-size: 16px;
 }
 
 #environment-problems {
