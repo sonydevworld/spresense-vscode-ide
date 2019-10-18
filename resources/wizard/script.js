@@ -33,8 +33,11 @@ function main() {
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
 
-    /* Evento listner for button */
+    /* Event listner for button */
     addButtonEventListner();
+
+    /* Event listner for textbox */
+    addTextboxEventListner();
 }
 
 function addVscodeEventListner() {
@@ -46,6 +49,10 @@ function addVscodeEventListner() {
                 case 'selectFolder':
                     /* Update folder box text */
                     updateFolderText(message);
+                    break;
+                case 'updateResult':
+                    /* Update path checker result */
+                    updateResult(message);
                     break;
                 case 'updateText':
                     /* Update description text */
@@ -82,6 +89,16 @@ function addButtonEventListner() {
     /* Create button will handle by updateState() */
 }
 
+function addTextboxEventListner() {
+    Object.keys(PROJECT_WIZARD_TABLE).forEach((item) => {
+        const form = PROJECT_WIZARD_TABLE[item];
+        form.addEventListener("keyup", () => {
+            // post updated path
+            vscode.postMessage({command: "updatePath", id: item, path: form.path.value});
+        });
+    });
+}
+
 function disableWizardDialog() {
     document.getElementById("wizard-body").style.display = 'none';
     document.getElementById("wizard-error").style.display = 'inherit';
@@ -95,7 +112,17 @@ function updateText(message) {
 }
 
 function updateFolderText(message) {
-    if ('id' in message && 'path' in message && 'result' in message && message.id in PROJECT_WIZARD_TABLE) {
+    if ('id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+        /* Update textbox */
+        PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+
+        /* Update dialog state */
+        updateState();
+    }
+}
+
+function updateResult(message) {
+    if ('id' in message && 'result' in message && message.id in PROJECT_WIZARD_TABLE) {
         if (message.id === SDK_PATH_ID) {
             var sdkErr = document.getElementById('sdk-path-error');
 
@@ -105,8 +132,6 @@ function updateFolderText(message) {
                 sdkErr.style.display = 'inline';
             }
         }
-        /* Update textbox */
-        PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
 
         /* Update dialog state */
         updateState();

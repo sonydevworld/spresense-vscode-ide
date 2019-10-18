@@ -213,13 +213,24 @@ class WorkspaceWizard {
     private postSelectedFolder(id: string, path: string) {
         let result = 'OK';
 
+        /* Post selected folder message */
+        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path});
+
+        /* Selected path check */
+        this.postCheckerResult(id, path);
+    }
+
+    private postCheckerResult(id: string, path: string) {
+        let result = 'OK';
+
         /* Check SDK Path */
         if (id === SDK_PATH_ID && !common.isSpresenseSdkFolder(path)) {
             result = 'NG';
         }
 
-        /* Post selected folder message */
-        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path, result: result});
+        /* Post path checker result */
+        this._panel.webview.postMessage({command: 'updateResult', id: id, result: result});
+
     }
 
     private handleOpenFolder(message: any) {
@@ -294,6 +305,9 @@ class WorkspaceWizard {
             switch (message.command) {
                 case 'openFolder':
                     this.handleOpenFolder(message);
+                    return;
+                case 'updatePath':
+                    this.postCheckerResult(message.id, message.path);
                     return;
                 case 'create':
                     this.handleCreateWorkspace(message);
