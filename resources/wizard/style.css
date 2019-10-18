@@ -125,4 +125,5 @@
     border: 1px solid #888;
     border-radius: 3px;
     border-bottom: solid 1px rgb(105, 103, 100);
+    cursor: default;
 }
