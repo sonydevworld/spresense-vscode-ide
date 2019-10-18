@@ -146,16 +146,13 @@ function updateState() {
         createBtn.className = "enabledButton"
 
         // Enable event
-        createBtn.addEventListener("click", () => {
-            // Create workspace with settings
-            doCreate();
-        });
+        createBtn.addEventListener("click", doCreate);
     } else {
         // Change button to disable
         createBtn.className = "disabledButton"
 
         // Disable event
-        createBtn.removeEventListener();
+        createBtn.removeEventListener("click", doCreate);
     }
 }
 
