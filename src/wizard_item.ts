@@ -24,6 +24,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 const STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
+const SCRIPT_URI = '__WIZARD_SCRIPT__';
+const NONCE = '__NONCE__';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
@@ -105,12 +107,33 @@ class ItemWizard {
 			scheme: 'vscode-resource'
         });
 
+        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'item_script.js')).with({
+			scheme: 'vscode-resource'
+        });
+
+        const nonce = this.getNonce();
+
         let content = fs.readFileSync(path.join(this._resourcePath, 'item.html')).toString();
 
         /* Replace style sheet Uri */
         content = content.replace(new RegExp(STYLE_SHEET_URI, "g"), cssUri.toString());
 
+        /* Replace script Uri */
+        content = content.replace(new RegExp(SCRIPT_URI, "g"), scriptUri.toString());
+
+        /* Replace script content */
+        content = content.replace(new RegExp(NONCE, "g"), nonce);
+
         return content;
+    }
+
+    private getNonce(): string {
+        let text = '';
+        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        for (let i = 0; i < 32; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
     }
 
     private handleWebViewEvents(message: any) {
