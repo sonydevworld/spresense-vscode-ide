@@ -175,6 +175,10 @@
 			{
 				"command": "spresense.workspace.wizard",
 				"title": "%spresense.workspace.wizard.title%"
+			},
+			{
+				"command": "spresense.item.wizard",
+				"title": "%spresense.item.wizard.title%"
 			}
 		],
 		"menus": {

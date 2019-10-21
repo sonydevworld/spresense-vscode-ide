@@ -107,5 +107,7 @@
 	"spresense.workspace.wizard.create.button": "作成",
 	"spresense.workspace.wizard.cancel.button": "キャンセル",
 	"spresense.workspace.wizard.problems.label": "問題",
-	"spresense.workspace.wizard.problems.desc": "お使いの環境ではMSYS2のパスを設定する必要があります。 'F1' -> 'MSYS2パス' にてコマンドを実行し、MSYS2のパスを設定してください。"
+	"spresense.workspace.wizard.problems.desc": "お使いの環境ではMSYS2のパスを設定する必要があります。 'F1' -> 'MSYS2パス' にてコマンドを実行し、MSYS2のパスを設定してください。",
+
+	"spresense.item.wizard.title": "Spresense: アイテムの追加ウィザード"
 }

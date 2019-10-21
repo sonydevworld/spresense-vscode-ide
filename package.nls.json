@@ -107,5 +107,7 @@
 	"spresense.workspace.wizard.create.button": "Create",
 	"spresense.workspace.wizard.cancel.button": "Cancel",
 	"spresense.workspace.wizard.problems.label": "Problems",
-	"spresense.workspace.wizard.problems.desc": "Necessary setting 'MSYS2 path' is not set yet. Please set MSYS2 path by 'F1' -> 'Spresense: Set MSYS install location'."
+	"spresense.workspace.wizard.problems.desc": "Necessary setting 'MSYS2 path' is not set yet. Please set MSYS2 path by 'F1' -> 'Spresense: Set MSYS install location'.",
+
+	"spresense.item.wizard.title": "Spresense: Create new Item wizard"
 }
