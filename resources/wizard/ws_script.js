@@ -88,7 +88,7 @@ function addTextboxEventListner() {
 }
 
 function disableWizardDialog() {
-    document.getElementById("wizard-body").style.display = 'none';
+    document.getElementById("wizard-configuration-body").style.display = 'none';
     document.getElementById("wizard-error").style.display = 'inherit';
 }
 

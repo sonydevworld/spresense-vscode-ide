@@ -179,7 +179,7 @@ class WorkspaceWizard {
         const locale: LocaleInterface = {
             'wizard-error':
                 nls.localize("spresense.workspace.wizard.error", "This setup wizard is working on empty window. Please close opened workspace first."),
-            'wizard-header':
+            'workspace-wizard-header':
                 nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"),
             'wizard-sdk-path-label':
                 nls.localize("spresense.workspace.wizard.sdk.label", "Spresense SDK Path"),
