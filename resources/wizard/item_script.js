@@ -31,6 +31,14 @@ const WIZARD_PAGES = [
         [ITEM_TYPE_ASMP_WORKER]: 'wizard-page3-2'
     }];
 
+const APP_COMMAND_BOX_ID = 'wizard-app-command-name-box';
+const ASMP_WORKER_BOX_ID = 'wizard-asmp-worker-name-box';
+const ASMP_APP_BOX_ID = 'wizard-asmp-app-name-box';
+const ALL_TEXTBOX_ID = [
+    APP_COMMAND_BOX_ID,
+    ASMP_WORKER_BOX_ID,
+    ASMP_APP_BOX_ID];
+
 var currentPage = 0;
 var currentType = ITEM_TYPE_APP_COMMAND;
 
@@ -107,14 +115,19 @@ function addPageEventListner() {
         });
     });
 
-    var all_textbox = ['wizard-app-command-name-box', 'wizard-asmp-worker-name-box', 'wizard-asmp-app-name-box'];
-    all_textbox.forEach((name) => {
+    /* Textbox event */
+    ALL_TEXTBOX_ID.forEach((name) => {
         var textbox = document.getElementById(name);
         textbox.addEventListener("keyup", () => {
             vscode.postMessage({command: "checkItemName", id:name, text:textbox.value});
         });
     });
 
+    /* Checkbox event */
+    var checkbox = document.getElementById('wizard-item-checkbox');
+    checkbox.addEventListener("click", () => {
+        setAsmpSampleEnabled(checkbox.checked);
+    });
 
 }
 
@@ -176,6 +189,16 @@ function setProjectFolder(folder) {
 
 function setItemType(type) {
     currentType = type;
+}
+
+function setAsmpSampleEnabled(enable) {
+    vscode.postMessage({command: "debug", log:enable});
+    var setting = document.getElementById('asmp-app-name');
+    if (enable) {
+        setting.style.display = 'inherit';
+    } else {
+        setting.style.display = 'none';
+    }
 }
 
 main();
