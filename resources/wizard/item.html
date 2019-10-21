@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" type="text/css" href="__WIZARD_STYLE_SHEET__">
+        <title>Add item wizard</title>
+        <style>
+            body {
+                /* Windows */
+                /*
+                font-family: Consolas, "Courier New", monospace;
+                font-size: 14;
+                font-weight: normal;
+                */
+        
+                /* mac, linux */
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", ans-serif;
+                font-size: 13px;
+                font-weight: normal;
+            }
+        </style>
+    </head>
+
+    <body>
+
+
+        <div class="background">
+            <div class="wizard-dialog">
+                <!-- Title -->
+                <div class="wizard-header" id="wizard-title">
+                    Add item wizard
+                </div>
+
+                <!-- Error message -->
+                <div class="wizard-body" id="wizard-error">
+                    This setup wizard is working on spresense workspace. Please setup spresense workspace first.
+                </div>
+
+                <!-- Page 1 (Project selector) -->
+                <div class="wizard-body" id="wizard-page1">
+                    <div class="wizard-item-description" id="wizard-sdk-path-description">
+                            Please select project name for creating item.
+                    </div>
+                    <div class="wizard-radio-form">
+                        <!-- <div class="wizard-radio-button">
+                            <input type="radio" name="select-project" value="project1">
+                            <label>Project1</label>
+                        </div> -->
+                    </div>
+                </div>
+
+                <!-- Page 2 (Item selector) -->
+                <div class="wizard-body" id="wizard-page2">
+                    <div class="wizard-item-description" id="wizard-sdk-path-description">
+                            Please select the type of item you want to add.
+                    </div>
+                    <div class="wizard-radio-form">
+                        <!-- Application command option -->
+                        <div class="wizard-radio-button">
+                            <input type="radio" name="select-item" value="app-command" checked>
+                            <label id="app-command-label">Application Command</label>
+                        </div>
+                        <div class="wizard-radio-button-description" id="wizard-app-command-description">
+                                Create a program code to add NuttShell application command.
+                        </div>
+
+                        <!-- ASMP worker option -->
+                        <div class="wizard-radio-button">
+                            <input type="radio" name="select-item" value="asmp-worker">
+                            <label id="asmp-worker-label">ASMP worker program</label>
+                        </div>
+                        <div class="wizard-radio-button-description" id="wizard-asmp-worker-description">
+                                Create a program code to add ASMP worker.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 3-1 (Application command) -->
+                <div class="wizard-body" id="wizard-page3-1">
+                    <div class="wizard-item" id="app-command-name">
+                        <div class="wizard-item-label" id="wizard-app-command-name-label">
+                            Application command name
+                        </div>
+                        <div class="wizard-item-body" id="wizard-app-command-name-body">
+                            <div class="wizard-item-description" id="wizard-app-command-name-description">
+                                Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).
+                            </div>
+                            <div class="wizard-item-error-message" id="app-command-name-error">
+                                Invalid name entered.
+                            </div>
+                            <div class="wizard-item-form" id="wizard-app-command-name-form">
+                                <form name="appCommand">
+                                    <input type="text" class="text-box" name="name" readonly>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page 3-2 (ASMP worker command) -->
+                <div class="wizard-body" id="wizard-page3-2">
+                    <div class="wizard-item" id="asmp-worker-name">
+                        <div class="wizard-item-label" id="wizard-asmp-worker-name-label">
+                            ASMP worker name
+                        </div>
+                        <div class="wizard-item-body" id="wizard-asmp-worker-name-body">
+                            <div class="wizard-item-description" id="wizard-asmp-worker-name-description">
+                                Please input ASMP worker name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).
+                            </div>
+                            <div class="wizard-item-error-message" id="asmp-worker-name-error">
+                                Invalid name entered.
+                            </div>
+                            <div class="wizard-item-form" id="wizard-asmp-worker-name-form">
+                                <form name="asmpWorker">
+                                    <input type="text" class="text-box" name="name" readonly>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="wizard-item" id="asmp-worker-name">
+                        <div class="wizard-item-checkbox">
+                            <input type="checkbox"> Create a sample application command for using this ASMP worker.
+                        </div>
+                        <div class="wizard-item-label" id="wizard-asmp-worker-name-label">
+                            Samplle application name
+                        </div>
+                        <div class="wizard-item-body" id="wizard-asmp-worker-name-body">
+                            <div class="wizard-item-description" id="wizard-asmp-worker-name-description">
+                                Please input application command name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).
+                            </div>
+                            <div class="wizard-item-error-message" id="asmp-worker-name-error">
+                                Invalid name entered.
+                            </div>
+                            <div class="wizard-item-form" id="wizard-asmp-worker-name-form">
+                                <form name="asmpWorker">
+                                    <input type="text" class="text-box" name="name" readonly>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operation buttons -->
+                <div id="wizard-footer">
+                    <div>
+                        <div class="enabledButton" id="left-button">Previous</div>
+                    </div>
+                    <div>
+                        <div class="enabledButton" id="right-button">Next</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

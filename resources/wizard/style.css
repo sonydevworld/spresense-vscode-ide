@@ -53,6 +53,39 @@
     font-size: medium;
 }
 
+.wizard-radio-button {
+    display: block;
+    font-weight: bold;
+    font-size: medium;
+    margin: 20px;
+}
+
+.wizard-item-checkbox {
+    font-size: medium;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.wizard-radio-button-description {
+    margin-left: 10%;
+}
+
+#wizard-page1 {
+    display: inherit;
+}
+
+#wizard-page2 {
+    display: none;
+}
+
+#wizard-page3-1 {
+    display: none;
+}
+
+#wizard-page3-2 {
+    display: none;
+}
+
 .wizard-item-description {
     margin: 10px auto;
 }

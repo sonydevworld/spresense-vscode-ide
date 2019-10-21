@@ -21,6 +21,9 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+
+const STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
@@ -93,7 +96,21 @@ class ItemWizard {
     }
 
     private getViewContent(): string {
-        return "";
+        if (!this._resourcePath) {
+            /* TODO: Show error message */
+            return "";
+        }
+
+        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
+			scheme: 'vscode-resource'
+        });
+
+        let content = fs.readFileSync(path.join(this._resourcePath, 'item.html')).toString();
+
+        /* Replace style sheet Uri */
+        content = content.replace(new RegExp(STYLE_SHEET_URI, "g"), cssUri.toString());
+
+        return content;
     }
 
     private handleWebViewEvents(message: any) {
