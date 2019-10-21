@@ -207,7 +207,7 @@ class WorkspaceWizard {
     
         Object.keys(locale).forEach((key) => {
             this.updateDescriptionById(key, locale[key]);
-        })
+        });
     }
 
     private postSelectedFolder(id: string, path: string) {
