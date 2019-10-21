@@ -21,8 +21,8 @@
 
 const vscode = acquireVsCodeApi();
 
-const ITEM_TYPE_APP_COMMAND = 'app';
-const ITEM_TYPE_ASMP_WORKER = 'asmp';
+const ITEM_TYPE_APP_COMMAND = 'app-command';
+const ITEM_TYPE_ASMP_WORKER = 'asmp-worker';
 const WIZARD_PAGES = [
     'wizard-page1',
     'wizard-page2',
@@ -33,13 +33,14 @@ const WIZARD_PAGES = [
 
 var currentPage = 0;
 var currentType = ITEM_TYPE_APP_COMMAND;
+var currentProject = "";
 
 function main() {
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
 
     /* Evento listner for button */
-    addButtonEventListner();
+    addPageEventListner();
 
     /* Show first page */
     showPage(0);
@@ -77,18 +78,33 @@ function addVscodeEventListner() {
             switch (message.command) {
                 case 'setProjectFolders':
                     setProjectFolders(message);
+                    addButtonEventListner();
                     break;
             }
         }
     });
 }
 
-function addButtonEventListner() {
+function addPageEventListner() {
     /* Left button */
     document.getElementById('left-button').addEventListener("click", doLeftButton);
 
     /* Left button */
     document.getElementById('right-button').addEventListener("click", doRightButton);
+
+    /* Project select radio button event */
+    Array.prototype.forEach.call(document.getElementsByName('select-project'), (radio) => {
+        radio.addEventListener("change", () => {
+            setProjectFolder(radio.value);
+        });
+    });
+
+    /* Item type select radio button event */
+    Array.prototype.forEach.call(document.getElementsByName('select-item'), (radio) => {
+        radio.addEventListener("change", () => {
+            setItemType(radio.value);
+        });
+    });
 }
 
 function doLeftButton() {
@@ -113,7 +129,7 @@ function setProjectFolders(message) {
 
             projectRad.type = 'radio';
             projectRad.name = 'select-project';
-            projectRad.value = folder.name;
+            projectRad.value = folder.path;
 
             projectLb1.className = 'wizard-radio-button-title';
             projectLb1.textContent = folder.name;
@@ -127,6 +143,14 @@ function setProjectFolders(message) {
             projectRot.appendChild(projectSec);
         });
     }
+}
+
+function setProjectFolder(folder) {
+    currentProject = folder;
+}
+
+function setItemType(type) {
+    currentType = type;
 }
 
 main();

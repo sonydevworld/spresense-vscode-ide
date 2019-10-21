@@ -142,7 +142,11 @@ class ItemWizard {
 
     private handleWebViewEvents(message: any) {
         if ('command' in message) {
-
+            switch (message.command) {
+                case 'debug':
+                    console.log(message.log);
+                    break;
+            }
         }
     }
 }
