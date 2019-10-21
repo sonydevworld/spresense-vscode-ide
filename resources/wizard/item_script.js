@@ -33,7 +33,6 @@ const WIZARD_PAGES = [
 
 var currentPage = 0;
 var currentType = ITEM_TYPE_APP_COMMAND;
-var currentProject = "";
 
 function main() {
     /* Event listner for communicate with vscode */
@@ -78,7 +77,9 @@ function addVscodeEventListner() {
             switch (message.command) {
                 case 'setProjectFolders':
                     setProjectFolders(message);
-                    addButtonEventListner();
+                    break;
+                case 'showErrorMessage':
+                    showTextboxErrorMessage(message);
                     break;
             }
         }
@@ -105,6 +106,16 @@ function addPageEventListner() {
             setItemType(radio.value);
         });
     });
+
+    var all_textbox = ['wizard-app-command-name-box', 'wizard-asmp-worker-name-box', 'wizard-asmp-app-name-box'];
+    all_textbox.forEach((name) => {
+        var textbox = document.getElementById(name);
+        textbox.addEventListener("keyup", () => {
+            vscode.postMessage({command: "checkItemName", id:name, text:textbox.value});
+        });
+    });
+
+
 }
 
 function doLeftButton() {
@@ -142,11 +153,25 @@ function setProjectFolders(message) {
             projectSec.appendChild(projectLb2);
             projectRot.appendChild(projectSec);
         });
+
+        addPageEventListner();
+    }
+}
+
+function showTextboxErrorMessage(messgae) {
+    if ('id' in messgae && 'errText' in messgae) {
+        var errBox = document.getElementById(`${messgae.id}-error`);
+        if (messgae.errText === "") {
+            errBox.style.display = 'none';
+        } else {
+            errBox.style.display = 'inherit';
+            errBox.textContent = messgae.errText;
+        }
     }
 }
 
 function setProjectFolder(folder) {
-    currentProject = folder;
+    vscode.postMessage({command: "setProjectFolder", path:folder});
 }
 
 function setItemType(type) {
