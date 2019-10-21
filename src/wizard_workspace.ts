@@ -137,13 +137,13 @@ class WorkspaceWizard {
 			scheme: 'vscode-resource'
         });
 
-        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'script.js')).with({
+        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'ws_script.js')).with({
 			scheme: 'vscode-resource'
         });
 
         const nonce = this.getNonce();
 
-        let content = fs.readFileSync(path.join(this._resourcePath, 'index.html')).toString();
+        let content = fs.readFileSync(path.join(this._resourcePath, 'workspace.html')).toString();
 
         /* Replace style sheet Uri */
         content = content.replace(new RegExp(WS_STYLE_SHEET_URI, "g"), cssUri.toString());
