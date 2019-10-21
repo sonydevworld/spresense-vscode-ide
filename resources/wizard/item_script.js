@@ -21,12 +21,52 @@
 
 const vscode = acquireVsCodeApi();
 
+const ITEM_TYPE_APP_COMMAND = 'app';
+const ITEM_TYPE_ASMP_WORKER = 'asmp';
+const WIZARD_PAGES = [
+    'wizard-page1',
+    'wizard-page2',
+    {
+        [ITEM_TYPE_APP_COMMAND]: 'wizard-page3-1',
+        [ITEM_TYPE_ASMP_WORKER]: 'wizard-page3-2'
+    }];
+
+var currentPage = 0;
+var currentType = ITEM_TYPE_APP_COMMAND;
+
 function main() {
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
 
     /* Evento listner for button */
     addButtonEventListner();
+
+    /* Show first page */
+    showPage(0);
+}
+
+function showPage(idx) {
+    if(idx < 0 || idx >= WIZARD_PAGES.length) {
+        return;
+    }
+
+    var items = document.getElementsByClassName("wizard-body");
+    var page = "";
+    if (typeof WIZARD_PAGES[idx] === 'string') {
+        page = WIZARD_PAGES[idx];
+    } else {
+        page = WIZARD_PAGES[idx][currentType];
+    }
+
+    Array.prototype.forEach.call(items, (item) => {
+        if (item.id === page) {
+            item.style.display = 'inherit';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    currentPage = idx;
 }
 
 function addVscodeEventListner() {
@@ -34,7 +74,11 @@ function addVscodeEventListner() {
         const message = event.data;
 
         if ('command' in message) {
-
+            switch (message.command) {
+                case 'setProjectFolders':
+                    setProjectFolders(message);
+                    break;
+            }
         }
     });
 }
@@ -48,11 +92,41 @@ function addButtonEventListner() {
 }
 
 function doLeftButton() {
-
+    showPage(currentPage - 1);
 }
 
 function doRightButton() {
+    showPage(currentPage + 1);
+}
 
+function setProjectFolders(message) {
+    if ('folders' in message) {
+        var projectRot = document.getElementById("wizard-project-picker");
+
+        message.folders.forEach(folder => {
+            var projectSec = document.createElement("div");
+            var projectRad = document.createElement("input");
+            var projectLb1 = document.createElement("label");
+            var projectLb2 = document.createElement("label");
+
+            projectSec.className = 'wizard-radio-button';
+
+            projectRad.type = 'radio';
+            projectRad.name = 'select-project';
+            projectRad.value = folder.name;
+
+            projectLb1.className = 'wizard-radio-button-title';
+            projectLb1.textContent = folder.name;
+
+            projectLb2.className = 'wizard-radio-button-subtitle';
+            projectLb2.textContent = folder.path;
+
+            projectSec.appendChild(projectRad);
+            projectSec.appendChild(projectLb1);
+            projectSec.appendChild(projectLb2);
+            projectRot.appendChild(projectSec);
+        });
+    }
 }
 
 main();

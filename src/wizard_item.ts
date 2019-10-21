@@ -85,6 +85,8 @@ class ItemWizard {
         this._panel.onDidDispose(() => this.dispose(), null, undefined);
 
         this._panel.webview.html = this.getViewContent();
+
+        this.postWorkspaceFolders();
     }
 
     private dispose() {
@@ -127,6 +129,15 @@ class ItemWizard {
         content = content.replace(new RegExp(NONCE, "g"), nonce);
 
         return content;
+    }
+
+    private postWorkspaceFolders() {
+        const folders = common.getProjectFolders().map((folder) => {
+            return {'name': folder.name, 'path': folder.uri.fsPath};
+        });
+
+        /* Sent project folders information */
+        this._panel.webview.postMessage({command: 'setProjectFolders', folders: folders});
     }
 
     private handleWebViewEvents(message: any) {

@@ -19,6 +19,7 @@
  * --------------------------------------------------------------------------------------------
  */
 
+import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -42,6 +43,27 @@ export function isSpresenseSdkFolder(folderPath: string): boolean {
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Get spresense project folders
+ *
+ * This function getting spresense project folders from current workspace.
+ *
+ * @returns Array of project folder path. If not exist, return [].
+ */
+
+export function getProjectFolders(): vscode.WorkspaceFolder[] {
+	const wsFolders = vscode.workspace.workspaceFolders;
+
+	/* Workspace doesn't have folders */
+	if (!wsFolders || wsFolders.length === 0) {
+		return [];
+	}
+
+	return wsFolders.filter((folder) => {
+		return !isSpresenseSdkFolder(folder.uri.fsPath);
+	});
 }
 
 /**
