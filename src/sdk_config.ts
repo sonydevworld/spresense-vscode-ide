@@ -28,6 +28,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from './shell_exec';
 import * as nls from './localize';
+import * as common from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -811,7 +812,7 @@ class SDKConfigView {
 		const defconfigUri = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js")).with({
 			scheme: 'vscode-resource'
 		});
-		const nonce = getNonce();
+		const nonce = common.getNonce();
 
 		const newStr = nls.localize("sdkconfig.src.menu.new", "New");
 		const saveStr = nls.localize("sdkconfig.src.menu.save", "Save");
@@ -885,13 +886,4 @@ class SDKConfigView {
 </body>
 </html>`;
 	}
-}
-
-function getNonce() {
-	let text = '';
-	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }

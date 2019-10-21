@@ -141,7 +141,7 @@ class WorkspaceWizard {
 			scheme: 'vscode-resource'
         });
 
-        const nonce = this.getNonce();
+        const nonce = common.getNonce();
 
         let content = fs.readFileSync(path.join(this._resourcePath, 'workspace.html')).toString();
 
@@ -155,15 +155,6 @@ class WorkspaceWizard {
         content = content.replace(new RegExp(NONCE, "g"), nonce);
 
         return content;
-    }
-
-    private getNonce(): string {
-        let text = '';
-        const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        for (let i = 0; i < 32; i++) {
-            text += possible.charAt(Math.floor(Math.random() * possible.length));
-        }
-        return text;
     }
 
     private updateDescriptionById(id:string, text: string) {

@@ -43,3 +43,20 @@ export function isSpresenseSdkFolder(folderPath: string): boolean {
 		return false;
 	}
 }
+
+/**
+ * Get one time token for loading javascript
+ *
+ * This function generating a random character for NONCE value.
+ *
+ * @returns 32 digits of random characters.
+ */
+
+export function getNonce() {
+	let text = '';
+	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
