@@ -29,8 +29,11 @@ const STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
 const SCRIPT_URI = '__WIZARD_SCRIPT__';
 const NONCE = '__NONCE__';
 
+const ITEM_TYPE_APP_COMMAND = 'app-command';
+const ITEM_TYPE_ASMP_WORKER = 'asmp-worker';
+
 export function activate(context: vscode.ExtensionContext) {
-    const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
+    const resourcePath = path.join(context.extensionPath, 'resources');
 
 	/* Register item wizard command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.item.wizard', () => {
@@ -107,17 +110,17 @@ class ItemWizard {
             return "";
         }
 
-        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
+        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'style.css')).with({
 			scheme: 'vscode-resource'
         });
 
-        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'item_script.js')).with({
+        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'item_script.js')).with({
 			scheme: 'vscode-resource'
         });
 
         const nonce = common.getNonce();
 
-        let content = fs.readFileSync(path.join(this._resourcePath, 'item.html')).toString();
+        let content = fs.readFileSync(path.join(this._resourcePath, 'wizard', 'item.html')).toString();
 
         /* Replace style sheet Uri */
         content = content.replace(new RegExp(STYLE_SHEET_URI, "g"), cssUri.toString());
@@ -147,6 +150,7 @@ class ItemWizard {
                     this.handleCheckItemName(message);
                     break;
                 case 'createItem':
+                    this.handleCreateItem(message);
                     break;
                 case 'close':
                     this.dispose();
@@ -177,5 +181,27 @@ class ItemWizard {
             /* Post input value result */
             this._panel.webview.postMessage({command: 'showErrorMessage', id: message.id, errText: errorText});
         }
+    }
+
+    private handleCreateItem(message: any) {
+        if (!this._resourcePath) {
+            return;
+        }
+
+        if ('type' in message && 'folder' in message && 'name' in message) {
+            if (message.type === ITEM_TYPE_APP_COMMAND) {
+                /* Create a application template for using new worker */
+                common.createApplicationFiles(message.name, message.folder, path.join(this._resourcePath, 'appfiles'));
+            } else if (message.type === ITEM_TYPE_ASMP_WORKER) {
+                /* Create worker template */
+                common.createWorkerFiles(message.name, message.folder, path.join(this._resourcePath, 'workerfiles', 'worker'));
+                if ('sampleName' in message) {
+                    /* Create a application template for using new worker */
+                    common.createApplicationFiles(message.sampleName, message.folder, path.join(this._resourcePath, 'workerfiles', 'app'));
+                }
+            }
+        }
+
+        this.dispose();
     }
 }

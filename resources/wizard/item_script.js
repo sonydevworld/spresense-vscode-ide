@@ -161,16 +161,32 @@ function doCreate() {
         if (currentType === ITEM_TYPE_APP_COMMAND) {
             var app_name = document.getElementById('wizard-app-command-name-box');
 
-            vscode.postMessage({command: "createItem", type: currentType, name: app_name.value});
+            vscode.postMessage({
+                command: "createItem",
+                type: currentType,
+                folder: currentProject,
+                name: app_name.value
+            });
         } else {
-            var worker_name = document.getElementById('wizard-asmp-app-name-box');
+            var worker_name = document.getElementById('wizard-asmp-worker-name-box');
             var worker_chck = document.getElementById('wizard-item-checkbox');
             var worker_appn = document.getElementById('wizard-asmp-app-name-box');
 
             if (worker_chck.checked) {
-                vscode.postMessage({command: "createItem", type: currentType, name: worker_name.value, sampleName: worker_appn.value});
+                vscode.postMessage({
+                    command: "createItem",
+                    type: currentType,
+                    folder: currentProject,
+                    name: worker_name.value,
+                    sampleName: worker_appn.value
+                });
             } else {
-                vscode.postMessage({command: "createItem", type: currentType, name: worker_name.value});
+                vscode.postMessage({
+                    command: "createItem",
+                    type: currentType,
+                    folder: currentProject,
+                    name: worker_name.value
+                });
             }
         }
     }
