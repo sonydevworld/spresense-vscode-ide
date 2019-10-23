@@ -40,6 +40,7 @@ const ALL_TEXTBOX_ID = [
     ASMP_APP_BOX_ID];
 
 var currentPage = 0;
+var currentProject = "";
 var currentType = ITEM_TYPE_APP_COMMAND;
 
 function main() {
@@ -75,6 +76,30 @@ function showPage(idx) {
     });
 
     currentPage = idx;
+
+    updateButtonState();
+}
+
+function updateButtonState() {
+    var left_button = document.getElementById('left-button');
+    var right_button = document.getElementById('right-button');
+    if (currentPage === WIZARD_PAGES.length - 1) {
+        if (isReadyToCreate()) {
+            right_button.className = "enabledButton";
+        } else {
+            right_button.className = "disabledButton";
+        }
+        left_button.textContent = "Previous";
+        right_button.textContent = "Create";
+    } else if (currentPage === 0) {
+        right_button.className = "enabledButton";
+        left_button.textContent = "Cancel";
+        right_button.textContent = "Next";
+    } else {
+        right_button.className = "enabledButton";
+        left_button.textContent = "Previous";
+        right_button.textContent = "Next";
+    }
 }
 
 function addVscodeEventListner() {
@@ -119,7 +144,7 @@ function addPageEventListner() {
     ALL_TEXTBOX_ID.forEach((name) => {
         var textbox = document.getElementById(name);
         textbox.addEventListener("keyup", () => {
-            vscode.postMessage({command: "checkItemName", id:name, text:textbox.value});
+            vscode.postMessage({command: "checkItemName", project: currentProject, id:name, text:textbox.value});
         });
     });
 
@@ -131,16 +156,46 @@ function addPageEventListner() {
 
 }
 
-function doLeftButton() {
-    showPage(currentPage - 1);
+function doCreate() {
+    if (isReadyToCreate()) {
+        if (currentType === ITEM_TYPE_APP_COMMAND) {
+            var app_name = document.getElementById('wizard-app-command-name-box');
+
+            vscode.postMessage({command: "createItem", type: currentType, name: app_name.value});
+        } else {
+            var worker_name = document.getElementById('wizard-asmp-app-name-box');
+            var worker_chck = document.getElementById('wizard-item-checkbox');
+            var worker_appn = document.getElementById('wizard-asmp-app-name-box');
+
+            if (worker_chck.checked) {
+                vscode.postMessage({command: "createItem", type: currentType, name: worker_name.value, sampleName: worker_appn.value});
+            } else {
+                vscode.postMessage({command: "createItem", type: currentType, name: worker_name.value});
+            }
+        }
+    }
 }
 
 function doRightButton() {
-    showPage(currentPage + 1);
+    if (currentPage === WIZARD_PAGES.length - 1) {
+        /* In last page, right mean 'create' */
+        doCreate();
+    } else {
+        showPage(currentPage + 1);
+    }
+}
+
+function doLeftButton() {
+    if (currentPage === 0) {
+        /* In first page, let mean 'close' */
+        vscode.postMessage({command: "close"});
+    } else {
+        showPage(currentPage - 1);
+    }
 }
 
 function setProjectFolders(message) {
-    if ('folders' in message) {
+    if ('folders' in message && 'selected' in message) {
         var projectRot = document.getElementById("wizard-project-picker");
 
         message.folders.forEach(folder => {
@@ -165,6 +220,12 @@ function setProjectFolders(message) {
             projectSec.appendChild(projectLb1);
             projectSec.appendChild(projectLb2);
             projectRot.appendChild(projectSec);
+
+            /* Check selected item */
+            if (folder.path === message.selected.path) {
+                projectRad.checked = true;
+                currentProject = folder.path;
+            }
         });
 
         addPageEventListner();
@@ -180,11 +241,13 @@ function showTextboxErrorMessage(messgae) {
             errBox.style.display = 'inherit';
             errBox.textContent = messgae.errText;
         }
+
+        updateButtonState();
     }
 }
 
 function setProjectFolder(folder) {
-    vscode.postMessage({command: "setProjectFolder", path:folder});
+    currentProject = folder;
 }
 
 function setItemType(type) {
@@ -192,12 +255,39 @@ function setItemType(type) {
 }
 
 function setAsmpSampleEnabled(enable) {
-    vscode.postMessage({command: "debug", log:enable});
     var setting = document.getElementById('asmp-app-name');
     if (enable) {
         setting.style.display = 'inherit';
     } else {
         setting.style.display = 'none';
+    }
+
+    updateButtonState();
+}
+
+function isAppCommandReadyToCreate() {
+    var app_cmd_name = document.getElementById('wizard-app-command-name-box');
+    var app_cmd_erro = document.getElementById('wizard-app-command-name-box-error');
+
+    return app_cmd_name.value !== "" && app_cmd_erro.style.display === "none";
+}
+
+function isAsmpWorkerReadyToCreate() {
+    var asmp_name = document.getElementById('wizard-asmp-worker-name-box');
+    var asmp_erro = document.getElementById('wizard-asmp-worker-name-box-error');
+    var asmp_app_chk = document.getElementById('wizard-item-checkbox');
+    var asmp_app_name = document.getElementById('wizard-asmp-app-name-box');
+    var asmp_app_erro = document.getElementById('wizard-asmp-app-name-box-error');
+
+    return asmp_name !== "" && asmp_erro.style.display === 'none' &&
+        (!asmp_app_chk.checked || (asmp_app_name !== "" && asmp_app_erro.style.display === 'none'));
+}
+
+function isReadyToCreate() {
+    if (currentType === ITEM_TYPE_APP_COMMAND) {
+        return isAppCommandReadyToCreate();
+    } else {
+        return isAsmpWorkerReadyToCreate();
     }
 }
 

@@ -53,8 +53,6 @@ class ItemWizard {
 
     private _disposables: vscode.Disposable[] = [];
 
-    private _currentProjectFolder: string | undefined;
-
     public static openWizard(resourcePath: string) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
@@ -139,17 +137,19 @@ class ItemWizard {
         });
 
         /* Sent project folders information */
-        this._panel.webview.postMessage({command: 'setProjectFolders', folders: folders});
+        this._panel.webview.postMessage({command: 'setProjectFolders', folders: folders, selected:folders[0]});
     }
 
     private handleWebViewEvents(message: any) {
         if ('command' in message) {
             switch (message.command) {
-                case 'setProjectFolder':
-                    this.handleSetProjectFolder(message);
-                    break;
                 case 'checkItemName':
                     this.handleCheckItemName(message);
+                    break;
+                case 'createItem':
+                    break;
+                case 'close':
+                    this.dispose();
                     break;
                 case 'debug':
                     console.log(message.log);
@@ -158,21 +158,11 @@ class ItemWizard {
         }
     }
 
-    private handleSetProjectFolder(message: any) {
-        if ('path' in message) {
-            this._currentProjectFolder = message.path;
-        }
-    }
-
     private handleCheckItemName(message: any) {
-        if (!this._currentProjectFolder) {
-            return;
-        }
-
-        if ('id' in message && 'text' in message) {
+        if ('id' in message && 'project' in message && 'text' in message) {
             const input = message.text;
             const namePattern = /^[a-zA-Z][\w]*$/;
-            const dirlist = fs.readdirSync(this._currentProjectFolder);
+            const dirlist = fs.readdirSync(message.project);
             const reservedName = ['out', 'Makefile'];
             let errorText: string = "";
 
