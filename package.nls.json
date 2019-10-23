@@ -109,5 +109,22 @@
 	"spresense.workspace.wizard.problems.label": "Problems",
 	"spresense.workspace.wizard.problems.desc": "Necessary setting 'MSYS2 path' is not set yet. Please set MSYS2 path by 'F1' -> 'Spresense: Set MSYS install location'.",
 
-	"spresense.item.wizard.title": "Spresense: Create new Item wizard"
+	"spresense.item.wizard.title": "Spresense: Create new Item wizard",
+	"spresense.item.wizard.label": "Add new item wizard",
+	"spresense.item.wizard.button.previous": "Previous",
+	"spresense.item.wizard.button.next": "Next",
+	"spresense.item.wizard.button.cancel": "Cancel",
+	"spresense.item.wizard.button.create": "Create",
+	"spresense.item.wizard.project.desc": "Please select project name for creating item.",
+	"spresense.item.wizard.type.desc": "Please select the type of item you want to add.",
+	"spresense.item.wizard.app.label": "Application Command",
+	"spresense.item.wizard.app.desc": "Create a program code to add NuttShell application command.",
+	"spresense.item.wizard.asmp.label": "ASMP worker program",
+	"spresense.item.wizard.asmp.desc": "Create a program code to add ASMP worker.",
+	"spresense.item.wizard.app.name.label": "Application command name",
+	"spresense.item.wizard.app.name.desc": "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).",
+	"spresense.item.wizard.asmp.name.label": "ASMP worker name",
+	"spresense.item.wizard.asmp.name.desc": "Please input ASMP worker name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).",
+	"spresense.item.wizard.asmp.sample.check": "Create a sample application command for using this ASMP worker",
+	"spresense.item.wizard.asmp.sample.label": "Samplle application name"
 }

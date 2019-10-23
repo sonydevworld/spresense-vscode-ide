@@ -109,5 +109,22 @@
 	"spresense.workspace.wizard.problems.label": "問題",
 	"spresense.workspace.wizard.problems.desc": "お使いの環境ではMSYS2のパスを設定する必要があります。 'F1' -> 'MSYS2パス' にてコマンドを実行し、MSYS2のパスを設定してください。",
 
-	"spresense.item.wizard.title": "Spresense: アイテムの追加ウィザード"
+	"spresense.item.wizard.title": "Spresense: アイテムの追加ウィザード",
+	"spresense.item.wizard.label": "新しいアイテムの追加",
+	"spresense.item.wizard.button.previous": "戻る",
+	"spresense.item.wizard.button.next": "次へ",
+	"spresense.item.wizard.button.cancel": "キャンセル",
+	"spresense.item.wizard.button.create": "作成",
+	"spresense.item.wizard.project.desc": "アイテムを追加したいプロジェクトを選択してください。",
+	"spresense.item.wizard.type.desc": "追加するアイテムの種類を選択してください。",
+	"spresense.item.wizard.app.label": "アプリケーションコマンド",
+	"spresense.item.wizard.app.desc": "NuttShellのコマンドと、そのコマンドで動作するプログラムを作成します。",
+	"spresense.item.wizard.asmp.label": "ASMPワーカープログラム",
+	"spresense.item.wizard.asmp.desc": "ASMPを使用したサブコア用のプログラムを作成します。",
+	"spresense.item.wizard.app.name.label": "アプリケーションコマンド名",
+	"spresense.item.wizard.app.name.desc": "アプリケーションコマンド名を入力してください。このコマンド名は、NuttShellにて使用できるコマンドになります。使用できる文字はアルファベット(a ~ z, A ~ Z)、数字(0 ~ 9)、アンダースコア(_)です。",
+	"spresense.item.wizard.asmp.name.label": "ASMPワーカー名",
+	"spresense.item.wizard.asmp.name.desc": "ASMPワーカー名を入力してください。このコマンド名は、NuttShellにて使用できるコマンドになります。使用できる文字はアルファベット(a ~ z, A ~ Z)、数字(0 ~ 9)、アンダースコア(_)です。",
+	"spresense.item.wizard.asmp.sample.check": "作成するASMPワーカーを使用したサンプルアプリケーションを作成する",
+	"spresense.item.wizard.asmp.sample.label": "サンプルアプリケーションコマンド名"
 }

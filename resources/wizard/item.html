@@ -32,7 +32,7 @@
             <div class="wizard-dialog">
                 <!-- Title -->
                 <div class="wizard-header" id="wizard-title">
-                    Add item wizard
+                    Add new item wizard
                 </div>
 
                 <!-- Error message -->
@@ -42,7 +42,7 @@
 
                 <!-- Page 1 (Project selector) -->
                 <div class="wizard-body" id="wizard-page1">
-                    <div class="wizard-item-description" id="wizard-sdk-path-description">
+                    <div class="wizard-item-description" id="wizard-project-name-description">
                             Please select project name for creating item.
                     </div>
                     <div class="wizard-radio-form" id="wizard-project-picker">
@@ -56,7 +56,7 @@
 
                 <!-- Page 2 (Item selector) -->
                 <div class="wizard-body" id="wizard-page2">
-                    <div class="wizard-item-description" id="wizard-sdk-path-description">
+                    <div class="wizard-item-description" id="wizard-item-type-description">
                             Please select the type of item you want to add.
                     </div>
                     <div class="wizard-radio-form">
@@ -123,14 +123,14 @@
                         </div>
                     </div>
                     <div class="wizard-item-checkbox-sec">
-                        <input type="checkbox" id="wizard-item-checkbox"> Create a sample application command for using this ASMP worker.
+                        <input type="checkbox" id="wizard-item-checkbox"><label id="wizard-item-checkbox-label">Create a sample application command for using this ASMP worker.</label>
                     </div>
                     <div class="wizard-item" id="asmp-app-name">
-                        <div class="wizard-item-label" id="wizard-asmp-worker-name-label">
+                        <div class="wizard-item-label" id="wizard-asmp-worker-app-name-label">
                             Samplle application name
                         </div>
                         <div class="wizard-item-body" id="wizard-asmp-worker-name-body">
-                            <div class="wizard-item-description" id="wizard-asmp-worker-name-description">
+                            <div class="wizard-item-description" id="wizard-asmp-worker-app-name-description">
                                 Please input application command name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).
                             </div>
                             <div class="wizard-item-form" id="wizard-asmp-worker-name-form">

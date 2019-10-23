@@ -23,6 +23,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
+import * as nls from './localize';
 import * as common from './common';
 
 const STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
@@ -89,6 +90,8 @@ class ItemWizard {
 
         this._panel.webview.html = this.getViewContent();
 
+        this.updateAllDescription();
+
         this.postWorkspaceFolders();
     }
 
@@ -132,6 +135,65 @@ class ItemWizard {
         content = content.replace(new RegExp(NONCE, "g"), nonce);
 
         return content;
+    }
+
+    private updateButtonDescription() {
+        const buttonText = {
+            'previous': nls.localize("spresense.item.wizard.button.previous", "Previous"),
+            'next': nls.localize("spresense.item.wizard.button.next", "Next"),
+            'cancel': nls.localize("spresense.item.wizard.button.cancel", "Cancel"),
+            'create': nls.localize("spresense.item.wizard.button.create", "Create")
+        };
+
+        /* Post button description message */
+        this._panel.webview.postMessage({command: 'updateButtonText', patterns: buttonText});
+    }
+    private updateDescriptionById(id:string, text: string) {
+        /* Post description message */
+        this._panel.webview.postMessage({command: 'updateText', id: id, text: text});
+    }
+
+    private updateAllDescription() {
+        interface LocaleInterface {
+            [key: string]: string;
+        }
+
+        const locale: LocaleInterface = {
+            'wizard-title':
+                nls.localize("spresense.item.wizard.label", "Add new item wizard"),
+            'wizard-project-name-description':
+                nls.localize("spresense.item.wizard.project.desc", "Please select project name for creating item."),
+            'wizard-item-type-description':
+                nls.localize("spresense.item.wizard.type.desc", "Please select the type of item you want to add."),
+            'app-command-label':
+                nls.localize("spresense.item.wizard.app.label", "Application Command"),
+            'wizard-app-command-description':
+                nls.localize("spresense.item.wizard.app.desc", "Create a program code to add NuttShell application command."),
+            'asmp-worker-label':
+                nls.localize("spresense.item.wizard.asmp.label", "ASMP worker program"),
+            'wizard-asmp-worker-description':
+                nls.localize("spresense.item.wizard.asmp.desc", "Create a program code to add ASMP worker."),
+            'wizard-app-command-name-label':
+                nls.localize("spresense.item.wizard.app.name.label", "Application command name"),
+            'wizard-app-command-name-description':
+                nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_)."),
+            'wizard-asmp-worker-name-label':
+                nls.localize("spresense.item.wizard.asmp.name.label", "ASMP worker name"),
+            'wizard-asmp-worker-name-description':
+                nls.localize("spresense.item.wizard.asmp.name.desc", "Please input ASMP worker name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_)."),
+            'wizard-item-checkbox-label':
+                nls.localize("spresense.item.wizard.asmp.sample.check", "Create a sample application command for using this ASMP worker"),
+            'wizard-asmp-worker-app-name-label':
+                nls.localize("spresense.item.wizard.asmp.sample.label", "Samplle application name"),
+            'wizard-asmp-worker-app-name-description':
+                nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).")
+        };
+
+        Object.keys(locale).forEach((key) => {
+            this.updateDescriptionById(key, locale[key]);
+        });
+
+        this.updateButtonDescription();
     }
 
     private postWorkspaceFolders() {

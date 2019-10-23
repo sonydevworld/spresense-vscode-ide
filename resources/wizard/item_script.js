@@ -43,6 +43,13 @@ var currentPage = 0;
 var currentProject = "";
 var currentType = ITEM_TYPE_APP_COMMAND;
 
+var buttonText = {
+    'previous': 'Previous',
+    'next': 'Next',
+    'cancel': 'Cancel',
+    'create': 'Create'
+};
+
 function main() {
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
@@ -80,6 +87,21 @@ function showPage(idx) {
     updateButtonState();
 }
 
+function updateText(message) {
+    if ('id' in message && 'text' in message) {
+        var item = document.getElementById(message.id);
+        item.textContent = message.text;
+    }
+}
+
+function updateButtonText(message) {
+    if ('patterns' in message) {
+        buttonText = message.patterns;
+    }
+
+    updateButtonState();
+}
+
 function updateButtonState() {
     var left_button = document.getElementById('left-button');
     var right_button = document.getElementById('right-button');
@@ -89,16 +111,16 @@ function updateButtonState() {
         } else {
             right_button.className = "disabledButton";
         }
-        left_button.textContent = "Previous";
-        right_button.textContent = "Create";
+        left_button.textContent = buttonText["previous"];
+        right_button.textContent = buttonText["create"];
     } else if (currentPage === 0) {
         right_button.className = "enabledButton";
-        left_button.textContent = "Cancel";
-        right_button.textContent = "Next";
+        left_button.textContent = buttonText["cancel"];
+        right_button.textContent = buttonText["next"];
     } else {
         right_button.className = "enabledButton";
-        left_button.textContent = "Previous";
-        right_button.textContent = "Next";
+        left_button.textContent = buttonText["previous"];
+        right_button.textContent = buttonText["next"];
     }
 }
 
@@ -108,6 +130,14 @@ function addVscodeEventListner() {
 
         if ('command' in message) {
             switch (message.command) {
+                case 'updateText':
+                    /* Update description text */
+                    updateText(message);
+                    break;
+                case 'updateButtonText':
+                    /* Update footer button text */
+                    updateButtonText(message);
+                    break;
                 case 'setProjectFolders':
                     setProjectFolders(message);
                     break;
