@@ -432,119 +432,6 @@ function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) 
 }
 
 /**
- * Create new file with template
- *
- * This function create a new file for adding application or library or worker
- * initial setup. And replace special letter for changing component name.
- * Replace rules:
- *   __app_name__: App Name in lowercase
- *   __APP_NAME__: 'Project + App' name in uppercase
- *
- * @param srcFile Path to template file
- * @param destFile Path to destination file
- * @param project Name of project
- * @param appname Path to template file
- */
-
-function createFileByTemplate (srcFile: string, destFile: string, appname: string) {
-	const targetDir = path.dirname(destFile);
-	const upper = `${appname}`.toUpperCase();
-	let buff = fs.readFileSync(srcFile).toString();
-
-	/* Replace app name strings */
-	buff = buff.replace(/__app_name__/g, appname);
-	buff = buff.replace(/__APP_NAME__/g, upper);
-
-	/* If destination directory missing, create it */
-	if (!fs.existsSync(targetDir)) {
-		fs.mkdirSync(targetDir);
-	}
-
-	fs.writeFile(destFile, buff, (err) => {
-		if (err) {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error.file", "Error in creating file {0}.", destFile));
-		}
-	});
-}
-
-/**
- * Create new worker files with template
- *
- * This function create new files for adding worker initial setup.
- * Creation rules:
- *  worker.c -> <name>_worker.c
- *  header.c -> include/<name>.h
- *  Other files: Keep file name
- *
- * @param name Name of worker
- * @param wsFolder Path to workspace folder
- * @param tempPath Path to using template files
- */
-
-function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
-	const fileList = fs.readdirSync(tempPath);
-	const destDir = path.join(wsFolder, `${name}_worker`);
-
-	/* Create worker directory */
-	fs.mkdirSync(destDir);
-
-	/* Create all file from template */
-	fileList.forEach((file) => {
-		const srcFile = path.join(tempPath, file);
-
-		/* Destination file path */
-		let destFile;
-		if (file === 'worker.c') {
-			destFile = path.join(destDir, `${name}_worker.c`);
-		} else if (file === 'header.h') {
-			destFile = path.join(destDir, 'include', `${name}.h`);
-		} else {
-			destFile = path.join(destDir, file);
-		}
-
-		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
-	});
-}
-
-/**
- * Create new application files with template
- *
- * This function create new files for adding application initial setup.
- * Creation rules:
- *  main.c -> <name>_main.c
- *  Other files: Keep file name
- *
- * @param name Name of application
- * @param wsFolder Path to workspace folder
- * @param tempPath Path to using template files
- */
-
-function createApplicationFiles (name: string, wsFolder: string, tempPath: string) {
-	const fileList = fs.readdirSync(tempPath);
-	const destDir = path.join(wsFolder, name);
-
-	/* Create worker directory */
-	fs.mkdirSync(destDir);
-
-	/* Create all file from template */
-	fileList.forEach((file) => {
-		const srcFile = path.join(tempPath, file);
-
-		/* Destination file path */
-		let destFile;
-		if (file === 'main.c') {
-			destFile = path.join(destDir, `${name}_main.c`);
-		} else {
-			destFile = path.join(destDir, file);
-		}
-
-		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
-	});
-}
-
-/**
  * Create new component files with template
  *
  * This function create new files for adding component initial setup.
@@ -605,10 +492,10 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 
 		if (mode === createAppMode) {
 			/* Create a application template for using new worker */
-			createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'));
+			common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'));
 		} else if (mode === createWorkerMode) {
 			/* Create worker template */
-			createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'));
+			common.createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'));
 			const selectableItems = [
 				"No",
 				"Yes"
@@ -618,7 +505,7 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 
 			if (reply === "Yes") {
 				/* Create a application template for using new worker */
-				createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'));
+				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'));
 			}
 		}
 	} else {
