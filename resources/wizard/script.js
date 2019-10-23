@@ -24,10 +24,7 @@ const vscode = acquireVsCodeApi();
 const SDK_PATH_ID = 'sdk-path';
 const PROJECT_PATH_ID = 'project-path';
 
-const PROJECT_WIZARD_TABLE = {
-    [SDK_PATH_ID]: sdkpath,
-    [PROJECT_PATH_ID]: projectpath,
-}
+const PROJECT_WIZARD_TABLE = [SDK_PATH_ID, PROJECT_PATH_ID];
 
 function main() {
     /* Event listner for communicate with vscode */
@@ -90,13 +87,13 @@ function addButtonEventListner() {
 }
 
 function addTextboxEventListner() {
-    Object.keys(PROJECT_WIZARD_TABLE).forEach((item) => {
-        const form = PROJECT_WIZARD_TABLE[item];
-        form.addEventListener("keyup", () => {
+    Array.prototype.forEach.call(document.getElementsByClassName('folder-box'), (box) => {
+        const id = box.id.replace('form-', '');
+        box.addEventListener("keyup", () => {
             // post updated path
-            vscode.postMessage({command: "updatePath", id: item, path: form.path.value});
+            vscode.postMessage({command: "updatePath", id: id, path: box.value});
         });
-    });
+    }) ;
 }
 
 function disableWizardDialog() {
@@ -112,9 +109,9 @@ function updateText(message) {
 }
 
 function updateFolderText(message) {
-    if ('id' in message && 'path' in message && message.id in PROJECT_WIZARD_TABLE) {
+    if ('id' in message && 'path' in message && PROJECT_WIZARD_TABLE.includes(message.id)) {
         /* Update textbox */
-        PROJECT_WIZARD_TABLE[message.id].path.value = message.path;
+        document.getElementById(`form-${message.id}`).value = message.path;
 
         /* Update dialog state */
         updateState();
@@ -122,7 +119,7 @@ function updateFolderText(message) {
 }
 
 function updateResult(message) {
-    if ('id' in message && 'result' in message && message.id in PROJECT_WIZARD_TABLE) {
+    if ('id' in message && 'result' in message && PROJECT_WIZARD_TABLE.includes(message.id)) {
         if (message.id === SDK_PATH_ID) {
             var sdkErr = document.getElementById('sdk-path-error');
 
@@ -161,18 +158,17 @@ function showProblems() {
 }
 
 function openFolder(id) {
-    if (id in PROJECT_WIZARD_TABLE) {
+    if (PROJECT_WIZARD_TABLE.includes(id)) {
         // Open folder with specified path
-        vscode.postMessage({command: "openFolder", id: id, path: PROJECT_WIZARD_TABLE[id].path.value});
+        vscode.postMessage({command: "openFolder", id: id, path: document.getElementById(`form-${id}`).value});
     }
 }
 
 function doCreate() {
-    const keys = Object.keys(PROJECT_WIZARD_TABLE);
     let settings = {};
 
-    keys.forEach((key) => {
-        settings[key] = PROJECT_WIZARD_TABLE[key].path.value;
+    PROJECT_WIZARD_TABLE.forEach((id) => {
+        settings[id] = document.getElementById(`form-${id}`).value;
     });
 
     vscode.postMessage({command: "create", settings: settings});

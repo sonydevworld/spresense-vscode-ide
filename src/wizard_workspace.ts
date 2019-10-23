@@ -315,6 +315,9 @@ class WorkspaceWizard {
                 case 'cancel':
                     this.dispose();
                     return;
+                case 'debug':
+                    console.log(message.log);
+                    return;
             }
         }
     }
