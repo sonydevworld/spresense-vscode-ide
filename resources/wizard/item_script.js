@@ -268,7 +268,7 @@ function setProjectFolders(message) {
             projectRot.appendChild(projectSec);
 
             /* Check selected item */
-            if (folder.path === message.selected.path) {
+            if (folder.path === message.selected) {
                 projectRad.checked = true;
                 currentProject = folder.path;
             }

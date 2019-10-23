@@ -37,9 +37,20 @@ export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources');
 
 	/* Register item wizard command */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.item.wizard', () => {
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.item.wizard', (uri) => {
+        let wsFolder: vscode.WorkspaceFolder | undefined;
+        let selectedFolder: string | undefined;
+
+		if (uri instanceof vscode.Uri) {
+			wsFolder = vscode.workspace.getWorkspaceFolder(uri);
+        }
+
+        if (wsFolder && !common.isSpresenseSdkFolder(wsFolder.uri.fsPath)) {
+            selectedFolder = wsFolder.uri.fsPath;
+        }
+
         /* Open Workspace wizard */
-        ItemWizard.openWizard(resourcePath);
+        ItemWizard.openWizard(resourcePath, selectedFolder);
     }));
 }
 
@@ -57,7 +68,7 @@ class ItemWizard {
 
     private _disposables: vscode.Disposable[] = [];
 
-    public static openWizard(resourcePath: string) {
+    public static openWizard(resourcePath: string, selectedFolder: string | undefined) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         if (ItemWizard.currentPanel) {
@@ -78,10 +89,10 @@ class ItemWizard {
             });
 
         /* Create new panel */
-        ItemWizard.currentPanel = new ItemWizard(panel, resourcePath);
+        ItemWizard.currentPanel = new ItemWizard(panel, resourcePath, selectedFolder);
     }
 
-    private constructor(panel: vscode.WebviewPanel, resourcePath: string) {
+    private constructor(panel: vscode.WebviewPanel, resourcePath: string, selectedFolder: string | undefined) {
         this._resourcePath = resourcePath;
         this._panel = panel;
 
@@ -92,7 +103,7 @@ class ItemWizard {
 
         this.updateAllDescription();
 
-        this.postWorkspaceFolders();
+        this.postWorkspaceFolders(selectedFolder);
     }
 
     private dispose() {
@@ -196,13 +207,17 @@ class ItemWizard {
         this.updateButtonDescription();
     }
 
-    private postWorkspaceFolders() {
+    private postWorkspaceFolders(selectedFolder?: string) {
         const folders = common.getProjectFolders().map((folder) => {
             return {'name': folder.name, 'path': folder.uri.fsPath};
         });
 
         /* Sent project folders information */
-        this._panel.webview.postMessage({command: 'setProjectFolders', folders: folders, selected:folders[0]});
+        this._panel.webview.postMessage({
+            command: 'setProjectFolders',
+            folders: folders,
+            selected: selectedFolder? selectedFolder : folders[0].path
+        });
     }
 
     private handleWebViewEvents(message: any) {

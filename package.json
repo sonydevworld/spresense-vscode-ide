@@ -192,13 +192,8 @@
 			"explorer/context": [
 				{
 					"when": "spresenseIdeEnabled",
-					"command": "spresense.create.application",
+					"command": "spresense.item.wizard",
 					"group": "11_SpresenseCreate@1"
-				},
-				{
-					"when": "spresenseIdeEnabled",
-					"command": "spresense.create.worker",
-					"group": "11_SpresenseCreate@2"
 				},
 				{
 					"when": "spresenseIdeEnabled",
