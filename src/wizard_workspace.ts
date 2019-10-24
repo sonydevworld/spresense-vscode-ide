@@ -30,8 +30,8 @@ const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
 const WS_SCRIPT_URI = '__WORKSPACE_WIZARD_SCRIPT__';
 const NONCE = '__NONCE__';
 
-const SDK_PATH_ID = 'sdk-path';
-const PROJECT_PATH_ID = 'project-path';
+const SDK_PATH_ID = 'wizard-sdk-path-box';
+const PROJECT_PATH_ID = 'wizard-project-path-box';
 
 const SDK_PATH_HISTORY_KEY = 'spresense.history.sdk.path';
 const PROJECT_PATH_HISTORY_KEY = 'spresense.history.project.path';
@@ -185,15 +185,15 @@ class WorkspaceWizard {
                 nls.localize("spresense.workspace.wizard.sdk.label", "Spresense SDK Path"),
             'wizard-sdk-path-description':
                 nls.localize("spresense.workspace.wizard.sdk.desc", "Please select Spresense SDK path (e.g. /home/myspresense/spresense)"),
-            'sdk-path-error':
+            'wizard-sdk-path-box-error':
                 nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path."),
-            'sdk-path-button':
+            'wizard-sdk-path-button':
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
             'wizard-project-path-label':
                 nls.localize("spresense.workspace.wizard.project.label", "Project folder path"),
             'wizard-project-path-description':
                 nls.localize("spresense.workspace.wizard.project.desc", "Please select Project folder path."),
-            'project-path-button':
+            'wizard-project-path-button':
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
             'wizard-right-button':
                 nls.localize("spresense.workspace.wizard.create.button", "Create"),
@@ -211,26 +211,20 @@ class WorkspaceWizard {
     }
 
     private postSelectedFolder(id: string, path: string) {
-        let result = 'OK';
-
         /* Post selected folder message */
-        this._panel.webview.postMessage({command: 'selectFolder', id: id, path: path});
+        this._panel.webview.postMessage({command: 'updateFolderText', id: id, path: path});
 
         /* Selected path check */
-        this.postCheckerResult(id, path);
+        this.postSdkCheckerResult(id, path);
     }
 
-    private postCheckerResult(id: string, path: string) {
-        let result = 'OK';
-
-        /* Check SDK Path */
-        if (id === SDK_PATH_ID && !common.isSpresenseSdkFolder(path)) {
-            result = 'NG';
-        }
-
+    private postSdkCheckerResult(id: string, path: string) {
         /* Post path checker result */
-        this._panel.webview.postMessage({command: 'updateResult', id: id, result: result});
-
+        this._panel.webview.postMessage({
+            command: 'checkSdkResult',
+            id: id,
+            result: common.isSpresenseSdkFolder(path)
+        });
     }
 
     private handleOpenFolder(message: any) {
@@ -306,8 +300,8 @@ class WorkspaceWizard {
                 case 'openFolder':
                     this.handleOpenFolder(message);
                     return;
-                case 'updatePath':
-                    this.postCheckerResult(message.id, message.path);
+                case 'checkSdkPath':
+                    this.postSdkCheckerResult(message.id, message.path);
                     return;
                 case 'create':
                     this.handleCreateWorkspace(message);

@@ -21,11 +21,6 @@
 
 const vscode = acquireVsCodeApi();
 
-const SDK_PATH_ID = 'sdk-path';
-const PROJECT_PATH_ID = 'project-path';
-
-const PROJECT_WIZARD_TABLE = [SDK_PATH_ID, PROJECT_PATH_ID];
-
 function main() {
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
@@ -43,13 +38,13 @@ function addVscodeEventListner() {
 
         if ('command' in message) {
             switch (message.command) {
-                case 'selectFolder':
+                case 'updateFolderText':
                     /* Update folder box text */
                     updateFolderText(message);
                     break;
-                case 'updateResult':
+                case 'checkSdkResult':
                     /* Update path checker result */
-                    updateResult(message);
+                    checkSdkResult(message);
                     break;
                 case 'updateText':
                     /* Update description text */
@@ -67,15 +62,12 @@ function addVscodeEventListner() {
 }
 
 function addButtonEventListner() {
-    /* SDK Path button */
-    document.getElementById('sdk-path-button').addEventListener("click", () => {
-        openFolder(SDK_PATH_ID);
-    });
-
-    /* Project Path button */
-    document.getElementById('project-path-button').addEventListener("click", () => {
-        openFolder(PROJECT_PATH_ID);
-    });
+    /* Reference buttons */
+    for (var button of document.getElementsByClassName('wizard-reference-button')) {
+        button.addEventListener("click", (event) => {
+            openFolder(event.target.id);
+        });
+    }
 
     /* Cancel button */
     document.getElementById('wizard-left-button').addEventListener("click", () => {
@@ -83,17 +75,16 @@ function addButtonEventListner() {
         vscode.postMessage({command: "cancel"});
     });
 
-    /* Create button will handle by updateState() */
+    /* Create button */
+    document.getElementById('wizard-right-button').addEventListener("click", doCreate);
 }
 
 function addTextboxEventListner() {
-    Array.prototype.forEach.call(document.getElementsByClassName('wizard-text-box'), (box) => {
-        const id = box.id.replace('form-', '');
-        box.addEventListener("keyup", () => {
-            // post updated path
-            vscode.postMessage({command: "updatePath", id: id, path: box.value});
+    for (var form of document.getElementsByClassName("require-sdk-path-check")) {
+        form.addEventListener("keyup", (event) => {
+            vscode.postMessage({command: "checkSdkPath", id: event.target.id, path: event.target.value});
         });
-    }) ;
+    }
 }
 
 function disableWizardDialog() {
@@ -109,25 +100,23 @@ function updateText(message) {
 }
 
 function updateFolderText(message) {
-    if ('id' in message && 'path' in message && PROJECT_WIZARD_TABLE.includes(message.id)) {
+    if ('id' in message && 'path' in message) {
         /* Update textbox */
-        document.getElementById(`form-${message.id}`).value = message.path;
+        document.getElementById(message.id).value = message.path;
 
         /* Update dialog state */
         updateState();
     }
 }
 
-function updateResult(message) {
-    if ('id' in message && 'result' in message && PROJECT_WIZARD_TABLE.includes(message.id)) {
-        if (message.id === SDK_PATH_ID) {
-            var sdkErr = document.getElementById('sdk-path-error');
+function checkSdkResult(message) {
+    if ('id' in message && 'result' in message) {
+        var sdkErr = document.getElementById(`${message.id}-error`);
 
-            if (message.result === 'OK') {
-                sdkErr.style.display = 'none';
-            } else {
-                sdkErr.style.display = 'inline';
-            }
+        if (message.result) {
+            sdkErr.style.display = 'none';
+        } else {
+            sdkErr.style.display = 'inline';
         }
 
         /* Update dialog state */
@@ -141,15 +130,9 @@ function updateState() {
     if (isReadyToCreate()) {
         // Change button to enable
         createBtn.className = "wizard-enable-button"
-
-        // Enable event
-        createBtn.addEventListener("click", doCreate);
     } else {
         // Change button to disable
         createBtn.className = "wizard-disable-button"
-
-        // Disable event
-        createBtn.removeEventListener("click", doCreate);
     }
 }
 
@@ -158,27 +141,33 @@ function showProblems() {
 }
 
 function openFolder(id) {
-    if (PROJECT_WIZARD_TABLE.includes(id)) {
-        // Open folder with specified path
-        vscode.postMessage({command: "openFolder", id: id, path: document.getElementById(`form-${id}`).value});
-    }
+    const box_id = id.replace('-button', '-box');
+    vscode.postMessage({command: 'debug', log:box_id});
+    // Open folder with specified path
+    vscode.postMessage({command: "openFolder", id: box_id, path: document.getElementById(box_id).value});
 }
 
 function doCreate() {
-    let settings = {};
+    if (isReadyToCreate()) {
+        let settings = {};
 
-    PROJECT_WIZARD_TABLE.forEach((id) => {
-        settings[id] = document.getElementById(`form-${id}`).value;
-    });
+        for(var box of document.getElementsByClassName('wizard-text-box')) {
+            settings[box.id] = box.value;
+        }
 
-    vscode.postMessage({command: "create", settings: settings});
+        vscode.postMessage({command: "create", settings: settings});
+    }
 }
 
 function isReadyToCreate() {
-    var sdkErr = document.getElementById('sdk-path-error');
+    const sdkErr = document.getElementById('wizard-sdk-path-box-error');
+    const allTextBox = document.getElementsByClassName('wizard-text-box');
+    const isBoxCompleted = Array.prototype.every.call(allTextBox, (box) => {
+        return box.value !== "";
+    });
 
     /* If not complete to select all path, cannot create */
-    if (sdkpath.path.value === "" || projectpath.path.value === "") {
+    if (!isBoxCompleted) {
         return false;
     }
 
