@@ -78,7 +78,7 @@ function addButtonEventListner() {
     });
 
     /* Cancel button */
-    document.getElementById('cancel-button').addEventListener("click", () => {
+    document.getElementById('wizard-left-button').addEventListener("click", () => {
         // Cancel to create workspace
         vscode.postMessage({command: "cancel"});
     });
@@ -87,7 +87,7 @@ function addButtonEventListner() {
 }
 
 function addTextboxEventListner() {
-    Array.prototype.forEach.call(document.getElementsByClassName('folder-box'), (box) => {
+    Array.prototype.forEach.call(document.getElementsByClassName('wizard-text-box'), (box) => {
         const id = box.id.replace('form-', '');
         box.addEventListener("keyup", () => {
             // post updated path
@@ -136,17 +136,17 @@ function updateResult(message) {
 }
 
 function updateState() {
-    var createBtn = document.getElementById('create-button');
+    var createBtn = document.getElementById('wizard-right-button');
 
     if (isReadyToCreate()) {
         // Change button to enable
-        createBtn.className = "enabledButton"
+        createBtn.className = "wizard-enable-button"
 
         // Enable event
         createBtn.addEventListener("click", doCreate);
     } else {
         // Change button to disable
-        createBtn.className = "disabledButton"
+        createBtn.className = "wizard-disable-button"
 
         // Disable event
         createBtn.removeEventListener("click", doCreate);

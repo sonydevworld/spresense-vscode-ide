@@ -195,9 +195,9 @@ class WorkspaceWizard {
                 nls.localize("spresense.workspace.wizard.project.desc", "Please select Project folder path."),
             'project-path-button':
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
-            'create-button':
+            'wizard-right-button':
                 nls.localize("spresense.workspace.wizard.create.button", "Create"),
-            'cancel-button':
+            'wizard-left-button':
                 nls.localize("spresense.workspace.wizard.cancel.button", "Cancel"),
             'wizard-environment-problems-label':
                 nls.localize("spresense.workspace.wizard.problems.label", "Problems"),

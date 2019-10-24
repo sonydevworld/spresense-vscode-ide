@@ -65,7 +65,7 @@
     color: red;
 }
 
-.folder-box {
+.wizard-text-box {
     width: 85%;
     height: 26px;
     font-size: 16px;
@@ -93,7 +93,7 @@
     font-size: 14px;
 }
 
-.enabledButton {
+.wizard-enable-button {
     display: inline-block;
     padding: 0.5em 1em;
     text-decoration: none;
@@ -104,19 +104,19 @@
     border-bottom: solid 1px rgb(105, 103, 100);
 }
 
-.enabledButton:active {
+.wizard-enable-button:active {
     background: rgb(167, 163, 160);
     transform: translateY(1px);
     box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.2);
     border-bottom: none;
 }
 
-.enabledButton:hover {
+.wizard-enable-button:hover {
     border: 1px solid black;
     cursor: pointer;
 }
 
-.disabledButton {
+.wizard-disable-button {
     display: inline-block;
     padding: 0.5em 1em;
     text-decoration: none;
