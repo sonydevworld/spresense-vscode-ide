@@ -1015,28 +1015,21 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 
 	try {
 		/* Get enviroment from bash */
-		const shellEnv = cp.execSync(`${shpath} --login -c env`).toString().trim();
+		const shellEnv = cp.execSync(
+			`${shpath} --login -c \'source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\'`
+			).toString().trim().split('\n');
 
 		/* Parse PATH */
-		let envMatch = shellEnv.match(/^PATH=(.*)$/m);
-		const envPath = envMatch ? envMatch[1] : '';
-
-		/* Parse HOME */
-		envMatch = shellEnv.match(/^HOME=(.*)$/m);
-		const homePath = envMatch ? envMatch[1] : '';
-
-		const sprEnvPath = `${homePath}/spresenseenv/usr/bin`;
+		const envPath = shellEnv[0];
+		const sprEnvPath = shellEnv[1];
 		const openocdPath = `${sprEnvPath}/openocd`;
 
 		/* Prepare shell environment done */
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
-		/* Just for checking spresenseenv. It not exist, jump to catch section. */
-		cp.execSync(`${shpath} --login -c \'ls ${sprEnvPath}\'`);
-
 		/* Set PATH */
 		termConf.update(`env.${osName[process.platform]}`,{
-			'PATH': `${sprEnvPath}:${envPath}`
+			'PATH': envPath
 		}, vscode.ConfigurationTarget.Workspace);
 
 		/* Check spresenseenv done(If not exist, skip it) */
