@@ -107,18 +107,18 @@ function updateButtonState() {
     var right_button = document.getElementById('right-button');
     if (currentPage === WIZARD_PAGES.length - 1) {
         if (isReadyToCreate()) {
-            right_button.className = "enabledButton";
+            right_button.className = "wizard-enable-button";
         } else {
-            right_button.className = "disabledButton";
+            right_button.className = "wizard-disable-button";
         }
         left_button.textContent = buttonText["previous"];
         right_button.textContent = buttonText["create"];
     } else if (currentPage === 0) {
-        right_button.className = "enabledButton";
+        right_button.className = "wizard-enable-button";
         left_button.textContent = buttonText["cancel"];
         right_button.textContent = buttonText["next"];
     } else {
-        right_button.className = "enabledButton";
+        right_button.className = "wizard-enable-button";
         left_button.textContent = buttonText["previous"];
         right_button.textContent = buttonText["next"];
     }
