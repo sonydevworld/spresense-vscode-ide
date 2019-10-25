@@ -178,7 +178,8 @@
 			},
 			{
 				"command": "spresense.item.wizard",
-				"title": "%spresense.item.wizard.title%"
+				"title": "%spresense.item.wizard.title%",
+				"enablement": "spresenseIdeEnabled"
 			}
 		],
 		"menus": {
