@@ -25,13 +25,7 @@ import * as fs from 'fs';
 
 import * as nls from './localize';
 import * as common from './common';
-
-const STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
-const SCRIPT_URI = '__WIZARD_SCRIPT__';
-const NONCE = '__NONCE__';
-
-const ITEM_TYPE_APP_COMMAND = 'app-command';
-const ITEM_TYPE_ASMP_WORKER = 'asmp-worker';
+import { WizardBase } from './wizard';
 
 export function activate(context: vscode.ExtensionContext) {
     const resourcePath = path.join(context.extensionPath, 'resources');
@@ -57,119 +51,41 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 }
 
-class ItemWizard {
+class ItemWizard extends WizardBase {
+    private static readonly ITEM_TYPE_APP_COMMAND = 'app-command';
+    private static readonly ITEM_TYPE_ASMP_WORKER = 'asmp-worker';
 
     public static currentPanel: ItemWizard | undefined;
-
-    public static readonly viewType = 'ItemWizardView';
-
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _resourcePath: string | undefined;
-
-    private _disposables: vscode.Disposable[] = [];
 
     public static openWizard(resourcePath: string, selectedFolder: string | undefined) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         if (ItemWizard.currentPanel) {
-            ItemWizard.currentPanel._panel.reveal(column);
+            if (ItemWizard.currentPanel._panel) {
+                ItemWizard.currentPanel._panel.reveal(column);
+            }
             return;
         }
 
-        const panel = vscode.window.createWebviewPanel(
-            ItemWizard.viewType,
-            "Create new Item wizard",
-            column || vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.file(resourcePath)
-                ]
-            });
+        const panel = WizardBase.createWizardPanel("Create new Item wizard", resourcePath);
 
         /* Create new panel */
         ItemWizard.currentPanel = new ItemWizard(panel, resourcePath, selectedFolder);
     }
 
-    private constructor(panel: vscode.WebviewPanel, resourcePath: string, selectedFolder: string | undefined) {
-        this._resourcePath = resourcePath;
-        this._panel = panel;
-
-        this._panel.webview.onDidReceiveMessage(this.handleWebViewEvents, this, this._disposables);
-        this._panel.onDidDispose(() => this.dispose(), null, undefined);
-
-        this._panel.webview.html = this.getViewContent();
-
-        this.updateAllDescription();
-
+    public constructor(panel: vscode.WebviewPanel, resourcePath: string, selectedFolder: string | undefined) {
+        super(panel, 'item', resourcePath);
+        this.updateButtonDescription();
         this.postWorkspaceFolders(selectedFolder);
     }
 
-    private dispose() {
+    public dispose() {
         ItemWizard.currentPanel = undefined;
-        this._panel.dispose();
-
-        while (this._disposables.length) {
-            const x = this._disposables.pop();
-            if (x) {
-                x.dispose();
-            }
-        }
+        super.dispose();
     }
 
-    private getViewContent(): string {
-        if (!this._resourcePath) {
-            /* TODO: Show error message */
-            return "";
-        }
-
-        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'style.css')).with({
-			scheme: 'vscode-resource'
-        });
-
-        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'item_script.js')).with({
-			scheme: 'vscode-resource'
-        });
-
-        const nonce = common.getNonce();
-
-        let content = fs.readFileSync(path.join(this._resourcePath, 'wizard', 'item.html')).toString();
-
-        /* Replace style sheet Uri */
-        content = content.replace(new RegExp(STYLE_SHEET_URI, "g"), cssUri.toString());
-
-        /* Replace script Uri */
-        content = content.replace(new RegExp(SCRIPT_URI, "g"), scriptUri.toString());
-
-        /* Replace script content */
-        content = content.replace(new RegExp(NONCE, "g"), nonce);
-
-        return content;
-    }
-
-    private updateButtonDescription() {
-        const buttonText = {
-            'previous': nls.localize("spresense.item.wizard.button.previous", "Previous"),
-            'next': nls.localize("spresense.item.wizard.button.next", "Next"),
-            'cancel': nls.localize("spresense.item.wizard.button.cancel", "Cancel"),
-            'create': nls.localize("spresense.item.wizard.button.create", "Create")
-        };
-
-        /* Post button description message */
-        this._panel.webview.postMessage({command: 'updateButtonText', patterns: buttonText});
-    }
-    private updateDescriptionById(id:string, text: string) {
-        /* Post description message */
-        this._panel.webview.postMessage({command: 'updateText', id: id, text: text});
-    }
-
-    private updateAllDescription() {
-        interface LocaleInterface {
-            [key: string]: string;
-        }
-
-        const locale: LocaleInterface = {
+    public getLocaleObject() {
+        return {
             'wizard-title':
                 nls.localize("spresense.item.wizard.label", "Add new item wizard"),
             'wizard-project-name-description':
@@ -199,28 +115,9 @@ class ItemWizard {
             'wizard-asmp-worker-app-name-description':
                 nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).")
         };
-
-        Object.keys(locale).forEach((key) => {
-            this.updateDescriptionById(key, locale[key]);
-        });
-
-        this.updateButtonDescription();
     }
 
-    private postWorkspaceFolders(selectedFolder?: string) {
-        const folders = common.getProjectFolders().map((folder) => {
-            return {'name': folder.name, 'path': folder.uri.fsPath};
-        });
-
-        /* Sent project folders information */
-        this._panel.webview.postMessage({
-            command: 'setProjectFolders',
-            folders: folders,
-            selected: selectedFolder? selectedFolder : folders[0].path
-        });
-    }
-
-    private handleWebViewEvents(message: any) {
+    public handleWebViewEvents(message: any) {
         if ('command' in message) {
             switch (message.command) {
                 case 'checkItemName':
@@ -237,6 +134,31 @@ class ItemWizard {
                     break;
             }
         }
+    }
+
+    private updateButtonDescription() {
+        const buttonText = {
+            'previous': nls.localize("spresense.item.wizard.button.previous", "Previous"),
+            'next': nls.localize("spresense.item.wizard.button.next", "Next"),
+            'cancel': nls.localize("spresense.item.wizard.button.cancel", "Cancel"),
+            'create': nls.localize("spresense.item.wizard.button.create", "Create")
+        };
+
+        /* Post button description message */
+        this.postMessage({command: 'updateButtonText', patterns: buttonText});
+    }
+
+    private postWorkspaceFolders(selectedFolder?: string) {
+        const folders = common.getProjectFolders().map((folder) => {
+            return {'name': folder.name, 'path': folder.uri.fsPath};
+        });
+
+        /* Sent project folders information */
+        this.postMessage({
+            command: 'setProjectFolders',
+            folders: folders,
+            selected: selectedFolder? selectedFolder : folders[0].path
+        });
     }
 
     private handleCheckItemName(message: any) {
@@ -256,7 +178,7 @@ class ItemWizard {
             }
 
             /* Post input value result */
-            this._panel.webview.postMessage({command: 'showErrorMessage', id: message.id, errText: errorText});
+            this.postMessage({command: 'showErrorMessage', id: message.id, errText: errorText});
         }
     }
 
@@ -266,10 +188,10 @@ class ItemWizard {
         }
 
         if ('type' in message && 'folder' in message && 'name' in message) {
-            if (message.type === ITEM_TYPE_APP_COMMAND) {
+            if (message.type === ItemWizard.ITEM_TYPE_APP_COMMAND) {
                 /* Create a application template for using new worker */
                 common.createApplicationFiles(message.name, message.folder, path.join(this._resourcePath, 'appfiles'));
-            } else if (message.type === ITEM_TYPE_ASMP_WORKER) {
+            } else if (message.type === ItemWizard.ITEM_TYPE_ASMP_WORKER) {
                 /* Create worker template */
                 common.createWorkerFiles(message.name, message.folder, path.join(this._resourcePath, 'workerfiles', 'worker'));
                 if ('sampleName' in message) {
