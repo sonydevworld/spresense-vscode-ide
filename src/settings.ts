@@ -89,6 +89,25 @@ function getFirstFolderPath(): string | undefined {
 	return firstFolder;
 }
 
+/**
+ * Remove folder from workspace
+ *
+ * This function delete a folder from current workspace.
+ *
+ * @param folderUri Uri to target folder for deleting..
+ */
+
+function removeWorkspaceFolder(folderUri: vscode.Uri) {
+	const wsFolders = vscode.workspace.workspaceFolders;
+
+	for (let index = 0; wsFolders && index < wsFolders.length; index ++) {
+		if (wsFolders[index].uri === folderUri) {
+			vscode.workspace.updateWorkspaceFolders(index, 1);
+			break;
+		}
+	}
+}
+
 function loadJson(file: string, create: boolean) {
 	try {
 		return JSON.parse(fs.readFileSync(file, 'utf-8'));
@@ -1248,6 +1267,9 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	}
 
 	if (isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
+		/* Remove 2nd Spresense SDK folder */
+		removeWorkspaceFolder(folderUri);
+
 		/* If folderUri is SDK and it is not a first folder, that is multiple SDK */
 		vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.multi", "Spresense extension can not use multiple Spresense SDK. \
 		Please remove one of spresense folder from workspace."));
