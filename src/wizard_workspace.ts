@@ -21,14 +21,10 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
 
 import * as nls from './localize';
 import * as common from './common';
-
-const WS_STYLE_SHEET_URI = '__WORKSPACE_WIZARD_STYLE_SHEET__';
-const WS_SCRIPT_URI = '__WORKSPACE_WIZARD_SCRIPT__';
-const NONCE = '__NONCE__';
+import { WizardBase } from './wizard';
 
 const SDK_PATH_ID = 'wizard-sdk-path-box';
 const PROJECT_PATH_ID = 'wizard-project-path-box';
@@ -37,7 +33,7 @@ const SDK_PATH_HISTORY_KEY = 'spresense.history.sdk.path';
 const PROJECT_PATH_HISTORY_KEY = 'spresense.history.project.path';
 
 export function activate(context: vscode.ExtensionContext) {
-    const resourcePath = path.join(context.extensionPath, 'resources', 'wizard');
+    const resourcePath = path.join(context.extensionPath, 'resources');
 
     /* Localize config */
     nls.config(context);
@@ -52,122 +48,54 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 }
 
-class WorkspaceWizard {
+class WorkspaceWizard extends WizardBase {
 
     public static currentPanel: WorkspaceWizard | undefined;
 
-    public static readonly viewType = 'WorkspaceWizardView';
-
-    private readonly _panel: vscode.WebviewPanel;
-    private readonly _resourcePath: string | undefined;
     private readonly _globalState: vscode.Memento | undefined;
-
-	private _disposables: vscode.Disposable[] = [];
 
     public static openWizard(resourcePath: string, globalState: vscode.Memento) {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         if (WorkspaceWizard.currentPanel) {
-            WorkspaceWizard.currentPanel._panel.reveal(column);
+            if (WorkspaceWizard.currentPanel._panel) {
+                WorkspaceWizard.currentPanel._panel.reveal(column);
+            }
             return;
         }
 
-        const panel = vscode.window.createWebviewPanel(
-            WorkspaceWizard.viewType,
-            nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"),
-            column || vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [
-                    vscode.Uri.file(resourcePath)
-                ]
-            });
+        const panel = WizardBase.createWizardPanel(nls.localize("spresense.workspace.wizard.label", "Workspace setup wizard"), resourcePath);
 
         /* Create new panel */
         WorkspaceWizard.currentPanel = new WorkspaceWizard(panel, resourcePath, globalState);
     }
 
-    private constructor(panel: vscode.WebviewPanel, resourcePath: string, globalState: vscode.Memento) {
-        this._resourcePath = resourcePath;
-        this._panel = panel;
+    public constructor(panel: vscode.WebviewPanel, resourcePath: string, globalState: vscode.Memento) {
+        super(panel, 'workspace', resourcePath);
         this._globalState = globalState;
-
-        this._panel.webview.onDidReceiveMessage(this.handleWebViewEvents, this, this._disposables);
-        this._panel.onDidDispose(() => this.dispose(), null, undefined);
-
-        this._panel.webview.html = this.getViewContent();
-
-        this.updateAllDescription();
 
         /* If workspace is already opened, show error message to close current workspace */
         if (vscode.workspace.workspaceFolders &&
             vscode.workspace.workspaceFolders.length > 0) {
             /* Post description message */
-            this._panel.webview.postMessage({command: 'disableWizard'});
+            this.postMessage({command: 'disableWizard'});
         }
 
         /* If MSYS2 path is not set in windows environment, show message to set it */
         if (process.platform === 'win32' &&
             !vscode.workspace.getConfiguration().get('spresense.msys.path')) {
             /* Send request to show problems */
-            this._panel.webview.postMessage({command: 'showProblems'});
+            this.postMessage({command: 'showProblems'});
         }
     }
 
-    private dispose() {
+    public dispose() {
         WorkspaceWizard.currentPanel = undefined;
-        this._panel.dispose();
-
-        while (this._disposables.length) {
-            const x = this._disposables.pop();
-            if (x) {
-                x.dispose();
-            }
-        }
+        super.dispose();
     }
 
-    private getViewContent(): string {
-        if (!this._resourcePath) {
-            /* TODO: Show error message */
-            return "";
-        }
-
-        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
-			scheme: 'vscode-resource'
-        });
-
-        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'ws_script.js')).with({
-			scheme: 'vscode-resource'
-        });
-
-        const nonce = common.getNonce();
-
-        let content = fs.readFileSync(path.join(this._resourcePath, 'workspace.html')).toString();
-
-        /* Replace style sheet Uri */
-        content = content.replace(new RegExp(WS_STYLE_SHEET_URI, "g"), cssUri.toString());
-
-        /* Replace script Uri */
-        content = content.replace(new RegExp(WS_SCRIPT_URI, "g"), scriptUri.toString());
-
-        /* Replace script content */
-        content = content.replace(new RegExp(NONCE, "g"), nonce);
-
-        return content;
-    }
-
-    private updateDescriptionById(id:string, text: string) {
-        /* Post description message */
-        this._panel.webview.postMessage({command: 'updateText', id: id, text: text});
-    }
-
-    private updateAllDescription() {
-        interface LocaleInterface {
-            [key: string]: string;
-        }
-
-        const locale: LocaleInterface = {
+    public getLocaleObject() {
+        return {
             'wizard-error':
                 nls.localize("spresense.workspace.wizard.error", "This setup wizard is working on empty window. Please close opened workspace first."),
             'workspace-wizard-header':
@@ -195,15 +123,33 @@ class WorkspaceWizard {
             'wizard-environment-problems-description':
                 nls.localize("spresense.workspace.wizard.problems.desc", "Environment problems message")
         };
-    
-        Object.keys(locale).forEach((key) => {
-            this.updateDescriptionById(key, locale[key]);
-        });
+    }
+
+    public handleWebViewEvents(message: any) {
+        if ('command' in message) {
+            switch (message.command) {
+                case 'openFolder':
+                    this.handleOpenFolder(message);
+                    return;
+                case 'checkSdkPath':
+                    this.postSdkCheckerResult(message.id, message.path);
+                    return;
+                case 'create':
+                    this.handleCreateWorkspace(message);
+                    return;
+                case 'cancel':
+                    this.dispose();
+                    return;
+                case 'debug':
+                    console.log(message.log);
+                    return;
+            }
+        }
     }
 
     private postSelectedFolder(id: string, path: string) {
         /* Post selected folder message */
-        this._panel.webview.postMessage({command: 'updateFolderText', id: id, path: path});
+        this.postMessage({command: 'updateFolderText', id: id, path: path});
 
         /* Selected path check */
         this.postSdkCheckerResult(id, path);
@@ -211,7 +157,7 @@ class WorkspaceWizard {
 
     private postSdkCheckerResult(id: string, path: string) {
         /* Post path checker result */
-        this._panel.webview.postMessage({
+        this.postMessage({
             command: 'checkSdkResult',
             id: id,
             result: common.isSpresenseSdkFolder(path)
@@ -282,28 +228,6 @@ class WorkspaceWizard {
 
             /* Close wizard */
             this.dispose();
-        }
-    }
-
-    private handleWebViewEvents(message: any) {
-        if ('command' in message) {
-            switch (message.command) {
-                case 'openFolder':
-                    this.handleOpenFolder(message);
-                    return;
-                case 'checkSdkPath':
-                    this.postSdkCheckerResult(message.id, message.path);
-                    return;
-                case 'create':
-                    this.handleCreateWorkspace(message);
-                    return;
-                case 'cancel':
-                    this.dispose();
-                    return;
-                case 'debug':
-                    console.log(message.log);
-                    return;
-            }
         }
     }
 }
