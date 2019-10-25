@@ -82,8 +82,6 @@ function showPage(idx) {
         }
     });
 
-    currentPage = idx;
-
     updateButtonState();
 }
 
@@ -227,7 +225,7 @@ function doRightButton() {
         /* In last page, right mean 'create' */
         doCreate();
     } else {
-        showPage(currentPage + 1);
+        showPage(++currentPage);
     }
 }
 
@@ -236,7 +234,7 @@ function doLeftButton() {
         /* In first page, let mean 'close' */
         vscode.postMessage({command: "close"});
     } else {
-        showPage(currentPage - 1);
+        showPage(--currentPage);
     }
 }
 
