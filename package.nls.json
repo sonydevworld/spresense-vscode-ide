@@ -56,6 +56,7 @@
 	"spresense.src.create.conf.error": "Cannot create file({0}).",
 	"spresense.src.error.newer": "Project folder was created by newer version of Spresense extension. Please update Spresense extension.",
 	"spresense.src.setting.error.multi": "Spresense extension can not use multiple Spresense SDK. Please remove one of spresense folder from workspace.",
+	"spresense.src.setting.error.space": "Spresense extension can not use this folder that contain ' '. ",
 	"spresense.src.activeate.error.usage": "Spresense repository folder needs to be placed at the top of workspace. Please move {0} to the top.",
 
 	"serial.property.baudrate": "Serial baudrate: Baudrate for serial terminal",

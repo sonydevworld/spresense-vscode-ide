@@ -1132,6 +1132,14 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
+	if (folderPath.indexOf(' ') !== -1) {
+			/* If folderPath contain ' ', show error and do not setup */
+			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.space", "Spresense extension can not use this folder that contain ' '. "));
+
+			/* Remove folder in advance */
+			removeWorkspaceFolder(folderUri);
+	}
+
 	if (common.isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
 		/* Remove 2nd Spresense SDK folder */
 		removeWorkspaceFolder(folderUri);
