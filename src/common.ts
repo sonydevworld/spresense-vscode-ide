@@ -83,7 +83,7 @@ export function getProjectFolders(): vscode.WorkspaceFolder[] {
  * @param appname Path to template file
  */
 
-export function createFileByTemplate (srcFile: string, destFile: string, appname: string) {
+export function createFileByTemplate (srcFile: string, destFile: string, appname: string, custom?: {[key: string]: string}) {
 	const targetDir = path.dirname(destFile);
 	const upper = `${appname}`.toUpperCase();
 	let buff = fs.readFileSync(srcFile).toString();
@@ -91,6 +91,12 @@ export function createFileByTemplate (srcFile: string, destFile: string, appname
 	/* Replace app name strings */
 	buff = buff.replace(/__app_name__/g, appname);
 	buff = buff.replace(/__APP_NAME__/g, upper);
+
+	if (custom) {
+		Object.keys(custom).forEach((key) => {
+			buff = buff.replace(new RegExp(key, "g"), custom[key]);
+		});
+	}
 
 	/* If destination directory missing, create it */
 	if (!fs.existsSync(targetDir)) {
@@ -157,7 +163,7 @@ export function createWorkerFiles (name: string, wsFolder: string, tempPath: str
  * @param tempPath Path to using template files
  */
 
-export function createApplicationFiles (name: string, wsFolder: string, tempPath: string) {
+export function createApplicationFiles (name: string, wsFolder: string, tempPath: string, custom?: {[key: string]: string}) {
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(wsFolder, name);
 
@@ -177,7 +183,7 @@ export function createApplicationFiles (name: string, wsFolder: string, tempPath
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
+		createFileByTemplate(srcFile, destFile, name, custom);
 	});
 }
 

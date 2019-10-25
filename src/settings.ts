@@ -505,7 +505,7 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 
 			if (reply === "Yes") {
 				/* Create a application template for using new worker */
-				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'));
+				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'), {'__worker_name__':name});
 			}
 		}
 	} else {

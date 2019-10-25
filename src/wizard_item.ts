@@ -196,7 +196,7 @@ class ItemWizard extends WizardBase {
                 common.createWorkerFiles(message.name, message.folder, path.join(this._resourcePath, 'workerfiles', 'worker'));
                 if ('sampleName' in message) {
                     /* Create a application template for using new worker */
-                    common.createApplicationFiles(message.sampleName, message.folder, path.join(this._resourcePath, 'workerfiles', 'app'));
+                    common.createApplicationFiles(message.sampleName, message.folder, path.join(this._resourcePath, 'workerfiles', 'app'), {'__worker_name__':message.name});
                 }
             }
         }

@@ -12,7 +12,7 @@
 #include "__app_name__.h"
 
 /* Worker ELF path */
-#define WORKER_FILE "/mnt/spif/__app_name__"
+#define WORKER_FILE "/mnt/spif/__worker_name__"
 
 /* Check configuration.  This is not all of the configuration settings that
  * are required -- only the more obvious.
