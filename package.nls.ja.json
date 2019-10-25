@@ -124,7 +124,7 @@
 	"spresense.item.wizard.app.name.label": "アプリケーションコマンド名",
 	"spresense.item.wizard.app.name.desc": "アプリケーションコマンド名を入力してください。このコマンド名は、NuttShellにて使用できるコマンドになります。使用できる文字はアルファベット(a ~ z, A ~ Z)、数字(0 ~ 9)、アンダースコア(_)です。",
 	"spresense.item.wizard.asmp.name.label": "ASMPワーカー名",
-	"spresense.item.wizard.asmp.name.desc": "ASMPワーカー名を入力してください。このコマンド名は、NuttShellにて使用できるコマンドになります。使用できる文字はアルファベット(a ~ z, A ~ Z)、数字(0 ~ 9)、アンダースコア(_)です。",
+	"spresense.item.wizard.asmp.name.desc": "ASMPワーカー名を入力してください。このワーカー名は、作成されるELFファイルの名前にも使われます。使用できる文字はアルファベット(a ~ z, A ~ Z)、数字(0 ~ 9)、アンダースコア(_)です。",
 	"spresense.item.wizard.asmp.sample.check": "作成するASMPワーカーを使用したサンプルアプリケーションを作成する",
 	"spresense.item.wizard.asmp.sample.label": "サンプルアプリケーションコマンド名"
 }

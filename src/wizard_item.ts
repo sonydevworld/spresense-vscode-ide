@@ -107,11 +107,11 @@ class ItemWizard extends WizardBase {
             'wizard-asmp-worker-name-label':
                 nls.localize("spresense.item.wizard.asmp.name.label", "ASMP worker name"),
             'wizard-asmp-worker-name-description':
-                nls.localize("spresense.item.wizard.asmp.name.desc", "Please input ASMP worker name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_)."),
+                nls.localize("spresense.item.wizard.asmp.name.desc", "Please input ASMP worker name. This name is using by ASMP worker ELF file name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_)."),
             'wizard-item-checkbox-label':
                 nls.localize("spresense.item.wizard.asmp.sample.check", "Create a sample application command for using this ASMP worker"),
             'wizard-asmp-worker-app-name-label':
-                nls.localize("spresense.item.wizard.asmp.sample.label", "Samplle application name"),
+                nls.localize("spresense.item.wizard.asmp.sample.label", "Sample application name"),
             'wizard-asmp-worker-app-name-description':
                 nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).")
         };

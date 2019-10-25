@@ -124,7 +124,7 @@
 	"spresense.item.wizard.app.name.label": "Application command name",
 	"spresense.item.wizard.app.name.desc": "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).",
 	"spresense.item.wizard.asmp.name.label": "ASMP worker name",
-	"spresense.item.wizard.asmp.name.desc": "Please input ASMP worker name. This name is using by ASMP worker elf name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).",
+	"spresense.item.wizard.asmp.name.desc": "Please input ASMP worker name. This name is using by ASMP worker ELF file name. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).",
 	"spresense.item.wizard.asmp.sample.check": "Create a sample application command for using this ASMP worker",
-	"spresense.item.wizard.asmp.sample.label": "Samplle application name"
+	"spresense.item.wizard.asmp.sample.label": "Sample application name"
 }
