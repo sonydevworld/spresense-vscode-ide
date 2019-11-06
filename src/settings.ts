@@ -440,7 +440,7 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 	if (wsFolder !== wsFolders[0].uri.fsPath) {
 
 		/* Setup application folder, if necessary */
-		common.setupApplicationProjectFolder(wsFolder, resourcePath);
+		common.createProjectMakefiles(wsFolder, resourcePath);
 
 		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
 		let msg: string = '';

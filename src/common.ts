@@ -77,7 +77,7 @@ export function getProjectFolders(): vscode.WorkspaceFolder[] {
  * @param resourcePath Path to extension resource folder
  */
 
-export function setupApplicationProjectFolder (folder: string, resourcePath: string) {
+export function createProjectMakefiles (folder: string, resourcePath: string) {
 	const projecRestPath = path.join(resourcePath, 'projectfiles');
 
 	/* Necessary files: Application.mk, LibTarget.mk, Make.defs, Makefile */
