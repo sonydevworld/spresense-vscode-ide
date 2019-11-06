@@ -61,12 +61,14 @@ export function exec(cmd: string, options?: cp.ExecOptions, callback?: (error: c
 	const shell = env.SHELL;
 	let command = `${shell} -c \'${cmd}\'`;
 
-	if (options) {
-		if (options.env) {
-			options.env['PATH'] = env.PATH;
-		} else {
-			options.env = {PATH: env.PATH};
-		}
+	if (!options) {
+		options = {};
+	}
+
+	if (options.env) {
+		options.env['PATH'] = env.PATH;
+	} else {
+		options.env = {PATH: env.PATH};
 	}
 
 	/* For windows file path delimiter */
@@ -93,12 +95,14 @@ export function execSync(command: string, options?: cp.ExecOptions): Buffer | st
 
 	command = `${shell} -c \'${command}\'`;
 
-	if (options) {
-		if (options.env) {
-			options.env['PATH'] = env.PATH;
-		} else {
-			options.env = {PATH: env.PATH};
-		}
+	if (!options) {
+		options = {};
+	}
+
+	if (options.env) {
+		options.env['PATH'] = env.PATH;
+	} else {
+		options.env = {PATH: env.PATH};
 	}
 
 	/* For windows file path delimiter */
