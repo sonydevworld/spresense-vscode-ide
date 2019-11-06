@@ -415,22 +415,6 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
 	return true;
 }
 
-function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
-	const projecRestPath = path.join(resourcePath, 'projectfiles');
-
-	/* Necessary files: Application.mk, LibTarget.mk, Make.defs, Makefile */
-	const tempFileList = fs.readdirSync(projecRestPath);
-
-	tempFileList.forEach((file) => {
-		const src = path.join(projecRestPath, file);
-		const dest = path.join(wsFolder, file);
-
-		fs.copyFile(src, dest, fs.constants.COPYFILE_EXCL, (err) => {
-			/* Nop */
-		});
-	});
-}
-
 /**
  * Create new component files with template
  *
@@ -456,7 +440,7 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 	if (wsFolder !== wsFolders[0].uri.fsPath) {
 
 		/* Setup application folder, if necessary */
-		setupApplicationProjectFolder(wsFolder, resourcePath);
+		common.setupApplicationProjectFolder(wsFolder, resourcePath);
 
 		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
 		let msg: string = '';

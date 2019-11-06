@@ -69,6 +69,31 @@ export function getProjectFolders(): vscode.WorkspaceFolder[] {
 }
 
 /**
+ * Create project folder makefiles
+ *
+ * This function create a makefiles for setting up a project folder.
+ *
+ * @param folder Path to project root folder
+ * @param resourcePath Path to extension resource folder
+ */
+
+export function setupApplicationProjectFolder (folder: string, resourcePath: string) {
+	const projecRestPath = path.join(resourcePath, 'projectfiles');
+
+	/* Necessary files: Application.mk, LibTarget.mk, Make.defs, Makefile */
+	const tempFileList = fs.readdirSync(projecRestPath);
+
+	tempFileList.forEach((file) => {
+		const src = path.join(projecRestPath, file);
+		const dest = path.join(folder, file);
+
+		fs.copyFile(src, dest, fs.constants.COPYFILE_EXCL, (err) => {
+			/* Nop */
+		});
+	});
+}
+
+/**
  * Create new file with template
  *
  * This function create a new file for adding application or library or worker
