@@ -1211,6 +1211,16 @@ export function activate(context: vscode.ExtensionContext) {
 			});
 		}));
 
+		let watcher = vscode.workspace.createFileSystemWatcher("**/* *", false, true, true);
+		context.subscriptions.push(watcher.onDidCreate((event) => {
+			/* This event is triggered from file creation or coping or moving.
+			 * Therefore, it is dangerous to delete. So just only to show warning message.
+			 */
+			vscode.window.showWarningMessage(
+				nls.localize("spresense.src.create.error.space", "Spresense extension can not use this new folder or file that contain ' '. ")
+			);
+		}));
+
 		context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((event) => {
 			/* Set Spresense button */
 			setSpresenseButton();
