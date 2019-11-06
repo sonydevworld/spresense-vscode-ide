@@ -1035,7 +1035,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	try {
 		/* Get enviroment from bash */
 		const shellEnv = cp.execSync(
-			`${shpath} --login -c \'source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\'`
+			`${shpath} --login -c \"source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\"`
 			).toString().trim().split('\n');
 
 		/* Parse PATH */
