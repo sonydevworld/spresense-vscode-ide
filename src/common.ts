@@ -131,6 +131,13 @@ export function createFileByTemplate (srcFile: string, destFile: string, appname
 	fs.writeFile(destFile, buff, (err) => {
 		if (err) {
 			vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error.file", "Error in creating file {0}.", destFile));
+		} else if (destFile.endsWith('.c')) {
+			vscode.window.showTextDocument(
+				vscode.Uri.file(destFile),
+				{
+					preview: false
+				}
+			);
 		}
 	});
 }
