@@ -118,23 +118,23 @@ function getRootDir(): string | undefined {
  */
 
 function getPythonPath(): string | undefined {
-	let python = 'python';
+	let python:string| undefined;
+
 	try {
-		return cp.execSync('which python3').toString().trim();
+		python = cp.execSync('which python3').toString().trim();
 	} catch {
 		try {
-			return cp.execSync('which python').toString().trim();
+			python = cp.execSync('which python').toString().trim();
 		} catch {
-			return undefined;
 		}
 	}
 
 	/* In MSYS2, append MSYS2 install path */
-	if (process.platform === 'win32') {
+	if (process.platform === 'win32' && python) {
 		const mpath = vscode.workspace.getConfiguration('spresense.msys').get('path');
 
 		if (mpath && typeof mpath === 'string') {
-			python = path.join(mpath, 'usr', 'bin', python);
+			python = path.join(mpath, python);
 		}
 	}
 
@@ -672,7 +672,7 @@ class SDKConfigView {
 			maxBuffer: 1024 * 1024
 		};
 
-		cp.execFile(this._python, args, options, (err, stdout, stderr) => {
+		child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
 			if (err) {
 				console.error(err);
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
@@ -782,7 +782,7 @@ class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			cp.execFile(this._python, args, options, (err, stdout, stderr) => {
+			child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
 					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
 					this.dispose();
