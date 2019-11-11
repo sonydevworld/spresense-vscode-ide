@@ -193,14 +193,10 @@ class ItemWizard extends WizardBase {
 
             if (message.type === ItemWizard.ITEM_TYPE_APP_COMMAND) {
                 /* Create a application template for using new worker */
-                common.createApplicationFiles(message.name, message.folder, path.join(this._resourcePath, 'appfiles'), true);
+                common.createApplicationFiles(message.name, message.folder, this._resourcePath);
             } else if (message.type === ItemWizard.ITEM_TYPE_ASMP_WORKER) {
                 /* Create worker template */
-                common.createWorkerFiles(message.name, message.folder, path.join(this._resourcePath, 'workerfiles', 'worker'), true);
-                if ('sampleName' in message) {
-                    /* Create a application template for using new worker */
-                    common.createApplicationFiles(message.sampleName, message.folder, path.join(this._resourcePath, 'workerfiles', 'app'), false, {'__worker_name__':message.name});
-                }
+                common.createWorkerFiles(message.name, message.sampleName, message.folder, this._resourcePath);
             }
         }
 
