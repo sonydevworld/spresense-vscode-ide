@@ -108,7 +108,7 @@ export function createProjectMakefiles (folder: string, resourcePath: string) {
  * @param appname Path to template file
  */
 
-export function createFileByTemplate (srcFile: string, destFile: string, appname: string, custom?: {[key: string]: string}) {
+export function createFileByTemplate (srcFile: string, destFile: string, appname: string, autoOpen: boolean, custom?: {[key: string]: string}) {
 	const targetDir = path.dirname(destFile);
 	const upper = `${appname}`.toUpperCase();
 	let buff = fs.readFileSync(srcFile).toString();
@@ -131,7 +131,7 @@ export function createFileByTemplate (srcFile: string, destFile: string, appname
 	fs.writeFile(destFile, buff, (err) => {
 		if (err) {
 			vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error.file", "Error in creating file {0}.", destFile));
-		} else if (destFile.endsWith('.c')) {
+		} else if (autoOpen) {
 			vscode.window.showTextDocument(
 				vscode.Uri.file(destFile),
 				{
@@ -156,7 +156,7 @@ export function createFileByTemplate (srcFile: string, destFile: string, appname
  * @param tempPath Path to using template files
  */
 
-export function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
+export function createWorkerFiles (name: string, wsFolder: string, tempPath: string, autoOpen?: boolean) {
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(wsFolder, `${name}_worker`);
 
@@ -169,8 +169,10 @@ export function createWorkerFiles (name: string, wsFolder: string, tempPath: str
 
 		/* Destination file path */
 		let destFile;
+		let openFile = false;
 		if (file === 'worker.c') {
 			destFile = path.join(destDir, `${name}_worker.c`);
+			openFile = autoOpen ? autoOpen : false;
 		} else if (file === 'header.h') {
 			destFile = path.join(destDir, 'include', `${name}.h`);
 		} else {
@@ -178,7 +180,7 @@ export function createWorkerFiles (name: string, wsFolder: string, tempPath: str
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
+		createFileByTemplate(srcFile, destFile, name, openFile);
 	});
 }
 
@@ -195,7 +197,7 @@ export function createWorkerFiles (name: string, wsFolder: string, tempPath: str
  * @param tempPath Path to using template files
  */
 
-export function createApplicationFiles (name: string, wsFolder: string, tempPath: string, custom?: {[key: string]: string}) {
+export function createApplicationFiles (name: string, wsFolder: string, tempPath: string, autoOpen?: boolean, custom?: {[key: string]: string}) {
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(wsFolder, name);
 
@@ -208,14 +210,16 @@ export function createApplicationFiles (name: string, wsFolder: string, tempPath
 
 		/* Destination file path */
 		let destFile;
+		let openFile = false;
 		if (file === 'main.c') {
 			destFile = path.join(destDir, `${name}_main.c`);
+			openFile = autoOpen ? autoOpen : false;
 		} else {
 			destFile = path.join(destDir, file);
 		}
 
 		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name, custom);
+		createFileByTemplate(srcFile, destFile, name, openFile, custom);
 	});
 }
 

@@ -476,10 +476,10 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 
 		if (mode === createAppMode) {
 			/* Create a application template for using new worker */
-			common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'));
+			common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'), true);
 		} else if (mode === createWorkerMode) {
 			/* Create worker template */
-			common.createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'));
+			common.createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'), true);
 			const selectableItems = [
 				"No",
 				"Yes"
@@ -489,7 +489,7 @@ async function createComponentFiles (wsFolder: string, extensionPath: string, mo
 
 			if (reply === "Yes") {
 				/* Create a application template for using new worker */
-				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'), {'__worker_name__':name});
+				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'), false, {'__worker_name__':name});
 			}
 		}
 	} else {
