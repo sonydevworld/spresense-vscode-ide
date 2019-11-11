@@ -415,89 +415,6 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
 	return true;
 }
 
-/**
- * Create new component files with template
- *
- * This function create new files for adding component initial setup.
- * Supported component:
- *  Application (mode = createAppMode)
- *  Worker (mode = createWorkerMode)
- *
- * @param wsFolder Path to workspace folder
- * @param extensionPath Path to extension folder
- * @param mode Creation mode (createAppMode / createWorkerMode)
- */
-
-async function createComponentFiles (wsFolder: string, extensionPath: string, mode: string) {
-	const resourcePath = path.join(extensionPath, 'resources');
-	const wsFolders = vscode.workspace.workspaceFolders;
-
-	if (!wsFolders || !wsFolders[0]) {
-		return;
-	}
-
-	/* If wsFolder is same as first workspace folder, it is spresense sdk folder */
-	if (wsFolder !== wsFolders[0].uri.fsPath) {
-
-		/* Setup application folder, if necessary */
-		common.createProjectMakefiles(wsFolder, resourcePath);
-
-		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
-		let msg: string = '';
-		if (mode === createAppMode) {
-			msg = nls.localize("spresense.src.create.app.input", "Please enter the name of new application command. {0}", example);
-		} else if (mode === createWorkerMode) {
-			msg = nls.localize("spresense.src.create.app.worker", "Please enter the name of new worker. {0}", example);
-		}
-
-		/* Show dialog for inputing component name */
-		const name = await vscode.window.showInputBox({
-			prompt: msg,
-			validateInput: (input) => {
-				const namePattern = /^[a-zA-Z][\w]*$/;
-				const dirlist = fs.readdirSync(wsFolder);
-				const reservedName = ['out', 'Makefile'];
-
-				if (!namePattern.test(input)) {
-					return nls.localize("spresense.src.create.app.error.invalid", "Invalid name entered.");
-				} else if (dirlist.indexOf(input) !== -1) {
-					return nls.localize("spresense.src.create.app.error.existed", "Directory or file '{0}' is already exists.", input);
-				} else if (reservedName.indexOf(input) !== -1) {
-					return nls.localize("spresense.src.create.app.error.reserved", "Cannot use '{0}'.", input);
-				}
-
-				return '';
-			}
-		});
-
-		if (!name) {
-			return;
-		}
-
-		if (mode === createAppMode) {
-			/* Create a application template for using new worker */
-			common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'), true);
-		} else if (mode === createWorkerMode) {
-			/* Create worker template */
-			common.createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'), true);
-			const selectableItems = [
-				"No",
-				"Yes"
-			];
-
-			const reply = await vscode.window.showQuickPick(selectableItems, {placeHolder: nls.localize("spresense.src.create.app.confirm", 'Do you want to create a sample application to use new worker?')});
-
-			if (reply === "Yes") {
-				/* Create a application template for using new worker */
-				common.createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'), false, {'__worker_name__':name});
-			}
-		}
-	} else {
-		/* Does not support create component files into Spresense SDK repository. */
-		vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error", 'Cannot execute this command for spresense repository.'));
-	}
-}
-
 function setSpresenseButton() {
 	/* Enable or Disable spresense comands and buttons */
 	if (vscode.window.activeTextEditor &&
@@ -821,38 +738,6 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.flash', (selectedUri) => {
 		/* Do the flash */
 		triggerSpresenseTask(selectedUri, taskFlashLabel);
-	}));
-
-	/* Register create application command */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.create.application', (folder) => {
-		let wsFolder: vscode.WorkspaceFolder | undefined;
-
-		if (folder instanceof vscode.Uri) {
-			wsFolder = vscode.workspace.getWorkspaceFolder(folder);
-		}
-
-		if (wsFolder) {
-			/* Create application files */
-			createComponentFiles(wsFolder.uri.fsPath, context.extensionPath, createAppMode);
-		} else {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.command.error", 'This command not suuported by command pallete. Please take right click in file or folder.'));
-		}
-	}));
-
-	/* Register create worker */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.create.worker', (folder) => {
-		let wsFolder: vscode.WorkspaceFolder | undefined;
-
-		if (folder instanceof vscode.Uri) {
-			wsFolder = vscode.workspace.getWorkspaceFolder(folder);
-		}
-
-		if (wsFolder) {
-			/* Create worker files */
-			createComponentFiles(wsFolder.uri.fsPath, context.extensionPath, createWorkerMode);
-		} else {
-			vscode.window.showErrorMessage('This command not suuported by command pallete. Please take right click in file or folder.');
-		}
 	}));
 
 	/* Register burn bootloader command */

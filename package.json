@@ -137,14 +137,6 @@
 				"title": "%spresense.command.msys.path%"
 			},
 			{
-				"command": "spresense.create.application",
-				"title": "%spresense.command.create.app%"
-			},
-			{
-				"command": "spresense.create.worker",
-				"title": "%spresense.command.create.worker%"
-			},
-			{
 				"command": "spresense.burn.bootloader",
 				"title": "%spresense.command.burn.bootloader%"
 			},
