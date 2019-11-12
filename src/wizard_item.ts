@@ -188,9 +188,6 @@ class ItemWizard extends WizardBase {
         }
 
         if ('type' in message && 'folder' in message && 'name' in message) {
-            /* Setup application folder, if necessary */
-            common.createProjectMakefiles(message.folder, this._resourcePath);
-
             if (message.type === ItemWizard.ITEM_TYPE_APP_COMMAND) {
                 /* Create a application template for using new worker */
                 common.createApplicationFiles(message.name, message.folder, this._resourcePath);
