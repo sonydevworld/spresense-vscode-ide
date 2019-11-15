@@ -3,7 +3,7 @@
 	"publisher": "sony-spresense",
 	"displayName": "Spresense VSCode IDE",
 	"description": "Spresense Extension for VSCode",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"license": "MIT",
 	"author": {
 		"name": "Sony Semiconductor Solutions"
@@ -40,14 +40,14 @@
 				"properties": {
 					"spresense.sdk.path": {
 						"type": "string",
-						"default": "Do/not/modify",
+						"default": "",
 						"title": "%spresense.property.sdk.path.title%",
 						"description": "%spresense.property.sdk.path.desc%",
 						"scope": "window"
 					},
 					"spresense.sdk.tools.path": {
 						"type": "string",
-						"default": "Do/not/modify",
+						"default": "",
 						"title": "%spresense.property.sdk.tools.path.title%",
 						"description": "%spresense.property.sdk.tools.path.desc%",
 						"scope": "window"
@@ -64,7 +64,7 @@
 						"default": "",
 						"title": "%spresense.property.msys.path.title%",
 						"description": "%spresense.property.msys.path.desc%",
-						"scope": "window"
+						"scope": "application"
 					},
 					"spresense.flashing.speed": {
 						"type": "string",
@@ -101,7 +101,7 @@
 						"type": "string",
 						"default": "/dev/ttyUSB0",
 						"description": "%serial.property.port%",
-						"scope": "window"
+						"scope": "application"
 					}
 				}
 			}
@@ -216,6 +216,16 @@
 					"when": "spresenseIdeEnabled",
 					"command": "spresense.flash",
 					"group": "12_SpresenseBuild@1"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.sdkconfig",
+					"group": "13_SpresenseConfig@1"
+				},
+				{
+					"when": "spresenseIdeEnabled",
+					"command": "spresense.kernelconfig",
+					"group": "13_SpresenseConfig@2"
 				}
 			]
 		}

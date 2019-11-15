@@ -89,6 +89,25 @@ function getFirstFolderPath(): string | undefined {
 	return firstFolder;
 }
 
+/**
+ * Remove folder from workspace
+ *
+ * This function delete a folder from current workspace.
+ *
+ * @param folderUri Uri to target folder for deleting..
+ */
+
+function removeWorkspaceFolder(folderUri: vscode.Uri) {
+	const wsFolders = vscode.workspace.workspaceFolders;
+
+	for (let index = 0; wsFolders && index < wsFolders.length; index ++) {
+		if (wsFolders[index].uri === folderUri) {
+			vscode.workspace.updateWorkspaceFolders(index, 1);
+			break;
+		}
+	}
+}
+
 function loadJson(file: string, create: boolean) {
 	try {
 		return JSON.parse(fs.readFileSync(file, 'utf-8'));
@@ -330,13 +349,26 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	}
 }
 
-async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
+/**
+ * Update launch.json file for application debug
+ *
+ * This function update a launch.json file for debugging application code
+ * with ICE JTAG.
+ * Replace rules:
+ *
+ * @param newFolderUri Path to target project folder
+ * @returns true if success to update, false otherwise.
+ */
+
+async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
+	const sdkFolder = getFirstFolderPath();
+	const vsocodeFolder = path.join(newFolderUri.fsPath, '.vscode');
 	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
 	let cortexDebug: ConfigInterface = {};
 	let elfFile: string | undefined;
 
-	if (!vscode.workspace.workspaceFolders) {
-		return;
+	if (!vscode.workspace.workspaceFolders || !sdkFolder) {
+		return false;
 	}
 
 	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
@@ -358,6 +390,10 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 	cortexDebug['preLaunchTask'] = taskCleanFlashLabel;
 	cortexDebug['configFiles'] = ['interface/cmsis-dap.cfg', '${config:spresense.sdk.tools.path}/cxd5602.cfg'];
 	cortexDebug['svdFile'] = '${config:spresense.sdk.tools.path}/SVD/cxd5602.svd';
+	cortexDebug['debuggerArgs'] = [
+		'-ix',
+		'.vscode/.gdbinit'
+	];
 	cortexDebug['overrideRestartCommands'] = [
 		"monitor sleep 3000",
 		"load",
@@ -366,6 +402,16 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri) {
 
 	/* Apply into tasks.json */
 	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
+
+	try {
+		/* Copy Spresense specific .gdbinit */
+		fs.copyFileSync(path.join(sdkFolder, 'sdk', '.gdbinit'), path.join(vsocodeFolder, '.gdbinit'));
+	} catch (err) {
+		vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
+		return false;
+	}
+
+	return true;
 }
 
 function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
@@ -988,28 +1034,21 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 
 	try {
 		/* Get enviroment from bash */
-		const shellEnv = cp.execSync(`${shpath} --login -c env`).toString().trim();
+		const shellEnv = cp.execSync(
+			`${shpath} --login -c \"source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\"`
+			).toString().trim().split('\n');
 
 		/* Parse PATH */
-		let envMatch = shellEnv.match(/^PATH=(.*)$/m);
-		const envPath = envMatch ? envMatch[1] : '';
-
-		/* Parse HOME */
-		envMatch = shellEnv.match(/^HOME=(.*)$/m);
-		const homePath = envMatch ? envMatch[1] : '';
-
-		const sprEnvPath = `${homePath}/spresenseenv/usr/bin`;
+		const envPath = shellEnv[0];
+		const sprEnvPath = shellEnv[1];
 		const openocdPath = `${sprEnvPath}/openocd`;
 
 		/* Prepare shell environment done */
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
-		/* Just for checking spresenseenv. It not exist, jump to catch section. */
-		cp.execSync(`${shpath} --login -c \'ls ${sprEnvPath}\'`);
-
 		/* Set PATH */
 		termConf.update(`env.${osName[process.platform]}`,{
-			'PATH': `${sprEnvPath}:${envPath}`
+			'PATH': envPath
 		}, vscode.ConfigurationTarget.Workspace);
 
 		/* Check spresenseenv done(If not exist, skip it) */
@@ -1228,6 +1267,9 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	}
 
 	if (isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
+		/* Remove 2nd Spresense SDK folder */
+		removeWorkspaceFolder(folderUri);
+
 		/* If folderUri is SDK and it is not a first folder, that is multiple SDK */
 		vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.multi", "Spresense extension can not use multiple Spresense SDK. \
 		Please remove one of spresense folder from workspace."));
@@ -1245,7 +1287,9 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	await sdkTaskConfig(folderUri, context);
 
 	/* For debug */
-	await sdkLaunchConfig(folderUri);
+	if (! await sdkLaunchConfig(folderUri)) {
+		return;
+	}
 
 	/* Create file for storing spresense environment */
 	createSpresenseConfFile(folderPath);

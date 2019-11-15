@@ -1,8 +1,44 @@
 # Change Log
 
+## v1.0.2
+
+(日本語の説明文は英語の後に記載しています。)
+
+### Summary
+
+- Feature improvement is available
+
+### New features and feature enhancements
+
+- [Config] Add Kernel/SDK Config in the right click menu.
+
+### Improved features
+
+- [Build] Add support for using a user name with multi-byte code in a Windows environment.
+
+  - Limitation: https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_function_restrictions_by_user_name_and_folder_name
+
+------------------------
+
+(Below is in Japanese)
+
+### 概要
+
+- 新規機能追加および機能拡張を行いました
+
+### 新規機能追加および機能拡張
+
+- [コンフィグ] 右クリックメニューからコンフィグコマンドを実行できるようになりました。
+
+### 改善された機能
+
+- [ビルド] Windows環境でマルチバイトコードが入ったユーザ名を利用していた場合にも対応しました。
+
+  - 制限事項：https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ユーザー名やフォルダー名における制限事項
+
 ## v1.0.1
 
-(日本語の説明文はは英語の後に記載しています。)
+(日本語の説明文は英語の後に記載しています。)
 
 ### Summary
 
@@ -38,7 +74,7 @@
 
 ## v1.0.0
 
-(日本語の説明文はは英語の後に記載しています。)
+(日本語の説明文は英語の後に記載しています。)
 
 - Initial release
 

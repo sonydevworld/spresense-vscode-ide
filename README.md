@@ -1,6 +1,6 @@
 # Spresense VSCode IDE
 
-(日本語の説明文はは英語の後に記載しています。)
+(日本語の説明文は英語の後に記載しています。)
 
 **Development environment for Spresense SDK**
 

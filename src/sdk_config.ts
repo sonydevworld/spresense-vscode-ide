@@ -20,6 +20,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as glob from 'glob';
@@ -69,19 +70,6 @@ export function activate(context: vscode.ExtensionContext) {
 			SDKConfigView.createOrShow(context.extensionPath, config, SDKConfigView.kernelMode);
 		})
 	);
-
-	context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((textDoc: vscode.TextDocument) => {
-		if (detectSpresenseSDK()) {
-			const wsFolder = vscode.workspace.getWorkspaceFolder(textDoc.uri);
-			if (wsFolder) {
-				if (path.basename(textDoc.fileName) === 'sdk.config') {
-					SDKConfigView.createOrShow(context.extensionPath, textDoc.fileName, SDKConfigView.sdkMode);
-				} else if (path.basename(textDoc.fileName) === 'kernel.config') {
-					SDKConfigView.createOrShow(context.extensionPath, textDoc.fileName, SDKConfigView.kernelMode);
-				}
-			}
-		}
-	}));
 }
 
 /**
@@ -120,6 +108,27 @@ function getRootDir(): string | undefined {
 	let dir = vscode.workspace.workspaceFolders[0].uri.fsPath;
 	console.log(`workspace root: ${dir}`);
 	return dir;
+}
+
+/**
+ * Get absolute path to python
+ *
+ * @return Path to python, return undefined if both of 'python' and 'python3' are not found.
+ */
+
+function getPythonPath(): string {
+	let python = 'python';
+
+	/* In MSYS2, append MSYS2 install path */
+	if (process.platform === 'win32') {
+		const mpath = vscode.workspace.getConfiguration('spresense.msys').get('path');
+
+		if (mpath && typeof mpath === 'string') {
+			python = path.join(mpath, 'usr', 'bin', python);
+		}
+	}
+
+	return python;
 }
 
 /**
@@ -629,7 +638,7 @@ class SDKConfigView {
 		 * python /path/to/helper/kconfig2json.py -o /path/to/menu.js
 		 */
 
-		const python = "python";
+		const python = getPythonPath();
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		args.push(this._sdkTmpKconfig);
 
@@ -646,7 +655,7 @@ class SDKConfigView {
 			maxBuffer: 1024 * 1024
 		};
 
-		cp.execFile(python, args, options, (err, stdout, stderr) => {
+		child_process.execFile(python, args, options, (err, stdout, stderr) => {
 			if (err) {
 				console.log(err);
 				this._progress.emit("update", "error", 100);
@@ -704,7 +713,7 @@ class SDKConfigView {
 	}
 
 	private _genKernelConfigMenuData() {
-		const python = "python";
+		const python = getPythonPath();
 		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
@@ -757,7 +766,7 @@ class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			cp.execFile(python, args, options, (err, stdout, stderr) => {
+			child_process.execFile(python, args, options, (err, stdout, stderr) => {
 				if (err) {
 					console.log(err);
 				} else {
