@@ -790,15 +790,27 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	let shpath = termConf.get(`shell.${osName[process.platform]}`) || '/bin/bash';
 
 	try {
-		/* Get enviroment from bash */
+		/* && control character for bash */
+		let andCtrl = '&&';
+
+		/* In Windows environment(cmd.exe), && need a escape character */
+		if (process.platform === 'win32') {
+			andCtrl = '^&^&';
+		}
+		/* Get enviroment from bash
+		 * Line 1: PATH
+		 * Line 2: Openocd path
+		 */
 		const shellEnv = cp.execSync(
-			`${shpath} --login -c \"source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\"`
+			`${shpath} --login -c 'source ~/spresenseenv/setup ${andCtrl} echo $PATH ${andCtrl} which openocd'`
 			).toString().trim().split('\n');
 
 		/* Parse PATH */
-		const envPath = shellEnv[0];
-		const sprEnvPath = shellEnv[1];
-		const openocdPath = `${sprEnvPath}/openocd`;
+		const envPath     = shellEnv[0]; /* Line 1 */
+		const openocdPath = shellEnv[1]; /* Line 2 */
+
+		/* Get toolchain directory by openocd path */
+		const sprEnvPath = path.dirname(openocdPath);
 
 		/* Prepare shell environment done */
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
