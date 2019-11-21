@@ -160,16 +160,11 @@ function addPageEventListner() {
     /* Left button */
     document.getElementById('wizard-right-button').addEventListener("click", doRightButton);
 
-    /* Project select radio button event */
-    Array.prototype.forEach.call(document.getElementsByName('select-project'), (radio) => {
-        radio.addEventListener("change", () => {
-            setProjectFolder(radio.value);
-        });
-    });
-
-    /* Item type select radio button event */
-    Array.prototype.forEach.call(document.getElementsByName('select-item'), (radio) => {
-        radio.addEventListener("change", () => {
+    /* Item type select area event */
+    Array.prototype.forEach.call(document.getElementsByClassName('wizard-radio-button'), (div) => {
+        div.addEventListener("click", () => {
+            var radio = div.getElementsByTagName('input')[0];
+            radio.checked = true;
             setItemType(radio.value);
         });
     });
@@ -186,6 +181,16 @@ function addPageEventListner() {
     var checkbox = document.getElementById('wizard-item-checkbox');
     checkbox.addEventListener("click", () => {
         setAsmpSampleEnabled(checkbox.checked);
+    });
+
+    /* Checkbox area event */
+    Array.prototype.forEach.call(document.getElementsByClassName('wizard-item-checkbox-sec'), (div) => {
+        var label = div.getElementsByTagName('label')[0];
+        label.addEventListener("click", () => {
+            var checkbox = div.getElementsByTagName('input')[0];
+            checkbox.checked = !checkbox.checked;
+            setAsmpSampleEnabled(checkbox.checked);
+        });
     });
 
 }
@@ -274,14 +279,17 @@ function setProjectFolders(message) {
             })
             projectRot.appendChild(projectSec);
 
+            projectSec.addEventListener("click", () => {
+                projectRad.checked = true;
+                setProjectFolder(folder.path);
+            });
+
             /* Check selected item */
             if (folder.path === message.selected) {
                 projectRad.checked = true;
                 currentProject = folder.path;
             }
         });
-
-        addPageEventListner();
     }
 }
 
