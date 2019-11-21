@@ -26,6 +26,30 @@ import * as fs from 'fs';
 import * as nls from './localize';
 
 /**
+ * Check Msys folder
+ *
+ * This function detecting folder as Msys install path or not.
+ *
+ * @param folderPath Path to target folder for detecting.
+ * @returns If target folder is Msys install path, return true. If not, return false.
+ */
+
+export function isMsysInstallFolder(folderPath: string): boolean {
+	/* If first folder is spresense, set sdk path to settings */
+	if (fs.existsSync(path.join(folderPath, 'home'))
+		&& fs.statSync(path.join(folderPath, 'home')).isDirectory()
+		&& fs.existsSync(path.join(folderPath, 'usr'))
+		&& fs.statSync(path.join(folderPath, 'usr')).isDirectory()
+		&& fs.existsSync(path.join(folderPath, 'msys2.exe'))
+		&& fs.statSync(path.join(folderPath, 'msys2.exe')).isFile()) {
+		/* This folder is Msys install path */
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
  * Check spresense sdk folder
  *
  * This function detecting folder as spresense sdk or not.

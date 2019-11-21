@@ -464,7 +464,7 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 				const msysPath = folderUris[0].fsPath;
 
 				/* Check Msys install path */
-				if (!isMsysInstallFolder(msysPath)) {
+				if (!common.isMsysInstallFolder(msysPath)) {
 					/* If necessary directory missing, target direcgtory is invalid */
 					vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 
@@ -766,7 +766,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
 		const winShPath = termConf.get('shell.windows');
 
-		if (msysPath && isMsysInstallFolder(msysPath)) {
+		if (msysPath && common.isMsysInstallFolder(msysPath)) {
 			const bashPath = path.join(msysPath, 'usr', 'bin', 'bash.exe');
 
 			if (!winShPath || bashPath !== winShPath) {
@@ -845,30 +845,6 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 
 	/* Inform complete */
 	progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
-}
-
-/**
- * Check Msys folder
- *
- * This function detecting folder as Msys install path or not.
- *
- * @param folderPath Path to target folder for detecting.
- * @returns If target folder is Msys install path, return true. If not, return false.
- */
-
-function isMsysInstallFolder(folderPath: string): boolean {
-	/* If first folder is spresense, set sdk path to settings */
-	if (fs.existsSync(path.join(folderPath, 'home'))
-		&& fs.statSync(path.join(folderPath, 'home')).isDirectory()
-		&& fs.existsSync(path.join(folderPath, 'usr'))
-		&& fs.statSync(path.join(folderPath, 'usr')).isDirectory()
-		&& fs.existsSync(path.join(folderPath, 'msys2.exe'))
-		&& fs.statSync(path.join(folderPath, 'msys2.exe')).isFile()) {
-		/* This folder is Msys install path */
-		return true;
-	} else {
-		return false;
-	}
 }
 
 function isSpresenseEnvironment() {
