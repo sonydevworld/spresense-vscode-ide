@@ -118,6 +118,8 @@
 	"spresense.item.wizard.button.cancel": "キャンセル",
 	"spresense.item.wizard.button.create": "作成",
 	"spresense.item.wizard.project.desc": "アイテムを追加したいプロジェクトを選択してください。",
+	"spresense.item.wizard.project.name.label": "プロジェクト名",
+	"spresense.item.wizard.project.path.label": "プロジェクトフォルダーパス",
 	"spresense.item.wizard.type.desc": "追加するアイテムの種類を選択してください。",
 	"spresense.item.wizard.app.label": "アプリケーションコマンド",
 	"spresense.item.wizard.app.desc": "NuttShellのコマンドと、そのコマンドで動作するプログラムを作成します。",

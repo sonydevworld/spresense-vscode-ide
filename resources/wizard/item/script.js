@@ -251,12 +251,11 @@ function setProjectFolders(message) {
         var projectRot = document.getElementById("wizard-project-picker");
 
         message.folders.forEach(folder => {
-            var projectSec = document.createElement("div");
+            var projectSec = document.createElement("tr");
             var projectRad = document.createElement("input");
             var projectLb1 = document.createElement("label");
             var projectLb2 = document.createElement("label");
-
-            projectSec.className = 'wizard-radio-button';
+            var rows = [projectRad, projectLb1, projectLb2];
 
             projectRad.type = 'radio';
             projectRad.name = 'select-project';
@@ -268,9 +267,11 @@ function setProjectFolders(message) {
             projectLb2.className = 'wizard-radio-button-subtitle';
             projectLb2.textContent = folder.path;
 
-            projectSec.appendChild(projectRad);
-            projectSec.appendChild(projectLb1);
-            projectSec.appendChild(projectLb2);
+            rows.forEach((row) => {
+                var th = document.createElement("th");
+                th.appendChild(row);
+                projectSec.appendChild(th);
+            })
             projectRot.appendChild(projectSec);
 
             /* Check selected item */

@@ -90,6 +90,10 @@ class ItemWizard extends WizardBase {
                 nls.localize("spresense.item.wizard.label", "Add new item wizard"),
             'wizard-project-name-description':
                 nls.localize("spresense.item.wizard.project.desc", "Please select project name for creating item."),
+            'wizard-project-name-label':
+                nls.localize("spresense.item.wizard.project.name.label", "Project name"),
+            'wizard-project-path-label':
+                nls.localize("spresense.item.wizard.project.path.label", "Project folder path"),
             'wizard-item-type-description':
                 nls.localize("spresense.item.wizard.type.desc", "Please select the type of item you want to add."),
             'app-command-label':

@@ -53,9 +53,10 @@
     font-size: medium;
 }
 
-.wizard-radio-button {
-    display: block;
-    margin: 20px;
+.wizard-radio-table {
+    align-content: center;
+    margin: 10px;
+    border-spacing: 10px;
 }
 
 .wizard-radio-button-title {

@@ -118,6 +118,8 @@
 	"spresense.item.wizard.button.cancel": "取消",
 	"spresense.item.wizard.button.create": "建立",
 	"spresense.item.wizard.project.desc": "選擇您要添加項目的項目。",
+	"spresense.item.wizard.project.name.label": "Project name",
+	"spresense.item.wizard.project.path.label": "Project folder path",
 	"spresense.item.wizard.type.desc": "請選擇要添加的項目類型。",
 	"spresense.item.wizard.app.label": "應用命令",
 	"spresense.item.wizard.app.desc": "創建一個NuttShell命令以及與該命令配合使用的程序。",
