@@ -101,23 +101,26 @@ function updateButtonText(message) {
 }
 
 function updateButtonState() {
-    var left_button = document.getElementById('left-button');
-    var right_button = document.getElementById('right-button');
+    var left_button = document.getElementById('wizard-left-button');
+    var right_button = document.getElementById('wizard-right-button');
+
+    /* Left button */
+    if (currentPage === 0) {
+        left_button.className = "wizard-disable-button";
+    } else {
+        left_button.className = "wizard-enable-button";
+    }
+
+    /* Right button */
     if (currentPage === WIZARD_PAGES.length - 1) {
         if (isReadyToCreate()) {
             right_button.className = "wizard-enable-button";
         } else {
             right_button.className = "wizard-disable-button";
         }
-        left_button.textContent = buttonText["previous"];
         right_button.textContent = buttonText["create"];
-    } else if (currentPage === 0) {
-        right_button.className = "wizard-enable-button";
-        left_button.textContent = buttonText["cancel"];
-        right_button.textContent = buttonText["next"];
     } else {
         right_button.className = "wizard-enable-button";
-        left_button.textContent = buttonText["previous"];
         right_button.textContent = buttonText["next"];
     }
 }
@@ -148,11 +151,14 @@ function addVscodeEventListner() {
 }
 
 function addPageEventListner() {
-    /* Left button */
-    document.getElementById('left-button').addEventListener("click", doLeftButton);
+    /* Cancel button */
+    document.getElementById('wizard-cancel-button').addEventListener("click", doCancelButton);
 
     /* Left button */
-    document.getElementById('right-button').addEventListener("click", doRightButton);
+    document.getElementById('wizard-left-button').addEventListener("click", doLeftButton);
+
+    /* Left button */
+    document.getElementById('wizard-right-button').addEventListener("click", doRightButton);
 
     /* Project select radio button event */
     Array.prototype.forEach.call(document.getElementsByName('select-project'), (radio) => {
@@ -220,6 +226,11 @@ function doCreate() {
     }
 }
 
+function doCancelButton() {
+    /* In first page, let mean 'close' */
+    vscode.postMessage({command: "close"});
+}
+
 function doRightButton() {
     if (currentPage === WIZARD_PAGES.length - 1) {
         /* In last page, right mean 'create' */
@@ -230,10 +241,7 @@ function doRightButton() {
 }
 
 function doLeftButton() {
-    if (currentPage === 0) {
-        /* In first page, let mean 'close' */
-        vscode.postMessage({command: "close"});
-    } else {
+    if (currentPage !== 0) {
         showPage(--currentPage);
     }
 }

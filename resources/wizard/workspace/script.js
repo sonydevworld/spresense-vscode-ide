@@ -70,7 +70,7 @@ function addButtonEventListner() {
     }
 
     /* Cancel button */
-    document.getElementById('wizard-left-button').addEventListener("click", () => {
+    document.getElementById('wizard-cancel-button').addEventListener("click", () => {
         // Cancel to create workspace
         vscode.postMessage({command: "cancel"});
     });

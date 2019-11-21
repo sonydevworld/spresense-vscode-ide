@@ -113,7 +113,13 @@ class ItemWizard extends WizardBase {
             'wizard-asmp-worker-app-name-label':
                 nls.localize("spresense.item.wizard.asmp.sample.label", "Sample application name"),
             'wizard-asmp-worker-app-name-description':
-                nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_).")
+                nls.localize("spresense.item.wizard.app.name.desc", "Please input application command name. This name is using by NuttShell. And command name can use number(0 ~ 9), alphabet(a ~ z, A ~ Z), underscore(_)."),
+            'wizard-cancel-button':
+                nls.localize("spresense.item.wizard.button.cancel", "Cancel"),
+            'wizard-left-button':
+                nls.localize("spresense.item.wizard.button.previous", "Previous"),
+            'wizard-right-button':
+                nls.localize("spresense.item.wizard.button.next", "Next")
         };
     }
 
@@ -138,9 +144,7 @@ class ItemWizard extends WizardBase {
 
     private updateButtonDescription() {
         const buttonText = {
-            'previous': nls.localize("spresense.item.wizard.button.previous", "Previous"),
             'next': nls.localize("spresense.item.wizard.button.next", "Next"),
-            'cancel': nls.localize("spresense.item.wizard.button.cancel", "Cancel"),
             'create': nls.localize("spresense.item.wizard.button.create", "Create")
         };
 

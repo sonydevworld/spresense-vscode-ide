@@ -136,7 +136,7 @@ class WorkspaceWizard extends WizardBase {
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
             'wizard-right-button':
                 nls.localize("spresense.workspace.wizard.create.button", "Create"),
-            'wizard-left-button':
+            'wizard-cancel-button':
                 nls.localize("spresense.workspace.wizard.cancel.button", "Cancel"),
             'wizard-environment-problems-label':
                 nls.localize("spresense.workspace.wizard.problems.label", "Problems"),

@@ -125,7 +125,17 @@
 #wizard-footer {
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
+}
+
+#wizard-dir-button {
+    display: flex;
+    flex-direction: row;
     justify-content: flex-end;
+}
+
+#wizard-dir-button > div {
+    padding: 0px 16px;
 }
 
 #wizard-footer > div {
