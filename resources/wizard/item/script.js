@@ -309,10 +309,14 @@ function setItemType(type) {
 
 function setAsmpSampleEnabled(enable) {
     var setting = document.getElementById('asmp-app-name');
+    var textbox = document.getElementById('wizard-asmp-app-name-box');
+
     if (enable) {
-        setting.style.display = 'inherit';
+        setting.classList.remove("disabled");
+        textbox.disabled = false;
     } else {
-        setting.style.display = 'none';
+        setting.classList.add("disabled");
+        textbox.disabled = true;
     }
 
     updateButtonState();

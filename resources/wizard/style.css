@@ -41,6 +41,11 @@
 .wizard-item {
     display: inline;
     margin: 20px;
+    opacity: 1.0;
+}
+
+.wizard-item.disabled {
+    opacity: 0.3;
 }
 
 .wizard-item-body {
@@ -111,7 +116,7 @@
 }
 
 #asmp-app-name {
-    display: none;
+    display: inherit;
 }
 
 #environment-problems {
