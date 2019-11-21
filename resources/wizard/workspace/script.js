@@ -54,7 +54,7 @@ function addVscodeEventListner() {
                     disableWizardDialog();
                     break;
                 case 'showProblems':
-                    showProblems();
+                    showProblems(message);
                     break;
             }
         }
@@ -136,8 +136,14 @@ function updateState() {
     }
 }
 
-function showProblems() {
-    document.getElementById("environment-problems").style.display = 'inline';
+function showProblems(message) {
+    if ('show' in message) {
+        if (message.show) {
+            document.getElementById("environment-problems").style.display = 'inline';
+        } else {
+            document.getElementById("environment-problems").style.display = 'none';
+        }
+    }
 }
 
 function openFolder(id) {

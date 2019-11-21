@@ -43,9 +43,33 @@ export function activate(context: vscode.ExtensionContext) {
         /* Open Workspace wizard */
         WorkspaceWizard.openWizard(resourcePath, context.globalState);
     }));
+
+    /* Register Configuration change event for sync spresense preference with wizard */
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((evt) => {
+        if (evt.affectsConfiguration("spresense.msys.path")) {
+            updateEnvironmentProblem();
+        }
+    }));
 }
 
 export function deactivate() {
+}
+
+function updateEnvironmentProblem() {
+    if (!WorkspaceWizard.currentPanel || process.platform !== 'win32') {
+        /* Nothing to do. */
+        return;
+    }
+
+    const msysPath = vscode.workspace.getConfiguration().get('spresense.msys.path');
+
+    if (msysPath && typeof msysPath === 'string' && common.isMsysInstallFolder(msysPath)) {
+        /* No problem, so hide message */
+        WorkspaceWizard.currentPanel.postMessage({command: 'showProblems', show: false});
+    } else {
+        /* Has problem, so show message  */
+        WorkspaceWizard.currentPanel.postMessage({command: 'showProblems', show: true});
+    }
 }
 
 class WorkspaceWizard extends WizardBase {
@@ -68,6 +92,9 @@ class WorkspaceWizard extends WizardBase {
 
         /* Create new panel */
         WorkspaceWizard.currentPanel = new WorkspaceWizard(panel, resourcePath, globalState);
+
+        /* Update environment problem message */
+        updateEnvironmentProblem();
     }
 
     public constructor(panel: vscode.WebviewPanel, resourcePath: string, globalState: vscode.Memento) {
@@ -79,13 +106,6 @@ class WorkspaceWizard extends WizardBase {
             vscode.workspace.workspaceFolders.length > 0) {
             /* Post description message */
             this.postMessage({command: 'disableWizard'});
-        }
-
-        /* If MSYS2 path is not set in windows environment, show message to set it */
-        if (process.platform === 'win32' &&
-            !vscode.workspace.getConfiguration().get('spresense.msys.path')) {
-            /* Send request to show problems */
-            this.postMessage({command: 'showProblems'});
         }
     }
 
