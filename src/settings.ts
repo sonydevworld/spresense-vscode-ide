@@ -1019,6 +1019,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 
 			/* Remove folder in advance */
 			removeWorkspaceFolder(folderUri);
+			return;
 	}
 
 	if (common.isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
