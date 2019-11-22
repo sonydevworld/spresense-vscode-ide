@@ -27,8 +27,12 @@ import * as md5 from 'md5';
 import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
+
 import { isMsysInstallFolder } from './common';
 import { isSpresenseSdkFolder } from './common';
+
+import * as launch from './launch';
+
 
 const spresenseExtInterfaceVersion: number = 1000;
 
@@ -356,62 +360,46 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 }
 
 /**
- * Update launch.json file for application debug
+ * Setup debug environment
  *
  * This function update a launch.json file for debugging application code
- * with ICE JTAG.
- * Replace rules:
+ * with ICE debugger.
  *
- * @param newFolderUri Path to target project folder
- * @returns true if success to update, false otherwise.
+ * @param targetFolder Path to target project folder or SDK repository
+ *
+ * @returns true if updated, false is error.
  */
 
-async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
-	const sdkFolder = getFirstFolderPath();
-	const vsocodeFolder = path.join(newFolderUri.fsPath, '.vscode');
-	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
-	let cortexDebug: ConfigInterface = {};
-	let elfFile: string | undefined;
-
-	if (!vscode.workspace.workspaceFolders || !sdkFolder) {
+function setupDebugEnv(targetFolder: vscode.Uri): boolean {
+	let elfFile: string;
+	let cwd: string;
+	let folder = vscode.workspace.getWorkspaceFolder(targetFolder);
+	if (!folder) {
 		return false;
 	}
 
-	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
-		/* SDK task definition */
-		elfFile = 'sdk/nuttx';
+	// Target ELF file is differ between SDK repository and user project.
+	if (isSpresenseSdkFolder(folder.uri.fsPath)) {
+		elfFile = './nuttx';
+		cwd = "${workspaceFolder}/sdk";
 	} else {
-		/* Application Folder task definition */
-		elfFile = '${workspaceFolder}/out/${workspaceFolderBasename}.nuttx';
+		elfFile = './out/${workspaceFolderBasename}.nuttx';
+		cwd = "${workspaceFolder:" + folder.name + "}";
 	}
 
-	/* cortex-debug */
-	cortexDebug['name'] = 'Main core debug';
-	cortexDebug['type'] = 'cortex-debug';
-	cortexDebug['request'] = 'launch';
-	cortexDebug['servertype'] = 'openocd';
-	cortexDebug['cwd'] = '${workspaceFolder}';
-	cortexDebug['executable'] = elfFile;
-	cortexDebug['device'] = 'CXD5602';
-	cortexDebug['preLaunchTask'] = taskCleanFlashLabel;
-	cortexDebug['configFiles'] = ['interface/cmsis-dap.cfg', '${config:spresense.sdk.tools.path}/cxd5602.cfg'];
-	cortexDebug['svdFile'] = '${config:spresense.sdk.tools.path}/SVD/cxd5602.svd';
-	cortexDebug['debuggerArgs'] = [
-		'-ix',
-		'.vscode/.gdbinit'
-	];
-	cortexDebug['overrideRestartCommands'] = [
-		"monitor sleep 3000",
-		"load",
-		"monitor reset halt"
-	];
+	launch.addMainTarget(folder.uri, elfFile, cwd);
 
-	/* Apply into tasks.json */
-	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
+	// Add .gdbinit file from SDK repository. This file needs to show the NuttX thread information.
 
+	const sdkFolder = getFirstFolderPath(); // XXX: This routine must not be here.
+	if (!sdkFolder) {
+		return false;
+	}
+
+	const src = path.join(sdkFolder, 'sdk', '.gdbinit');
+	const dest = path.join(folder.uri.fsPath, '.vscode', '.gdbinit');
 	try {
-		/* Copy Spresense specific .gdbinit */
-		fs.copyFileSync(path.join(sdkFolder, 'sdk', '.gdbinit'), path.join(vsocodeFolder, '.gdbinit'));
+		fs.copyFileSync(src, dest);
 	} catch (err) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
 		return false;
@@ -1023,8 +1011,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	/* For build/flash task */
 	await sdkTaskConfig(folderUri, context);
 
-	/* For debug */
-	if (! await sdkLaunchConfig(folderUri)) {
+	if (! setupDebugEnv(folderUri)) {
 		return;
 	}
 
