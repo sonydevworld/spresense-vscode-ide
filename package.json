@@ -174,6 +174,149 @@
 				"enablement": "spresenseIdeEnabled"
 			}
 		],
+		"debuggers": [
+			{
+				"type": "spresense",
+				"configurationSnippets": [
+					{
+						"label": "Spresense: SDK debug",
+						"description": "Debug configuration for Spresense main core",
+						"body": {
+							"cwd": "^\"\\${workspaceFolder}/sdk\"",
+							"executable": "./nuttx",
+							"name": "SDK (launch)",
+							"request": "launch",
+							"type": "cortex-debug",
+							"servertype": "openocd",
+							"configFiles": [
+								"interface/cmsis-dap.cfg",
+								"cxd5602.cfg"
+							],
+							"searchDir": [
+								"^\"\\${workspaceFolder}/sdk/tools\""
+							],
+							"svdFile": "^\"\\${workspaceFolder}/sdk/tools/SVD/cxd5602.svd\"",
+							"debuggerArgs": [
+								"-nx",
+								"-ix",
+								".gdbinit"
+							],
+							"preLaunchTask": "Clean flash",
+							"overrideLaunchCommands": [
+								"monitor reset",
+								"monitor halt",
+								"load"
+							],
+							"overrideRestartCommands": [
+								"monitor sleep 3000",
+								"monitor halt",
+								"load"
+							]
+						}
+					},
+					{
+						"label": "Spresense: Application",
+						"description": "Debug configuration for application main core",
+						"body": {
+							"name": "Main Core",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}\"",
+							"executable": "./out/${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}.nuttx",
+							"request": "launch",
+							"type": "cortex-debug",
+							"servertype": "openocd",
+							"configFiles": [
+								"interface/cmsis-dap.cfg",
+								"cxd5602_all.cfg"
+							],
+							"searchDir": [
+								"^\"\\${workspaceFolder:spresense}/sdk/tools\""
+							],
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"debuggerArgs": [
+								"-ix",
+								".vscode/.gdbinit"
+							],
+							"preLaunchTask": "Clean flash",
+							"overrideLaunchCommands": [
+								"monitor reset",
+								"monitor halt",
+								"load"
+							],
+							"overrideRestartCommands": [
+								"monitor sleep 3000",
+								"monitor halt",
+								"load"
+							]
+						}
+					},
+					{
+						"label": "Spresense: Sub Core 1",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 1",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker/\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"gdbTarget": "localhost:50001"
+						}
+					},
+					{
+						"label": "Spresense: Sub Core 2",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 2",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"gdbTarget": "localhost:50002"
+						}
+					},
+					{
+						"label": "Spresense: Sub Core 3",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 3",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"gdbTarget": "localhost:50003"
+						}
+					},
+					{
+						"label": "Spresense: Sub Core 4",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 4",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"gdbTarget": "localhost:50004"
+						}
+					},
+					{
+						"label": "Spresense: Sub Core 5",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 5",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"gdbTarget": "localhost:50005"
+						}
+					}
+				]
+			}
+		],
 		"menus": {
 			"editor/title": [
 				{
