@@ -1,22 +1,30 @@
--include $(TOPDIR)/Make.defs
--include $(SDKDIR)/Make.defs
+# Application makefile
 
-CONFIG___APP_NAME___PRIORITY ?= SCHED_PRIORITY_DEFAULT
-CONFIG___APP_NAME___STACKSIZE ?= 2048
+# Command name (Public function 'int <APPNAME>_main(void)' required)
+APPNAME =
 
-APPNAME = __app_name__
-PRIORITY = $(CONFIG___APP_NAME___PRIORITY)
-STACKSIZE = $(CONFIG___APP_NAME___STACKSIZE)
+# Application execute priority (Range: 0 ~ 255, Default: 100)
+PRIORITY =
 
-MAINSRC = __app_name___main.c
+# Application stack memory size (Default: 2048)
+STACKSIZE =
+
+# Main source code
+MAINSRC =
+
+# Additional C source files (*.c)
+CSRCS =
+
+# Additional C++ source files (*.cxx)
+CXXSRCS =
+
+# Additional assembler source files (*.S)
 ASRCS =
-CSRCS = $(filter-out $(MAINSRC),$(wildcard *.c) $(wildcard */*.c))
-CXXSRCS = $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
 
-CFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
-CXXFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
+# C compiler flags
+CFLAGS =
 
-CONFIG___APP_NAME___PROGNAME ?= __app_name__$(EXEEXT)
-PROGNAME = $(CONFIG___APP_NAME___PROGNAME)
+# C++ compiler flags
+CXXFLAGS =
 
-include $(APPDIR)/Application.mk
+include $(APPDIR)/.vscode/application.mk

@@ -345,6 +345,10 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 						path.join(newFolderPath, '.vscode', 'build.sh'));
 		fs.copyFileSync(path.join(extensionPath, 'scripts', 'clean_flash.sh'),
 						path.join(newFolderPath, '.vscode', 'clean_flash.sh'));
+		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'application.mk'),
+						path.join(newFolderPath, '.vscode', 'application.mk'));
+		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'worker.mk'),
+						path.join(newFolderPath, '.vscode', 'worker.mk'));
 	} catch (err) {
 		console.log(err);
 		vscode.window.showErrorMessage(`${err}`);

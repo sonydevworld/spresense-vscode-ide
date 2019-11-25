@@ -104,7 +104,7 @@ export function getProjectFolders(): vscode.WorkspaceFolder[] {
 export function createProjectMakefiles (folder: string, resourcePath: string) {
 	const projecRestPath = path.join(resourcePath, 'projectfiles');
 
-	/* Necessary files: Application.mk, LibTarget.mk, Make.defs, Makefile */
+	/* Necessary files: LibTarget.mk, Make.defs, Makefile */
 	const tempFileList = fs.readdirSync(projecRestPath);
 
 	tempFileList.forEach((file) => {
