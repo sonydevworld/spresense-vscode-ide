@@ -129,10 +129,12 @@ function updateState() {
 
     if (isReadyToCreate()) {
         // Change button to enable
-        createBtn.className = "wizard-enable-button"
+        createBtn.classList.add("enable");
+        createBtn.classList.remove("disable");
     } else {
         // Change button to disable
-        createBtn.className = "wizard-disable-button"
+        createBtn.classList.add("disable");
+        createBtn.classList.remove("enable");
     }
 }
 

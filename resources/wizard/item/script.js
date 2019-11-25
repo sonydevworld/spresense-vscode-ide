@@ -106,21 +106,26 @@ function updateButtonState() {
 
     /* Left button */
     if (currentPage === 0) {
-        left_button.className = "wizard-disable-button";
+        left_button.classList.add("disable");
+        left_button.classList.remove("enable");
     } else {
-        left_button.className = "wizard-enable-button";
+        left_button.classList.add("enable");
+        left_button.classList.remove("disable");
     }
 
     /* Right button */
     if (currentPage === WIZARD_PAGES.length - 1) {
         if (isReadyToCreate()) {
-            right_button.className = "wizard-enable-button";
+            right_button.classList.add("enable");
+            right_button.classList.remove("disable");
         } else {
-            right_button.className = "wizard-disable-button";
+            right_button.classList.add("disable");
+            right_button.classList.remove("enable");
         }
         right_button.textContent = buttonText["create"];
     } else {
-        right_button.className = "wizard-enable-button";
+        right_button.classList.add("enable");
+        right_button.classList.remove("disable");
         right_button.textContent = buttonText["next"];
     }
 }
