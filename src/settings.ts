@@ -27,7 +27,8 @@ import * as md5 from 'md5';
 import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
-import * as common from './common';
+import { isMsysInstallFolder } from './common';
+import { isSpresenseSdkFolder } from './common';
 
 const spresenseExtInterfaceVersion: number = 1000;
 
@@ -239,7 +240,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	}
 
 	/* If folder is not a SDK's onem, it is app folder */
-	isAppfolder = !common.isSpresenseSdkFolder(newFolderPath);
+	isAppfolder = !isSpresenseSdkFolder(newFolderPath);
 
 	/* Build Kernel Task */
 	buildKenelTask['label'] = taskBuildKernelLabel;
@@ -372,7 +373,7 @@ async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
 		return false;
 	}
 
-	if (common.isSpresenseSdkFolder(newFolderUri.fsPath)) {
+	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
 		/* SDK task definition */
 		elfFile = 'sdk/nuttx';
 	} else {
@@ -464,7 +465,7 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 				const msysPath = folderUris[0].fsPath;
 
 				/* Check Msys install path */
-				if (!common.isMsysInstallFolder(msysPath)) {
+				if (!isMsysInstallFolder(msysPath)) {
 					/* If necessary directory missing, target direcgtory is invalid */
 					vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 
@@ -766,7 +767,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
 		const winShPath = termConf.get('shell.windows');
 
-		if (msysPath && common.isMsysInstallFolder(msysPath)) {
+		if (msysPath && isMsysInstallFolder(msysPath)) {
 			const bashPath = path.join(msysPath, 'usr', 'bin', 'bash.exe');
 
 			if (!winShPath || bashPath !== winShPath) {
@@ -856,7 +857,7 @@ function isSpresenseEnvironment() {
 	}
 
 	/* If first folder is spresense, set sdk path to settings */
-	if (common.isSpresenseSdkFolder(firstFolder)) {
+	if (isSpresenseSdkFolder(firstFolder)) {
 		return true;
 	} else {
 		if (fs.existsSync(path.join(firstFolder, '.vscode', 'spresense_prj.json'))) {
@@ -998,7 +999,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 			return;
 	}
 
-	if (common.isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
+	if (isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
 		/* Remove 2nd Spresense SDK folder */
 		removeWorkspaceFolder(folderUri);
 
@@ -1044,7 +1045,7 @@ function checkErrorUsage() {
 	}
 
 	wsFolders.slice(1).forEach((folder) => {
-		if (common.isSpresenseSdkFolder(folder.uri.fsPath)) {
+		if (isSpresenseSdkFolder(folder.uri.fsPath)) {
 			/* If new folder is spresense sdk repository,
 			 * inform usage about spresense extension.
 			 */

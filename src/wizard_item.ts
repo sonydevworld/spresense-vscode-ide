@@ -24,7 +24,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import * as nls from './localize';
-import * as common from './common';
+import { createApplicationFiles } from './common';
+import { createWorkerFiles } from './common';
+import { getProjectFolders } from './common';
+import { isSpresenseSdkFolder } from './common';
 import { WizardBase } from './wizard';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -39,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
 			wsFolder = vscode.workspace.getWorkspaceFolder(uri);
         }
 
-        if (wsFolder && !common.isSpresenseSdkFolder(wsFolder.uri.fsPath)) {
+        if (wsFolder && !isSpresenseSdkFolder(wsFolder.uri.fsPath)) {
             selectedFolder = wsFolder.uri.fsPath;
         }
 
@@ -157,7 +160,7 @@ class ItemWizard extends WizardBase {
     }
 
     private postWorkspaceFolders(selectedFolder?: string) {
-        const folders = common.getProjectFolders().map((folder) => {
+        const folders = getProjectFolders().map((folder) => {
             return {'name': folder.name, 'path': folder.uri.fsPath};
         });
 
@@ -198,10 +201,10 @@ class ItemWizard extends WizardBase {
         if ('type' in message && 'folder' in message && 'name' in message) {
             if (message.type === ItemWizard.ITEM_TYPE_APP_COMMAND) {
                 /* Create a application template for using new worker */
-                common.createApplicationFiles(message.name, message.folder, this._resourcePath);
+                createApplicationFiles(message.name, message.folder, this._resourcePath);
             } else if (message.type === ItemWizard.ITEM_TYPE_ASMP_WORKER) {
                 /* Create worker template */
-                common.createWorkerFiles(message.name, message.sampleName, message.folder, this._resourcePath);
+                createWorkerFiles(message.name, message.sampleName, message.folder, this._resourcePath);
             }
         }
 

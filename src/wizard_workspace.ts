@@ -23,7 +23,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import * as nls from './localize';
-import * as common from './common';
+import { isMsysInstallFolder } from './common';
+import { isSpresenseSdkFolder } from './common';
 import { WizardBase } from './wizard';
 
 const SDK_PATH_ID = 'wizard-sdk-path-box';
@@ -63,7 +64,7 @@ function updateEnvironmentProblem() {
 
     const msysPath = vscode.workspace.getConfiguration().get('spresense.msys.path');
 
-    if (msysPath && typeof msysPath === 'string' && common.isMsysInstallFolder(msysPath)) {
+    if (msysPath && typeof msysPath === 'string' && isMsysInstallFolder(msysPath)) {
         /* No problem, so hide message */
         WorkspaceWizard.currentPanel.postMessage({command: 'showProblems', show: false});
     } else {
@@ -180,7 +181,7 @@ class WorkspaceWizard extends WizardBase {
         this.postMessage({
             command: 'checkSdkResult',
             id: id,
-            result: common.isSpresenseSdkFolder(path)
+            result: isSpresenseSdkFolder(path)
         });
     }
 

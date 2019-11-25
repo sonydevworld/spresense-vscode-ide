@@ -28,7 +28,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from './shell_exec';
 import * as nls from './localize';
-import * as common from './common';
+import { getNonce } from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -812,7 +812,7 @@ class SDKConfigView {
 		const defconfigUri = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js")).with({
 			scheme: 'vscode-resource'
 		});
-		const nonce = common.getNonce();
+		const nonce = getNonce();
 
 		const newStr = nls.localize("sdkconfig.src.menu.new", "New");
 		const saveStr = nls.localize("sdkconfig.src.menu.save", "Save");

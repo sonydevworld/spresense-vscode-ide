@@ -23,7 +23,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import * as common from './common';
+import { getNonce } from './common';
 
 interface LocaleInterface {
     [key: string]: string;
@@ -110,7 +110,7 @@ export class WizardBase {
 			scheme: 'vscode-resource'
         });
 
-        const nonce = common.getNonce();
+        const nonce = getNonce();
 
         let content = fs.readFileSync(path.join(this._resourcePath, 'wizard', component, 'index.html')).toString();
 
