@@ -179,12 +179,12 @@
 				"type": "spresense",
 				"configurationSnippets": [
 					{
-						"label": "Spresense: SDK debug",
+						"label": "%spresense.configurationSnippet.sdk.launch%",
 						"description": "Debug configuration for Spresense main core",
 						"body": {
 							"cwd": "^\"\\${workspaceFolder}/sdk\"",
 							"executable": "./nuttx",
-							"name": "SDK (launch)",
+							"name": "SDK",
 							"request": "launch",
 							"type": "cortex-debug",
 							"servertype": "openocd",
@@ -215,7 +215,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Application",
+						"label": "%spresense.configurationSnippet.maincore.launch%",
 						"description": "Debug configuration for application main core",
 						"body": {
 							"name": "Main Core",
@@ -250,7 +250,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Sub Core 1",
+						"label": "%spresense.configurationSnippet.subcore1.attach%",
 						"description": "Debug configuration for worker sub core",
 						"body": {
 							"name": "Sub Core 1",
@@ -263,7 +263,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Sub Core 2",
+						"label": "%spresense.configurationSnippet.subcore2.attach%",
 						"description": "Debug configuration for worker sub core",
 						"body": {
 							"name": "Sub Core 2",
@@ -276,7 +276,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Sub Core 3",
+						"label": "%spresense.configurationSnippet.subcore3.attach%",
 						"description": "Debug configuration for worker sub core",
 						"body": {
 							"name": "Sub Core 3",
@@ -289,7 +289,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Sub Core 4",
+						"label": "%spresense.configurationSnippet.subcore4.attach%",
 						"description": "Debug configuration for worker sub core",
 						"body": {
 							"name": "Sub Core 4",
@@ -302,7 +302,7 @@
 						}
 					},
 					{
-						"label": "Spresense: Sub Core 5",
+						"label": "%spresense.configurationSnippet.subcore5.attach%",
 						"description": "Debug configuration for worker sub core",
 						"body": {
 							"name": "Sub Core 5",

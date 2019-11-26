@@ -20,6 +20,14 @@
 	"spresense.command.create.worker": "Spresense: 創建一個ASMP工作程序",
 	"spresense.command.burn.bootloader": "Spresense: 引導加載程序寫",
 
+	"spresense.configurationSnippet.sdk.launch": "Spresense: SDK debug",
+	"spresense.configurationSnippet.maincore.launch": "Spresense: Main Core",
+	"spresense.configurationSnippet.subcore1.attach": "Spresense: Sub Core 1",
+	"spresense.configurationSnippet.subcore2.attach": "Spresense: Sub Core 2",
+	"spresense.configurationSnippet.subcore3.attach": "Spresense: Sub Core 3",
+	"spresense.configurationSnippet.subcore4.attach": "Spresense: Sub Core 4",
+	"spresense.configurationSnippet.subcore5.attach": "Spresense: Sub Core 5",
+
 	"spresense.src.cpp.config.error": "Spresense擴展程序已損壞。",
 	"spresense.src.debug.gdbinit.error": "無法複製.gdbinit文件。",
 	"spresense.src.create.app.error.file": "創建文件時出錯。{0}.",
