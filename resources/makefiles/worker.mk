@@ -23,6 +23,17 @@ CSRCS += $(wildcard *.c) $(wildcard */*.c)
 AOBJS += $(ASRCS:.S=$(OBJEXT))
 COBJS += $(CSRCS:.c=$(OBJEXT))
 
+# Suppress option
+ifeq ($(V),1)
+export Q :=
+else
+ifeq ($(V),2)
+export Q :=
+else
+export Q := @
+endif
+endif
+
 # Build worker elf file
 all: $(BIN)
 
