@@ -12,8 +12,9 @@ LDLIBPATH +=  -L $(WORKER_DIR)
 LDLIBS += -lasmpw
 
 BIN = $(OUTDIR)/$(WORKER_NAME)
+DBG = $(APPDIR)/$(WORKER_FOLDER_NAME)/$(WORKER_NAME).debug
 
-CELFFLAGS += -Os
+CELFFLAGS += -Og
 CELFFLAGS += -I$(APPDIR)
 CELFFLAGS += -I$(WORKER_DIR)
 
@@ -43,13 +44,13 @@ $(AOBJS): %$(OBJEXT): %.S
 
 $(BIN): $(WORKER_LIB) $(COBJS) $(AOBJS)
 	@echo "LD: $<"
-	$(Q) $(LD) $(LDRAWELFFLAGS) $(LDLIBPATH) -o $@ $(ARCHCRT0OBJ) $^ $(LDLIBS)
-	$(Q) $(STRIP) -d $(BIN)
+	$(Q) $(LD) $(LDRAWELFFLAGS) $(LDLIBPATH) -o $(DBG) $(ARCHCRT0OBJ) $^ $(LDLIBS)
+	$(Q) $(STRIP) -d -o $@ $(DBG)
 
 # Clean all built files
 clean:
 	$(Q) $(MAKE) -C $(WORKER_DIR) TOPDIR="$(TOPDIR)" SDKDIR="$(SDKDIR)" clean
-	$(call DELFILE, $(BIN) $(wildcard *.o) $(wildcard */*.o))
+	$(call DELFILE, $(BIN) $(DBG) $(wildcard *.o) $(wildcard */*.o))
 	$(call CLEAN)
 
 distclean: clean
