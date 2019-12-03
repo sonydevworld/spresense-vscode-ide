@@ -63,10 +63,12 @@
 	"spresense.src.error.version": "無法加載SDK版本",
 	"spresense.src.create.conf.error": "創建文件時出錯。（{0}）.",
 	"spresense.src.error.newer": "已使用比當前Spresense擴展更高的版本創建該項目。更新Spresense擴展名。",
+	"spresense.src.error.older": "Project folder was created by older version of Spresense extension. Please update project folder by 'F1' -> '{0}'.",
 	"spresense.src.setting.error.multi": "Spresense擴展不能同時使用多個Spresense存儲庫。",
 	"spresense.src.setting.error.space": "Spresense擴展名不能使用路徑中帶有空格（' '）的文件夾。",
 	"spresense.src.create.error.space": "Spresense擴展名不能使用路徑中帶有空格（' '）的文件夾和文件。",
 	"spresense.src.activeate.error.usage": "Spresense存儲庫必須位於工作空間的第一個文件夾中。",
+	"spresense.src.update.project.folder": "Spresense: Update project folder settings",
 
 	"serial.property.baudrate": "設置串行終端波特率。",
 	"serial.property.port": "設置要使用的串口。",

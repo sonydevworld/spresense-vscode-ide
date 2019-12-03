@@ -980,7 +980,7 @@ function isAlreadySetup(folderPath: string): boolean {
 			return true;
 		} else if (projectVersion < spresenseExtInterfaceVersion) {
 			/* Older extension's project */
-			vscode.window.showWarningMessage(nls.localize("spresense.src.error.older", "Project folder was created by older version of Spresense extension. Please update project folder by F1 -> 'Spresense: Update project folder'."));
+			vscode.window.showWarningMessage(nls.localize("spresense.src.error.older", "Project folder was created by older version of Spresense extension. Please update project folder by F1 -> '{0}'.", nls.localize("spresense.src.update.project.folder", "Spresense: Update project folder settings")));
 			return true;
 		} else {
 			/* Keep current .vscode */

@@ -175,7 +175,7 @@
 			},
 			{
 				"command": "spresense.update.project.folder",
-				"title": "Spresense: Update project folder settings",
+				"title": "%spresense.src.update.project.folder%",
 				"enablement": "spresenseIdeEnabled"
 			}
 		],
