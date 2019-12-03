@@ -1059,10 +1059,16 @@ export function activate(context: vscode.ExtensionContext) {
 	if (isSpresenseEnvironment()) {
 		/* Handle workspace change event */
 		context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders((event: vscode.WorkspaceFoldersChangeEvent) => {
-			event.added.forEach((addedFolder) => {
-				/* Create several json files for new folder */
-				spresenseEnvSetup(context, addedFolder.uri);
-			});
+			/* If in folder view windows, force deactivate when achieve this event. In this case, skip this operation.
+			 * After re-open the window, this operation will execute by folder scan.
+			 * TODO: This is just a temporary solution. Need to implement deactivate() function for update json file more secure.
+			 */
+			if (vscode.workspace.workspaceFile) {
+				event.added.forEach((addedFolder) => {
+					/* Create several json files for new folder */
+					spresenseEnvSetup(context, addedFolder.uri);
+				});
+			}
 		}));
 
 		let watcher = vscode.workspace.createFileSystemWatcher("**/* *", false, true, true);
