@@ -738,6 +738,17 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 		/* Burn bootloader */
 		burnBootloader(context);
 	}));
+
+	/* Register update project settings command */
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.update.project.folder', async () => {
+		/* Choose project */
+		const folder = await vscode.window.showWorkspaceFolderPick();
+
+		if (folder) {
+			/* Update project folder settings */
+			spresenseEnvSetup(context, folder.uri, true);
+		}
+	}));
 }
 
 async function updateSettings(progress: vscode.Progress<{ message?: string; increment?: number;}>) {
@@ -978,7 +989,7 @@ function isAlreadySetup(folderPath: string): boolean {
 	}
 }
 
-async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vscode.Uri) {
+async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vscode.Uri, force?: boolean) {
 	const wsFolders = vscode.workspace.workspaceFolders;
 	const folderPath = folderUri.fsPath;
 
@@ -1005,7 +1016,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
-	if (isAlreadySetup(folderPath)) {
+	if (!force && isAlreadySetup(folderPath)) {
 		return;
 	}
 

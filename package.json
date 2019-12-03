@@ -172,6 +172,11 @@
 				"command": "spresense.item.wizard",
 				"title": "%spresense.item.wizard.title%",
 				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.update.project.folder",
+				"title": "Spresense: Update project folder settings",
+				"enablement": "spresenseIdeEnabled"
 			}
 		],
 		"debuggers": [
