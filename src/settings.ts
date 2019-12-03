@@ -34,7 +34,7 @@ import { isSpresenseSdkFolder } from './common';
 import * as launch from './launch';
 
 
-const spresenseExtInterfaceVersion: number = 1000;
+const spresenseExtInterfaceVersion: number = 1001;
 
 const configSdkPathKey = 'spresense.sdk.path';
 const configSdkToolsPathKey = 'spresense.sdk.tools.path';
@@ -966,6 +966,10 @@ function isAlreadySetup(folderPath: string): boolean {
 		} else if (projectVersion > spresenseExtInterfaceVersion) {
 			/* Newer extension's project */
 			vscode.window.showWarningMessage(nls.localize("spresense.src.error.newer", "Project folder was created by newer version of Spresense extension. Please update Spresense extension."));
+			return true;
+		} else if (projectVersion < spresenseExtInterfaceVersion) {
+			/* Older extension's project */
+			vscode.window.showWarningMessage(nls.localize("spresense.src.error.older", "Project folder was created by older version of Spresense extension. Please update project folder by F1 -> 'Spresense: Update project folder'."));
 			return true;
 		} else {
 			/* Keep current .vscode */
