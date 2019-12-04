@@ -186,12 +186,17 @@ class WorkspaceWizard extends WizardBase {
         let result = true;
         let text = '';
 
-        if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
+        try {
+            if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
+                result = false;
+                text = nls.localize("spresense.workspace.wizard.path.notfound.error", "Folder {0} not found. Please create a new folder and select it.", path);
+            } else if (path.includes(' ')) {
+                result = false;
+                text = nls.localize("spresense.workspace.wizard.path.space.error", "Selected path has space ' ', please choose different folder.");
+            }
+        } catch (e) {
             result = false;
-            text = nls.localize("spresense.workspace.wizard.path.notfound.error", "Folder {0} not found. Please create a new folder and select it.", path);
-        } else if (path.includes(' ')) {
-            result = false;
-            text = nls.localize("spresense.workspace.wizard.path.space.error", "Selected path has space ' ', please choose different folder.");
+            text = e.message;
         }
 
         /* Post path checker result */
