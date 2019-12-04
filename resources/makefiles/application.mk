@@ -49,12 +49,21 @@ include $(APPDIR)/Make.defs
 APP_FOLDER_NAME := $(notdir $(shell pwd))
 
 # Application command configurable parameters
-APPNAME ?= $(APP_FOLDER_NAME)
+ifeq ($(APPNAME),)
+	APPNAME = $(APP_FOLDER_NAME)
+endif
 
-PRIORITY ?= SCHED_PRIORITY_DEFAULT
-STACKSIZE ?= 2048
+ifeq ($(PRIORITY),)
+	PRIORITY = SCHED_PRIORITY_DEFAULT
+endif
 
-MAINSRC ?= $(APP_FOLDER_NAME)_main.c
+ifeq ($(STACKSIZE),)
+	STACKSIZE = 2048
+endif
+
+ifeq ($(MAINSRC),)
+	MAINSRC = $(APP_FOLDER_NAME)_main.c
+endif
 ASRCS +=
 CSRCS += $(filter-out $(MAINSRC),$(wildcard *.c) $(wildcard */*.c))
 CXXSRCS += $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
