@@ -115,6 +115,8 @@
 	"spresense.workspace.wizard.sdk.error": "正しくないSpresense SDKのパスが選択されました。例に従い正しいパスを指定してください。",
 	"spresense.workspace.wizard.project.label": "プロジェクトフォルダーパス",
 	"spresense.workspace.wizard.project.desc": "作成するアプリケーションを保存するプロジェクトフォルダーのパスを指定してください。",
+	"spresense.workspace.wizard.path.notfound.error": "フォルダー({0})が見つかりませんでした。新しいフォルダーを作成してそれを選択してください。",
+	"spresense.workspace.wizard.path.space.error": "選択されたフォルダーのパスにスペース文字(' ')が含まれています。他のフォルダーを選択してください。",
 	"spresense.workspace.wizard.select.button": "参照",
 	"spresense.workspace.wizard.create.button": "作成",
 	"spresense.workspace.wizard.cancel.button": "キャンセル",

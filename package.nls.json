@@ -115,6 +115,8 @@
 	"spresense.workspace.wizard.sdk.error": "Invalid SDK Path selected. Please re-select correct SDK path.",
 	"spresense.workspace.wizard.project.label": "Project Folder Path",
 	"spresense.workspace.wizard.project.desc": "Please select project folder path to create your application.",
+	"spresense.workspace.wizard.path.notfound.error": "Folder {0} not found. Please create a new folder and select it.",
+	"spresense.workspace.wizard.path.space.error": "Selected path has space ' ', please choose different folder.",
 	"spresense.workspace.wizard.select.button": "Select",
 	"spresense.workspace.wizard.create.button": "Create",
 	"spresense.workspace.wizard.cancel.button": "Cancel",

@@ -42,9 +42,9 @@ function addVscodeEventListner() {
                     /* Update folder box text */
                     updateFolderText(message);
                     break;
-                case 'checkSdkResult':
-                    /* Update path checker result */
-                    checkSdkResult(message);
+                case 'checkPathResult':
+                    /* Basic path checker result */
+                    checkPathResult(message);
                     break;
                 case 'updateText':
                     /* Update description text */
@@ -80,6 +80,12 @@ function addButtonEventListner() {
 }
 
 function addTextboxEventListner() {
+    for (var form of document.getElementsByClassName("require-basic-path-check")) {
+        form.addEventListener("keyup", (event) => {
+            vscode.postMessage({command: "checkBasicPath", id: event.target.id, path: event.target.value});
+        });
+    }
+
     for (var form of document.getElementsByClassName("require-sdk-path-check")) {
         form.addEventListener("keyup", (event) => {
             vscode.postMessage({command: "checkSdkPath", id: event.target.id, path: event.target.value});
@@ -109,14 +115,16 @@ function updateFolderText(message) {
     }
 }
 
-function checkSdkResult(message) {
-    if ('id' in message && 'result' in message) {
-        var sdkErr = document.getElementById(`${message.id}-error`);
+function checkPathResult(message) {
+    if ('id' in message && 'result' in message && 'text' in message) {
+        var err = document.getElementById(`${message.id}-error`);
+
+        err.textContent = message.text;
 
         if (message.result) {
-            sdkErr.style.display = 'none';
+            err.style.display = 'none';
         } else {
-            sdkErr.style.display = 'inline';
+            err.style.display = 'inline';
         }
 
         /* Update dialog state */
@@ -168,20 +176,19 @@ function doCreate() {
 }
 
 function isReadyToCreate() {
-    const sdkErr = document.getElementById('wizard-sdk-path-box-error');
+    const allErr = document.getElementsByClassName('wizard-item-error-message');
     const allTextBox = document.getElementsByClassName('wizard-text-box');
-    const isBoxCompleted = Array.prototype.every.call(allTextBox, (box) => {
-        return box.value !== "";
-    });
 
-    /* If not complete to select all path, cannot create */
-    if (!isBoxCompleted) {
-        return false;
+    for (let item of allErr) {
+        if (item.style.display !== "none") {
+            return false;
+        }
     }
 
-    /* If SDK path select invalid path, cannot create */
-    if (sdkErr.style.display !== 'none') {
-        return false;
+    for (let box of allTextBox) {
+        if (box.value === "") {
+            return false;
+        }
     }
 
     return true;

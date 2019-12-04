@@ -115,6 +115,8 @@
 	"spresense.workspace.wizard.sdk.error": "选择了错误的Spresense SDK路径。 根据示例指定正确的路径。",
 	"spresense.workspace.wizard.project.label": "项目文件夹路径",
 	"spresense.workspace.wizard.project.desc": "指定保存要创建的应用程序的项目文件夹的路径。",
+	"spresense.workspace.wizard.path.notfound.error": "Folder {0} not found. Please create a new folder and select it.",
+	"spresense.workspace.wizard.path.space.error": "Selected path has space ' ', please choose different folder.",
 	"spresense.workspace.wizard.select.button": "帮助",
 	"spresense.workspace.wizard.create.button": "建立",
 	"spresense.workspace.wizard.cancel.button": "取消",

@@ -20,6 +20,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import * as path from 'path';
 
 import * as nls from './localize';
@@ -125,8 +126,6 @@ class WorkspaceWizard extends WizardBase {
                 nls.localize("spresense.workspace.wizard.sdk.label", "Spresense SDK Path"),
             'wizard-sdk-path-description':
                 nls.localize("spresense.workspace.wizard.sdk.desc", "Please select Spresense SDK path (e.g. /home/myspresense/spresense)"),
-            'wizard-sdk-path-box-error':
-                nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path."),
             'wizard-sdk-path-button':
                 nls.localize("spresense.workspace.wizard.select.button", "Select"),
             'wizard-project-path-label':
@@ -152,6 +151,9 @@ class WorkspaceWizard extends WizardBase {
                 case 'openFolder':
                     this.handleOpenFolder(message);
                     return;
+                case 'checkBasicPath':
+                    this.postBasicPathCheckerResult(message.id, message.path);
+                    return;
                 case 'checkSdkPath':
                     this.postSdkCheckerResult(message.id, message.path);
                     return;
@@ -173,15 +175,42 @@ class WorkspaceWizard extends WizardBase {
         this.postMessage({command: 'updateFolderText', id: id, path: path});
 
         /* Selected path check */
-        this.postSdkCheckerResult(id, path);
+        if (path.includes('sdk')) {
+            this.postSdkCheckerResult(id, path);
+        }
+
+        this.postBasicPathCheckerResult(id, path);
+    }
+
+    private postBasicPathCheckerResult(id: string, path: string) {
+        let result = true;
+        let text = '';
+
+        if (!fs.existsSync(path) || !fs.statSync(path).isDirectory()) {
+            result = false;
+            text = nls.localize("spresense.workspace.wizard.path.notfound.error", "Folder {0} not found. Please create a new folder and select it.", path);
+        } else if (path.includes(' ')) {
+            result = false;
+            text = nls.localize("spresense.workspace.wizard.path.space.error", "Selected path has space ' ', please choose different folder.");
+        }
+
+        /* Post path checker result */
+        this.postMessage({
+            command: 'checkPathResult',
+            id: id,
+            result: result,
+            text: text
+        });
+
     }
 
     private postSdkCheckerResult(id: string, path: string) {
         /* Post path checker result */
         this.postMessage({
-            command: 'checkSdkResult',
+            command: 'checkPathResult',
             id: id,
-            result: isSpresenseSdkFolder(path)
+            result: isSpresenseSdkFolder(path),
+            text: nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path.")
         });
     }
 
