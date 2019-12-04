@@ -129,6 +129,7 @@
 	"spresense.item.wizard.button.next": "下一项",
 	"spresense.item.wizard.button.cancel": "取消",
 	"spresense.item.wizard.button.create": "创建",
+	"spresense.item.wizard.open.error": "Current workspace doesn't have a project folder. Please create or add a project folder into this workspace.",
 	"spresense.item.wizard.project.desc": "选择您要添加项目的项目。",
 	"spresense.item.wizard.project.name.label": "项目名称",
 	"spresense.item.wizard.project.path.label": "项目文件夹路径",

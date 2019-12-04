@@ -129,6 +129,7 @@
 	"spresense.item.wizard.button.next": "Next",
 	"spresense.item.wizard.button.cancel": "Cancel",
 	"spresense.item.wizard.button.create": "Create",
+	"spresense.item.wizard.open.error": "Current workspace doesn't have a project folder. Please create or add a project folder into this workspace.",
 	"spresense.item.wizard.project.desc": "Please select project name for creating item.",
 	"spresense.item.wizard.project.name.label": "Project name",
 	"spresense.item.wizard.project.path.label": "Project folder path",

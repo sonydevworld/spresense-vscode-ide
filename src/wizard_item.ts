@@ -38,6 +38,11 @@ export function activate(context: vscode.ExtensionContext) {
         let wsFolder: vscode.WorkspaceFolder | undefined;
         let selectedFolder: string | undefined;
 
+        if (getProjectFolders().length === 0) {
+            vscode.window.showErrorMessage(nls.localize("spresense.item.wizard.open.error", "Current workspace doesn't have a project folder. Please create or add a project folder into this workspace."));
+            return;
+        }
+
 		if (uri instanceof vscode.Uri) {
 			wsFolder = vscode.workspace.getWorkspaceFolder(uri);
         }

@@ -129,6 +129,7 @@
 	"spresense.item.wizard.button.next": "次へ",
 	"spresense.item.wizard.button.cancel": "キャンセル",
 	"spresense.item.wizard.button.create": "作成",
+	"spresense.item.wizard.open.error": "ワークスペースにプロジェクトフォルダーがありません。ワークスペースにプロジェクトフォルダーを作成または追加してください。",
 	"spresense.item.wizard.project.desc": "アイテムを追加したいプロジェクトを選択してください。",
 	"spresense.item.wizard.project.name.label": "プロジェクト名",
 	"spresense.item.wizard.project.path.label": "プロジェクトフォルダーパス",
