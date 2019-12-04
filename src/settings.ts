@@ -1058,7 +1058,12 @@ export function activate(context: vscode.ExtensionContext) {
 	/* Detect Spresense environment */
 	if (isSpresenseEnvironment()) {
 		/* Handle workspace change event */
-		context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders((event: vscode.WorkspaceFoldersChangeEvent) => {
+		context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(async (event: vscode.WorkspaceFoldersChangeEvent) => {
+			/* 1sec to wait for the completion of folder addition.
+			 * TODO: Json file must not update by this event. Move this operation to such as build configuration or item creation timing.
+			 */
+			await new Promise(resolve => setTimeout(resolve, 1000));
+
 			/* If in folder view windows, force deactivate when achieve this event. In this case, skip this operation.
 			 * After re-open the window, this operation will execute by folder scan.
 			 * TODO: This is just a temporary solution. Need to implement deactivate() function for update json file more secure.
