@@ -70,7 +70,7 @@ class ItemWizard extends WizardBase {
             return;
         }
 
-        const panel = WizardBase.createWizardPanel("Create new Item wizard", resourcePath);
+        const panel = WizardBase.createWizardPanel(nls.localize("spresense.item.wizard.label", "Add new item wizard"), resourcePath);
 
         /* Create new panel */
         ItemWizard.currentPanel = new ItemWizard(panel, resourcePath, selectedFolder);
@@ -181,9 +181,9 @@ class ItemWizard extends WizardBase {
             let errorText: string = "";
 
             if (!namePattern.test(input)) {
-                errorText ="Invalid name entered.";
+                errorText = nls.localize("spresense.src.create.app.error.invalid", "Invalid name entered.");
             } else if (dirlist.indexOf(input) !== -1) {
-                errorText = `Directory or file '${input}' is already exists.`;
+                errorText = nls.localize("spresense.src.create.app.error.existed", "Directory or file '{0}' is already exists.", input);
             } else if (reservedName.indexOf(input) !== -1) {
                 errorText = `Cannot use '${input}'.`;
             }
