@@ -740,14 +740,14 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	}));
 
 	/* Register update project settings command */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.update.project.folder', async () => {
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.update.project.folder', () => {
 		/* Choose project */
-		const folder = await vscode.window.showWorkspaceFolderPick();
-
-		if (folder) {
-			/* Update project folder settings */
-			spresenseEnvSetup(context, folder.uri, true);
-		}
+		vscode.window.showWorkspaceFolderPick().then((folder) => {
+			if (folder) {
+				/* Update project folder settings */
+				spresenseEnvSetup(context, folder.uri, true);
+			}
+		});
 	}));
 }
 
