@@ -175,11 +175,11 @@ class WorkspaceWizard extends WizardBase {
         this.postMessage({command: 'updateFolderText', id: id, path: path});
 
         /* Selected path check */
-        if (path.includes('sdk')) {
+        if (id === SDK_PATH_ID) {
             this.postSdkCheckerResult(id, path);
+        } else {
+            this.postBasicPathCheckerResult(id, path);
         }
-
-        this.postBasicPathCheckerResult(id, path);
     }
 
     private postBasicPathCheckerResult(id: string, path: string) {
@@ -206,47 +206,46 @@ class WorkspaceWizard extends WizardBase {
             result: result,
             text: text
         });
-
     }
 
     private postSdkCheckerResult(id: string, path: string) {
-        /* Post path checker result */
-        this.postMessage({
-            command: 'checkPathResult',
-            id: id,
-            result: isSpresenseSdkFolder(path),
-            text: nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path.")
-        });
+        /* Before SDK path check, need to check basic path check */
+        this.postBasicPathCheckerResult(id, path);
+
+        if (!isSpresenseSdkFolder(path)) {
+            /* Post path checker result */
+            this.postMessage({
+                command: 'checkPathResult',
+                id: id,
+                result: false,
+                text: nls.localize("spresense.workspace.wizard.sdk.error", "Invalid SDK Path selected. Please re-select correct SDK path.")
+            });
+        }
     }
 
     private handleOpenFolder(message: any) {
-        let defaultUri: vscode.Uri | undefined;
-
         if ('id' in message && 'path' in message) {
-            switch (message.id) {
-                case SDK_PATH_ID:
-                    if (this._globalState) {
-                        const sdkPath: string | undefined = this._globalState.get(SDK_PATH_HISTORY_KEY);
-                        if (sdkPath) {
-                            defaultUri = vscode.Uri.file(sdkPath);
-                        }
-                    }
-                    break;
-                case PROJECT_PATH_ID:
-                    if (this._globalState) {
-                        const prjPath: string | undefined = this._globalState.get(PROJECT_PATH_HISTORY_KEY);
-                        if (prjPath) {
-                            defaultUri = vscode.Uri.file(prjPath);
-                        }
-                    }
-                    break;
-                default:
-                    console.log("ERR");
-                    return;
-            }
+            let defaultUri: vscode.Uri | undefined;
+            let path: string | undefined;
 
             if (message.path !== "") {
-                defaultUri = vscode.Uri.file(message.path);
+                path = message.path;
+            } else if (this._globalState) {
+                switch (message.id) {
+                    case SDK_PATH_ID:
+                        path = this._globalState.get(SDK_PATH_HISTORY_KEY);
+                        break;
+                    case PROJECT_PATH_ID:
+                        path = this._globalState.get(PROJECT_PATH_HISTORY_KEY);
+                        break;
+                    default:
+                        console.log("ERR");
+                        break;
+                }
+            }
+
+            if (path) {
+                defaultUri = vscode.Uri.file(path);
             }
 
             vscode.window.showOpenDialog({
