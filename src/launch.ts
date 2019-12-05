@@ -19,7 +19,8 @@
  * --------------------------------------------------------------------------------------------
  */
 
- import * as vscode from 'vscode';
+import * as vscode from 'vscode';
+import * as path from 'path';
 
 /* configuration template for cortex-debug extension */
 
@@ -102,12 +103,16 @@ function addTarget(targetFolder: vscode.Uri, target: any) {
  * @param targetFolder Project folder URI
  * @param executable Path to executable file. Relative from @a cwd.
  * @param cwd Current working directory for OpenOCD
+ * @param sdkPath Path to sdk (absolute or VS Code workspace path style)
  */
 
-export function addMainTarget(targetFolder: vscode.Uri, executable: string, cwd: string) {
+export function addMainTarget(targetFolder: vscode.Uri, executable: string, cwd: string, sdkPath: string) {
 	let target = launchMainSkelton;
 	target.executable = executable;
 	target.cwd = cwd;
+
+	target.searchDir = [ path.join(sdkPath, "sdk", "tools") ];
+	target.svdFile = path.join(sdkPath, "sdk", "tools", "SVD", "cxd5602.svd");
 
 	addTarget(targetFolder, target);
 }

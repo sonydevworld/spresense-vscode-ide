@@ -80,19 +80,21 @@ function createVscode(newFolderPath: string) {
 	}
 }
 
-function getFirstFolderPath(): string | undefined {
-	let firstFolder:string | undefined;
-	let wsFolders = vscode.workspace.workspaceFolders;
+function getFirstFolder(): vscode.WorkspaceFolder | undefined {
+	const wsFolders = vscode.workspace.workspaceFolders;
 
 	if (wsFolders === undefined || wsFolders.length === 0) {
 		/* No folders or workspaces are open */
 		return undefined;
 	}
 
-	/* Get first folder path */
-	firstFolder = wsFolders[0].uri.fsPath;
+	return wsFolders[0];
+}
 
-	return firstFolder;
+function getFirstFolderPath(): string | undefined {
+	const folder = getFirstFolder();
+
+	return folder ? folder.uri.fsPath : undefined;
 }
 
 /**
@@ -378,25 +380,30 @@ function setupDebugEnv(targetFolder: vscode.Uri): boolean {
 		return false;
 	}
 
-	// Target ELF file is differ between SDK repository and user project.
-	if (isSpresenseSdkFolder(folder.uri.fsPath)) {
-		elfFile = './nuttx';
-		cwd = "${workspaceFolder}/sdk";
-	} else {
-		elfFile = './out/${workspaceFolderBasename}.nuttx';
-		cwd = "${workspaceFolder:" + folder.name + "}";
-	}
-
-	launch.addMainTarget(folder.uri, elfFile, cwd);
-
-	// Add .gdbinit file from SDK repository. This file needs to show the NuttX thread information.
-
-	const sdkFolder = getFirstFolderPath(); // XXX: This routine must not be here.
+	const sdkFolder = getFirstFolder(); // XXX: This routine must not be here.
 	if (!sdkFolder) {
 		return false;
 	}
 
-	const src = path.join(sdkFolder, 'sdk', '.gdbinit');
+	// Target ELF file is differ between SDK repository and user project.
+	// And CWD and SDK path are also differ, about workspace folder referencing variables.
+
+	let sdkpath;
+	if (isSpresenseSdkFolder(folder.uri.fsPath)) {
+		elfFile = './nuttx';
+		cwd = "${workspaceFolder}/sdk";
+		sdkpath = "${workspaceFolder}";
+	} else {
+		elfFile = './out/${workspaceFolderBasename}.nuttx';
+		cwd = "${workspaceFolder:" + folder.name + "}";
+		sdkpath = "${workspaceFolder:" + sdkFolder.name + "}";
+	}
+
+	launch.addMainTarget(folder.uri, elfFile, cwd, sdkpath);
+
+	// Add .gdbinit file from SDK repository. This file needs to show the NuttX thread information.
+
+	const src = path.join(sdkFolder.uri.fsPath, 'sdk', '.gdbinit');
 	const dest = path.join(folder.uri.fsPath, '.vscode', '.gdbinit');
 	try {
 		fs.copyFileSync(src, dest);
