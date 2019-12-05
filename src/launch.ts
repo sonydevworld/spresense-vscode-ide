@@ -73,7 +73,7 @@ function addTarget(targetFolder: vscode.Uri, target: any) {
 	// Please keep check the version information, and update here appropriately.
 
 	if (!config.has('version')) {
-		config.update('version', { "version": "0.2.0" }, vscode.ConfigurationTarget.WorkspaceFolder);
+		config.update('version', "0.2.0", vscode.ConfigurationTarget.WorkspaceFolder);
 	}
 
 	let configs: Array<any> | undefined = config.get('configurations');
