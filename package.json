@@ -202,9 +202,8 @@
 							],
 							"svdFile": "^\"\\${workspaceFolder}/sdk/tools/SVD/cxd5602.svd\"",
 							"debuggerArgs": [
-								"-nx",
 								"-ix",
-								".gdbinit"
+								".vscode/.gdbinit"
 							],
 							"preLaunchTask": "Clean flash",
 							"overrideLaunchCommands": [

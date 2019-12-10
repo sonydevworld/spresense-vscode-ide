@@ -403,13 +403,19 @@ function setupDebugEnv(targetFolder: vscode.Uri): boolean {
 
 	// Add .gdbinit file from SDK repository. This file needs to show the NuttX thread information.
 
-	const src = path.join(sdkFolder.uri.fsPath, 'sdk', '.gdbinit');
+	let src = path.join(sdkFolder.uri.fsPath, 'sdk', 'tools', '.gdbinit');
 	const dest = path.join(folder.uri.fsPath, '.vscode', '.gdbinit');
 	try {
 		fs.copyFileSync(src, dest);
 	} catch (err) {
-		vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
-		return false;
+		// Retry with source file in the top of the SDK repository. This is for old version repository.
+		src = path.join(sdkFolder.uri.fsPath, 'sdk', '.gdbinit');
+		try {
+			fs.copyFileSync(src, dest);
+		} catch (err) {
+			vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
+			return false;
+		}
 	}
 
 	return true;
