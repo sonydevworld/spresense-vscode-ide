@@ -111,7 +111,7 @@
 	"spresense.workspace.wizard.label": "創建新工作區",
 	"spresense.workspace.wizard.error": "可以在新窗口中使用此設置嚮導。請關閉打開的工作區，然後再次打開嚮導。",
 	"spresense.workspace.wizard.sdk.label": "Spresense SDK路徑",
-	"spresense.workspace.wizard.sdk.desc": "指定下載或克隆的Spresense SDK的路徑。（例：/home/myspresense/spresense）. ",
+	"spresense.workspace.wizard.sdk.desc": "指定下載或克隆的Spresense SDK的路徑。（例：/home/user/spresense）. ",
 	"spresense.workspace.wizard.sdk.error": "選擇了錯誤的Spresense SDK路徑。根據示例指定正確的路徑。",
 	"spresense.workspace.wizard.project.label": "項目文件夾路徑",
 	"spresense.workspace.wizard.project.desc": "指定保存要創建的應用程序的項目文件夾的路徑。",
