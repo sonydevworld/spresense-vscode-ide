@@ -33,7 +33,7 @@ const launchMainSkelton = {
 	"servertype": "openocd",
 	"configFiles": [
 		"interface/cmsis-dap.cfg",
-		"cxd5602_all.cfg"
+		"cxd5602.cfg"
 	],
 	"searchDir": [
 		"${workspaceFolder:spresense}/sdk/tools"
