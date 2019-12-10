@@ -263,6 +263,7 @@
 							"request": "attach",
 							"type": "cortex-debug",
 							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"gdbTarget": "localhost:50001"
 						}
 					},
@@ -276,6 +277,7 @@
 							"request": "attach",
 							"type": "cortex-debug",
 							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"gdbTarget": "localhost:50002"
 						}
 					},
@@ -289,6 +291,7 @@
 							"request": "attach",
 							"type": "cortex-debug",
 							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"gdbTarget": "localhost:50003"
 						}
 					},
@@ -302,6 +305,7 @@
 							"request": "attach",
 							"type": "cortex-debug",
 							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"gdbTarget": "localhost:50004"
 						}
 					},
@@ -315,6 +319,7 @@
 							"request": "attach",
 							"type": "cortex-debug",
 							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"gdbTarget": "localhost:50005"
 						}
 					}
