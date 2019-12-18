@@ -1,5 +1,49 @@
 # Change Log
 
+## v1.1.0
+
+(日本語の説明文は英語の後に記載しています。)
+
+### Summary
+
+* Feature enhancements are available
+
+* This release has a new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader) before use.
+
+### New features and feature enhancements
+
+* [UI] Add a wizard to create a workspace easily for the project.
+
+* [UI] Add a wizard to add application commands and ASMP workers easily.
+
+* [Debug] Add supports for ICE debugging of multi-core applications.
+
+### Improved features
+
+* [Config] Fixed the problem that the Kernel/SDK config could not be opened in Ubuntu 18.04 environment.
+
+------------------------
+
+(Below is in Japanese)
+
+### 概要
+
+* 新規機能追加および機能拡張を行いました
+
+* 今回のリリースにより[ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール)が必要になります
+
+### 新規機能追加および機能拡張
+
+* [UI] プロジェクト用のワークスペースを簡単に作成するウィザードを追加しました。
+
+* [UI] アプリケーションコマンドやASMPワーカーを簡単に追加するためのウィザードを追加しました。
+
+* [デバッグ] マルチコアアプリケーションのICEデバッグに対応しました。
+
+### 改善された機能
+
+* [コンフィグ] Ubuntu18.04の環境においてコンフィグが開かない問題を解消しました。
+
 ## v1.0.2
 
 (日本語の説明文は英語の後に記載しています。)

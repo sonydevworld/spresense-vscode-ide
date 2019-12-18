@@ -28,6 +28,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from './shell_exec';
 import * as nls from './localize';
+import { getNonce } from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -116,15 +117,24 @@ function getRootDir(): string | undefined {
  * @return Path to python, return undefined if both of 'python' and 'python3' are not found.
  */
 
-function getPythonPath(): string {
-	let python = 'python';
+function getPythonPath(): string | undefined {
+	let python:string| undefined;
+
+	try {
+		python = cp.execSync('which python3').toString().trim();
+	} catch {
+		try {
+			python = cp.execSync('which python').toString().trim();
+		} catch {
+		}
+	}
 
 	/* In MSYS2, append MSYS2 install path */
-	if (process.platform === 'win32') {
+	if (process.platform === 'win32' && python) {
 		const mpath = vscode.workspace.getConfiguration('spresense.msys').get('path');
 
 		if (mpath && typeof mpath === 'string') {
-			python = path.join(mpath, 'usr', 'bin', python);
+			python = path.join(mpath, python);
 		}
 	}
 
@@ -277,6 +287,7 @@ class SDKConfigView {
 	private _isUserConfig: boolean;
 	private _sdkDir: string;
 	private _kernelDir: string;
+	private _python: string;
 	private _progress: EventEmitter;
 	private _currentProcess: cp.ChildProcess | undefined = undefined;
 
@@ -287,6 +298,12 @@ class SDKConfigView {
 		if (BuildTaskIsRunning()) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.task",
 				"Can not open configuration while in the build task is running"));
+			return;
+		}
+
+		if (getPythonPath() === undefined) {
+			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.python",
+				"Couldn't find necessary tools."), { modal: true });
 			return;
 		}
 
@@ -326,6 +343,7 @@ class SDKConfigView {
 		this._mode = mode;
 		this._configFile = '';
 		this._isUserConfig = targetConfig !== undefined;
+		this._python = getPythonPath() || "python";
 		this._sdkDir = "";
 		this._kernelDir = "";
 		this._progress = new EventEmitter();
@@ -627,8 +645,8 @@ class SDKConfigView {
 		})
 		.catch((reason) => {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.prepare", "Preparing configuration failed."));
-			this._progress.emit("update", "abort", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
@@ -638,7 +656,6 @@ class SDKConfigView {
 		 * python /path/to/helper/kconfig2json.py -o /path/to/menu.js
 		 */
 
-		const python = getPythonPath();
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		args.push(this._sdkTmpKconfig);
 
@@ -655,11 +672,11 @@ class SDKConfigView {
 			maxBuffer: 1024 * 1024
 		};
 
-		child_process.execFile(python, args, options, (err, stdout, stderr) => {
+		child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
 			if (err) {
-				console.log(err);
-				this._progress.emit("update", "error", 100);
+				console.error(err);
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
+				this.dispose();
 			} else {
 				this._progress.emit("update",
 					nls.localize("sdkconfig.src.progress.menu", "Construct menu"), 40);
@@ -681,7 +698,7 @@ class SDKConfigView {
 					tweakPlatform(dotconfig);
 				} catch (e) {
 					// XXX: show error message
-					console.log(e);
+					console.error(e);
 					return Promise.reject(e);
 				}
 
@@ -707,13 +724,12 @@ class SDKConfigView {
 			this._genKernelConfigMenuData();
 		})
 		.catch((reason) => {
-			this._progress.emit("update", "error", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
 	private _genKernelConfigMenuData() {
-		const python = getPythonPath();
 		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
@@ -766,9 +782,10 @@ class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			child_process.execFile(python, args, options, (err, stdout, stderr) => {
+			child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
-					console.log(err);
+					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
+					this.dispose();
 				} else {
 					this._progress.emit("update",
 						nls.localize("sdkconfig.src.progress.menu", "Construct menu"), 40);
@@ -777,8 +794,8 @@ class SDKConfigView {
 			});
 		})
 		.catch((reason) => {
-			this._progress.emit("update", "error", 100);
 			console.error(reason);
+			this.dispose();
 		});
 	}
 
@@ -869,13 +886,4 @@ class SDKConfigView {
 </body>
 </html>`;
 	}
-}
-
-function getNonce() {
-	let text = '';
-	const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
 }

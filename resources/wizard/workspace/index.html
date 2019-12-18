@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-__NONCE__' 'unsafe-eval'; style-src vscode-resource:;"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" type="text/css" href="__WIZARD_STYLE_SHEET__">
+        <title>Configuration</title>
+        <style>
+            body {
+                /* Windows */
+                /*
+                font-family: Consolas, "Courier New", monospace;
+                font-size: 14;
+                font-weight: normal;
+                */
+        
+                /* mac, linux */
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", ans-serif;
+                font-size: 13px;
+                font-weight: normal;
+            }
+        </style>
+    </head>
+
+    <body>
+
+
+        <div class="background">
+            <div class="wizard-dialog">
+                <!-- Title -->
+                <div class="wizard-header" id="workspace-wizard-header">
+                    Workspace setup wizard
+                </div>
+
+                <!-- Error message -->
+                <div class="wizard-body" id="wizard-error">
+                    This setup wizard is working on empty window. Please close opened workspace first.
+                </div>
+
+                <!-- Configurations -->
+                <div class="wizard-body" id="wizard-configuration-body">
+
+                    <!-- SDK PATH Setting -->
+                    <div class="wizard-item" id="sdk-path">
+                            <div class="wizard-item-label" id="wizard-sdk-path-label">
+                                Spresense SDK Path
+                            </div>
+                            <div class="wizard-item-body" id="wizard-sdk-path-body">
+                                <div class="wizard-item-description" id="wizard-sdk-path-description">
+                                    Spresense SDK Path Description
+                                </div>
+                                <div class="wizard-item-error-message" id="wizard-sdk-path-box-error">
+                                    Invalid SDK Path selected. Please re-select correct SDK path.
+                                </div>
+                                <div class="wizard-item-form" id="wizard-sdk-path-form">
+                                    <form name="sdkpath">
+                                        <input type="text" class="wizard-text-box require-sdk-path-check" name="path" id="wizard-sdk-path-box">
+                                        <div class="wizard-button enable wizard-reference-button" id="wizard-sdk-path-button">Select</div>
+                                    </form>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Project PATH Setting -->
+                    <div class="wizard-item" id="project-path">
+                            <div class="wizard-item-label" id="wizard-project-path-label">
+                                Project folder path
+                            </div>
+                            <div class="wizard-item-body" id="wizard-project-path-body">
+                                <div class="wizard-item-description" id="wizard-project-path-description">
+                                    Project folder path description
+                                </div>
+                                <div class="wizard-item-error-message" id="wizard-project-path-box-error">
+                                    Invalid path.
+                                </div>
+                                <div class="wizard-item-form" id="wizard-project-path-form">
+                                    <form name="projectpath">
+                                        <input type="text" class="wizard-text-box require-basic-path-check" name="path" id="wizard-project-path-box">
+                                        <div class="wizard-button enable wizard-reference-button" id="wizard-project-path-button">Select</div>
+                                    </form>
+                                </div>
+                            </div>
+                    </div>
+
+                    <!-- Environment problems message -->
+                    <div class="wizard-item" id="environment-problems">
+                            <div class="wizard-item-label" id="wizard-environment-problems-label">
+                                Problems
+                            </div>
+                            <div class="wizard-item-body" id="wizard-environment-problems-body">
+                                <div class="wizard-item-description" id="wizard-environment-problems-description">
+                                    Environment problems message
+                                </div>
+                            </div>
+                    </div>
+                </div>
+
+                <!-- Operation buttons -->
+                <div id="wizard-footer">
+                    <div>
+                        <div class="wizard-button enable" id="wizard-cancel-button">Cancel</div>
+                    </div>
+                    <div id="wizard-dir-button">
+                        <div>
+                            <!-- <div class="wizard-button enable" id="wizard-left-button">Previous</div> -->
+                        </div>
+                        <div>
+                            <div class="wizard-button disable" id="wizard-right-button">Next</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script nonce="__NONCE__" src="__WIZARD_SCRIPT__"></script>
+    </body>
+</html>

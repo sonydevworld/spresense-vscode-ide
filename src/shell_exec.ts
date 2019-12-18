@@ -56,10 +56,14 @@ export function getEnv () {
 	};
 }
 
-export function exec(cmd: string, options: cp.ExecOptions, callback: (error: cp.ExecException | null, stdout: string, stderr: string) => void): cp.ChildProcess {
+export function exec(cmd: string, options?: cp.ExecOptions, callback?: (error: cp.ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => void): cp.ChildProcess {
 	const env = getEnv();
 	const shell = env.SHELL;
 	let command = `${shell} -c \'${cmd}\'`;
+
+	if (!options) {
+		options = {};
+	}
 
 	if (options.env) {
 		options.env['PATH'] = env.PATH;
@@ -70,10 +74,10 @@ export function exec(cmd: string, options: cp.ExecOptions, callback: (error: cp.
 	/* For windows file path delimiter */
 	command = command.replace(/\\/g, '\\\\');
 
-	return cp.exec(command, options, (error, stdout, stderror) => callback(error, stdout, stderror));
+	return cp.exec(command, options, callback);
 }
 
-export function execFile(file: string, args: string[], options: cp.ExecOptions, callback: (error: cp.ExecException | null, stdout: string, stderr: string) => void): cp.ChildProcess {
+export function execFile(file: string, args: string[], options?: cp.ExecOptions, callback?: (error: cp.ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => void): cp.ChildProcess {
 	let command = file;
 	args.forEach((arg) => {
 		command = command + ' \"' + arg + '\" ';
@@ -85,11 +89,15 @@ export function execFile(file: string, args: string[], options: cp.ExecOptions, 
 	return exec(command, options, callback);
 }
 
-export function execSync(command: string, options: cp.ExecOptions): Buffer | string {
+export function execSync(command: string, options?: cp.ExecOptions): Buffer | string {
 	const env = getEnv();
 	const shell = env.SHELL;
 
 	command = `${shell} -c \'${command}\'`;
+
+	if (!options) {
+		options = {};
+	}
 
 	if (options.env) {
 		options.env['PATH'] = env.PATH;
@@ -103,7 +111,7 @@ export function execSync(command: string, options: cp.ExecOptions): Buffer | str
 	return cp.execSync(command, options);
 }
 
-export function execFileSync(file: string, args: string[], options: cp.ExecOptions): Buffer | string {
+export function execFileSync(file: string, args: string[], options?: cp.ExecOptions): Buffer | string {
 	let command = file;
 	args.forEach((arg) => {
 		command = command + ' \"' + arg + '\" ';

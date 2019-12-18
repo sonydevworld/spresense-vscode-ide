@@ -3,7 +3,7 @@
 	"publisher": "sony-spresense",
 	"displayName": "Spresense VSCode IDE",
 	"description": "Spresense Extension for VSCode",
-	"version": "1.0.2",
+	"version": "1.1.0",
 	"license": "MIT",
 	"author": {
 		"name": "Sony Semiconductor Solutions"
@@ -137,14 +137,6 @@
 				"title": "%spresense.command.msys.path%"
 			},
 			{
-				"command": "spresense.create.application",
-				"title": "%spresense.command.create.app%"
-			},
-			{
-				"command": "spresense.create.worker",
-				"title": "%spresense.command.create.worker%"
-			},
-			{
 				"command": "spresense.burn.bootloader",
 				"title": "%spresense.command.burn.bootloader%"
 			},
@@ -171,6 +163,167 @@
 			{
 				"command": "spresense.kernelconfig",
 				"title": "%sdkconfig.command.kernelconfig.title%"
+			},
+			{
+				"command": "spresense.workspace.wizard",
+				"title": "%spresense.workspace.wizard.title%"
+			},
+			{
+				"command": "spresense.item.wizard",
+				"title": "%spresense.item.wizard.title%",
+				"enablement": "spresenseIdeEnabled"
+			},
+			{
+				"command": "spresense.update.project.folder",
+				"title": "%spresense.src.update.project.folder%",
+				"enablement": "spresenseIdeEnabled"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "spresense",
+				"configurationSnippets": [
+					{
+						"label": "%spresense.configurationSnippet.sdk.launch%",
+						"description": "Debug configuration for Spresense main core",
+						"body": {
+							"cwd": "^\"\\${workspaceFolder}/sdk\"",
+							"executable": "./nuttx",
+							"name": "SDK",
+							"request": "launch",
+							"type": "cortex-debug",
+							"servertype": "openocd",
+							"configFiles": [
+								"interface/cmsis-dap.cfg",
+								"cxd5602.cfg"
+							],
+							"searchDir": [
+								"^\"\\${workspaceFolder}/sdk/tools\""
+							],
+							"svdFile": "^\"\\${workspaceFolder}/sdk/tools/SVD/cxd5602.svd\"",
+							"debuggerArgs": [
+								"-ix",
+								".vscode/.gdbinit"
+							],
+							"preLaunchTask": "Clean flash",
+							"overrideLaunchCommands": [
+								"monitor reset",
+								"monitor halt",
+								"load"
+							],
+							"overrideRestartCommands": [
+								"monitor sleep 3000",
+								"monitor halt",
+								"load"
+							]
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.maincore.launch%",
+						"description": "Debug configuration for application main core",
+						"body": {
+							"name": "Main Core",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}\"",
+							"executable": "./out/${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}.nuttx",
+							"request": "launch",
+							"type": "cortex-debug",
+							"servertype": "openocd",
+							"configFiles": [
+								"interface/cmsis-dap.cfg",
+								"cxd5602.cfg"
+							],
+							"searchDir": [
+								"^\"\\${workspaceFolder:spresense}/sdk/tools\""
+							],
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"debuggerArgs": [
+								"-ix",
+								".vscode/.gdbinit"
+							],
+							"preLaunchTask": "Clean flash",
+							"overrideLaunchCommands": [
+								"monitor reset",
+								"monitor halt",
+								"load"
+							],
+							"overrideRestartCommands": [
+								"monitor sleep 3000",
+								"monitor halt",
+								"load"
+							]
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.subcore1.attach%",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 1",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker/\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"gdbTarget": "localhost:50001"
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.subcore2.attach%",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 2",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"gdbTarget": "localhost:50002"
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.subcore3.attach%",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 3",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"gdbTarget": "localhost:50003"
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.subcore4.attach%",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 4",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"gdbTarget": "localhost:50004"
+						}
+					},
+					{
+						"label": "%spresense.configurationSnippet.subcore5.attach%",
+						"description": "Debug configuration for worker sub core",
+						"body": {
+							"name": "Sub Core 5",
+							"cwd": "^\"\\${workspaceFolder:${TM_DIRECTORY/.*\\/(.*)\\/.vscode/$1/}}/${1}_worker\"",
+							"executable": "./${1}.debug",
+							"request": "attach",
+							"type": "cortex-debug",
+							"servertype": "external",
+							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
+							"gdbTarget": "localhost:50005"
+						}
+					}
+				]
 			}
 		],
 		"menus": {
@@ -184,13 +337,8 @@
 			"explorer/context": [
 				{
 					"when": "spresenseIdeEnabled",
-					"command": "spresense.create.application",
+					"command": "spresense.item.wizard",
 					"group": "11_SpresenseCreate@1"
-				},
-				{
-					"when": "spresenseIdeEnabled",
-					"command": "spresense.create.worker",
-					"group": "11_SpresenseCreate@2"
 				},
 				{
 					"when": "spresenseIdeEnabled",

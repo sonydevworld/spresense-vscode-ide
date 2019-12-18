@@ -28,7 +28,13 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-const spresenseExtInterfaceVersion: number = 1000;
+import { isMsysInstallFolder } from './common';
+import { isSpresenseSdkFolder } from './common';
+
+import * as launch from './launch';
+
+
+const spresenseExtInterfaceVersion: number = 1001;
 
 const configSdkPathKey = 'spresense.sdk.path';
 const configSdkToolsPathKey = 'spresense.sdk.tools.path';
@@ -74,19 +80,21 @@ function createVscode(newFolderPath: string) {
 	}
 }
 
-function getFirstFolderPath(): string | undefined {
-	let firstFolder:string | undefined;
-	let wsFolders = vscode.workspace.workspaceFolders;
+function getFirstFolder(): vscode.WorkspaceFolder | undefined {
+	const wsFolders = vscode.workspace.workspaceFolders;
 
 	if (wsFolders === undefined || wsFolders.length === 0) {
 		/* No folders or workspaces are open */
 		return undefined;
 	}
 
-	/* Get first folder path */
-	firstFolder = wsFolders[0].uri.fsPath;
+	return wsFolders[0];
+}
 
-	return firstFolder;
+function getFirstFolderPath(): string | undefined {
+	const folder = getFirstFolder();
+
+	return folder ? folder.uri.fsPath : undefined;
 }
 
 /**
@@ -343,6 +351,10 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 						path.join(newFolderPath, '.vscode', 'build.sh'));
 		fs.copyFileSync(path.join(extensionPath, 'scripts', 'clean_flash.sh'),
 						path.join(newFolderPath, '.vscode', 'clean_flash.sh'));
+		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'application.mk'),
+						path.join(newFolderPath, '.vscode', 'application.mk'));
+		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'worker.mk'),
+						path.join(newFolderPath, '.vscode', 'worker.mk'));
 	} catch (err) {
 		console.log(err);
 		vscode.window.showErrorMessage(`${err}`);
@@ -350,280 +362,63 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 }
 
 /**
- * Update launch.json file for application debug
+ * Setup debug environment
  *
  * This function update a launch.json file for debugging application code
- * with ICE JTAG.
- * Replace rules:
+ * with ICE debugger.
  *
- * @param newFolderUri Path to target project folder
- * @returns true if success to update, false otherwise.
+ * @param targetFolder Path to target project folder or SDK repository
+ *
+ * @returns true if updated, false is error.
  */
 
-async function sdkLaunchConfig(newFolderUri: vscode.Uri): Promise<boolean> {
-	const sdkFolder = getFirstFolderPath();
-	const vsocodeFolder = path.join(newFolderUri.fsPath, '.vscode');
-	let launch = vscode.workspace.getConfiguration('launch', newFolderUri);
-	let cortexDebug: ConfigInterface = {};
-	let elfFile: string | undefined;
-
-	if (!vscode.workspace.workspaceFolders || !sdkFolder) {
+function setupDebugEnv(targetFolder: vscode.Uri): boolean {
+	let elfFile: string;
+	let cwd: string;
+	let folder = vscode.workspace.getWorkspaceFolder(targetFolder);
+	if (!folder) {
 		return false;
 	}
 
-	if (isSpresenseSdkFolder(newFolderUri.fsPath)) {
-		/* SDK task definition */
-		elfFile = 'sdk/nuttx';
+	const sdkFolder = getFirstFolder(); // XXX: This routine must not be here.
+	if (!sdkFolder) {
+		return false;
+	}
+
+	// Target ELF file is differ between SDK repository and user project.
+	// And CWD and SDK path are also differ, about workspace folder referencing variables.
+
+	let sdkpath;
+	if (isSpresenseSdkFolder(folder.uri.fsPath)) {
+		elfFile = './nuttx';
+		cwd = "${workspaceFolder}/sdk";
+		sdkpath = "${workspaceFolder}";
 	} else {
-		/* Application Folder task definition */
-		elfFile = '${workspaceFolder}/out/${workspaceFolderBasename}.nuttx';
+		elfFile = './out/${workspaceFolderBasename}.nuttx';
+		cwd = "${workspaceFolder:" + folder.name + "}";
+		sdkpath = "${workspaceFolder:" + sdkFolder.name + "}";
 	}
 
-	/* cortex-debug */
-	cortexDebug['name'] = 'Main core debug';
-	cortexDebug['type'] = 'cortex-debug';
-	cortexDebug['request'] = 'launch';
-	cortexDebug['servertype'] = 'openocd';
-	cortexDebug['cwd'] = '${workspaceFolder}';
-	cortexDebug['executable'] = elfFile;
-	cortexDebug['device'] = 'CXD5602';
-	cortexDebug['preLaunchTask'] = taskCleanFlashLabel;
-	cortexDebug['configFiles'] = ['interface/cmsis-dap.cfg', '${config:spresense.sdk.tools.path}/cxd5602.cfg'];
-	cortexDebug['svdFile'] = '${config:spresense.sdk.tools.path}/SVD/cxd5602.svd';
-	cortexDebug['debuggerArgs'] = [
-		'-ix',
-		'.vscode/.gdbinit'
-	];
-	cortexDebug['overrideRestartCommands'] = [
-		"monitor sleep 3000",
-		"load",
-		"monitor reset halt"
-	];
+	launch.addMainTarget(folder.uri, elfFile, cwd, sdkpath);
 
-	/* Apply into tasks.json */
-	await updateConfiguration(launch, 'configurations', [cortexDebug], 'name');
+	// Add .gdbinit file from SDK repository. This file needs to show the NuttX thread information.
 
+	let src = path.join(sdkFolder.uri.fsPath, 'sdk', 'tools', '.gdbinit');
+	const dest = path.join(folder.uri.fsPath, '.vscode', '.gdbinit');
 	try {
-		/* Copy Spresense specific .gdbinit */
-		fs.copyFileSync(path.join(sdkFolder, 'sdk', '.gdbinit'), path.join(vsocodeFolder, '.gdbinit'));
+		fs.copyFileSync(src, dest);
 	} catch (err) {
-		vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
-		return false;
+		// Retry with source file in the top of the SDK repository. This is for old version repository.
+		src = path.join(sdkFolder.uri.fsPath, 'sdk', '.gdbinit');
+		try {
+			fs.copyFileSync(src, dest);
+		} catch (err) {
+			vscode.window.showErrorMessage(nls.localize("spresense.src.debug.gdbinit.error", "Cannot copy .gdbinit file."));
+			return false;
+		}
 	}
 
 	return true;
-}
-
-function setupApplicationProjectFolder (wsFolder: string, resourcePath: string) {
-	const projecRestPath = path.join(resourcePath, 'projectfiles');
-
-	/* Necessary files: Application.mk, LibTarget.mk, Make.defs, Makefile */
-	const tempFileList = fs.readdirSync(projecRestPath);
-
-	tempFileList.forEach((file) => {
-		const src = path.join(projecRestPath, file);
-		const dest = path.join(wsFolder, file);
-
-		fs.copyFile(src, dest, fs.constants.COPYFILE_EXCL, (err) => {
-			/* Nop */
-		});
-	});
-}
-
-/**
- * Create new file with template
- *
- * This function create a new file for adding application or library or worker
- * initial setup. And replace special letter for changing component name.
- * Replace rules:
- *   __app_name__: App Name in lowercase
- *   __APP_NAME__: 'Project + App' name in uppercase
- *
- * @param srcFile Path to template file
- * @param destFile Path to destination file
- * @param project Name of project
- * @param appname Path to template file
- */
-
-function createFileByTemplate (srcFile: string, destFile: string, appname: string) {
-	const targetDir = path.dirname(destFile);
-	const upper = `${appname}`.toUpperCase();
-	let buff = fs.readFileSync(srcFile).toString();
-
-	/* Replace app name strings */
-	buff = buff.replace(/__app_name__/g, appname);
-	buff = buff.replace(/__APP_NAME__/g, upper);
-
-	/* If destination directory missing, create it */
-	if (!fs.existsSync(targetDir)) {
-		fs.mkdirSync(targetDir);
-	}
-
-	fs.writeFile(destFile, buff, (err) => {
-		if (err) {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error.file", "Error in creating file {0}.", destFile));
-		}
-	});
-}
-
-/**
- * Create new worker files with template
- *
- * This function create new files for adding worker initial setup.
- * Creation rules:
- *  worker.c -> <name>_worker.c
- *  header.c -> include/<name>.h
- *  Other files: Keep file name
- *
- * @param name Name of worker
- * @param wsFolder Path to workspace folder
- * @param tempPath Path to using template files
- */
-
-function createWorkerFiles (name: string, wsFolder: string, tempPath: string) {
-	const fileList = fs.readdirSync(tempPath);
-	const destDir = path.join(wsFolder, `${name}_worker`);
-
-	/* Create worker directory */
-	fs.mkdirSync(destDir);
-
-	/* Create all file from template */
-	fileList.forEach((file) => {
-		const srcFile = path.join(tempPath, file);
-
-		/* Destination file path */
-		let destFile;
-		if (file === 'worker.c') {
-			destFile = path.join(destDir, `${name}_worker.c`);
-		} else if (file === 'header.h') {
-			destFile = path.join(destDir, 'include', `${name}.h`);
-		} else {
-			destFile = path.join(destDir, file);
-		}
-
-		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
-	});
-}
-
-/**
- * Create new application files with template
- *
- * This function create new files for adding application initial setup.
- * Creation rules:
- *  main.c -> <name>_main.c
- *  Other files: Keep file name
- *
- * @param name Name of application
- * @param wsFolder Path to workspace folder
- * @param tempPath Path to using template files
- */
-
-function createApplicationFiles (name: string, wsFolder: string, tempPath: string) {
-	const fileList = fs.readdirSync(tempPath);
-	const destDir = path.join(wsFolder, name);
-
-	/* Create worker directory */
-	fs.mkdirSync(destDir);
-
-	/* Create all file from template */
-	fileList.forEach((file) => {
-		const srcFile = path.join(tempPath, file);
-
-		/* Destination file path */
-		let destFile;
-		if (file === 'main.c') {
-			destFile = path.join(destDir, `${name}_main.c`);
-		} else {
-			destFile = path.join(destDir, file);
-		}
-
-		/* Create a file from template */
-		createFileByTemplate(srcFile, destFile, name);
-	});
-}
-
-/**
- * Create new component files with template
- *
- * This function create new files for adding component initial setup.
- * Supported component:
- *  Application (mode = createAppMode)
- *  Worker (mode = createWorkerMode)
- *
- * @param wsFolder Path to workspace folder
- * @param extensionPath Path to extension folder
- * @param mode Creation mode (createAppMode / createWorkerMode)
- */
-
-async function createComponentFiles (wsFolder: string, extensionPath: string, mode: string) {
-	const resourcePath = path.join(extensionPath, 'resources');
-	const wsFolders = vscode.workspace.workspaceFolders;
-
-	if (!wsFolders || !wsFolders[0]) {
-		return;
-	}
-
-	/* If wsFolder is same as first workspace folder, it is spresense sdk folder */
-	if (wsFolder !== wsFolders[0].uri.fsPath) {
-
-		/* Setup application folder, if necessary */
-		setupApplicationProjectFolder(wsFolder, resourcePath);
-
-		const example: string = nls.localize("spresense.src.create.app.example", "(ex. app, Gps_01, Camera02, ...)");
-		let msg: string = '';
-		if (mode === createAppMode) {
-			msg = nls.localize("spresense.src.create.app.input", "Please enter the name of new application command. {0}", example);
-		} else if (mode === createWorkerMode) {
-			msg = nls.localize("spresense.src.create.app.worker", "Please enter the name of new worker. {0}", example);
-		}
-
-		/* Show dialog for inputing component name */
-		const name = await vscode.window.showInputBox({
-			prompt: msg,
-			validateInput: (input) => {
-				const namePattern = /^[a-zA-Z][\w]*$/;
-				const dirlist = fs.readdirSync(wsFolder);
-				const reservedName = ['out', 'Makefile'];
-
-				if (!namePattern.test(input)) {
-					return nls.localize("spresense.src.create.app.error.invalid", "Invalid name entered.");
-				} else if (dirlist.indexOf(input) !== -1) {
-					return nls.localize("spresense.src.create.app.error.existed", "Directory or file '{0}' is already exists.", input);
-				} else if (reservedName.indexOf(input) !== -1) {
-					return nls.localize("spresense.src.create.app.error.reserved", "Cannot use '{0}'.", input);
-				}
-
-				return '';
-			}
-		});
-
-		if (!name) {
-			return;
-		}
-
-		if (mode === createAppMode) {
-			/* Create a application template for using new worker */
-			createApplicationFiles(name, wsFolder, path.join(resourcePath, 'appfiles'));
-		} else if (mode === createWorkerMode) {
-			/* Create worker template */
-			createWorkerFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'worker'));
-			const selectableItems = [
-				"No",
-				"Yes"
-			];
-
-			const reply = await vscode.window.showQuickPick(selectableItems, {placeHolder: nls.localize("spresense.src.create.app.confirm", 'Do you want to create a sample application to use new worker?')});
-
-			if (reply === "Yes") {
-				/* Create a application template for using new worker */
-				createApplicationFiles(name, wsFolder, path.join(resourcePath, 'workerfiles', 'app'));
-			}
-		}
-	} else {
-		/* Does not support create component files into Spresense SDK repository. */
-		vscode.window.showErrorMessage(nls.localize("spresense.src.create.app.error", 'Cannot execute this command for spresense repository.'));
-	}
 }
 
 function setSpresenseButton() {
@@ -826,7 +621,7 @@ async function prepareBootloader(context: vscode.ExtensionContext) {
 	}
 
 	/* Show pop up for confirm to jump download page at browser */
-	const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.bootloader.confirm", "To install the bootloader, you must download the bootloader archive with a web browser. Are you sure to open the download page? {0}", downloadUrl), "OK", "Cancel");
+	const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.bootloader.confirm", "To install the bootloader, you must download the bootloader archive with a web browser. Are you sure to open the download page? {0}", downloadUrl), { modal: true }, "OK");
 	if (reply === 'OK') {
 		/* Jump to download page */
 		vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(downloadUrl));
@@ -951,42 +746,21 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 		triggerSpresenseTask(selectedUri, taskFlashLabel);
 	}));
 
-	/* Register create application command */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.create.application', (folder) => {
-		let wsFolder: vscode.WorkspaceFolder | undefined;
-
-		if (folder instanceof vscode.Uri) {
-			wsFolder = vscode.workspace.getWorkspaceFolder(folder);
-		}
-
-		if (wsFolder) {
-			/* Create application files */
-			createComponentFiles(wsFolder.uri.fsPath, context.extensionPath, createAppMode);
-		} else {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.command.error", 'This command not suuported by command pallete. Please take right click in file or folder.'));
-		}
-	}));
-
-	/* Register create worker */
-	context.subscriptions.push(vscode.commands.registerCommand('spresense.create.worker', (folder) => {
-		let wsFolder: vscode.WorkspaceFolder | undefined;
-
-		if (folder instanceof vscode.Uri) {
-			wsFolder = vscode.workspace.getWorkspaceFolder(folder);
-		}
-
-		if (wsFolder) {
-			/* Create worker files */
-			createComponentFiles(wsFolder.uri.fsPath, context.extensionPath, createWorkerMode);
-		} else {
-			vscode.window.showErrorMessage('This command not suuported by command pallete. Please take right click in file or folder.');
-		}
-	}));
-
 	/* Register burn bootloader command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.burn.bootloader', () => {
 		/* Burn bootloader */
 		burnBootloader(context);
+	}));
+
+	/* Register update project settings command */
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.update.project.folder', () => {
+		/* Choose project */
+		vscode.window.showWorkspaceFolderPick().then((folder) => {
+			if (folder) {
+				/* Update project folder settings */
+				spresenseEnvSetup(context, folder.uri, true);
+			}
+		});
 	}));
 }
 
@@ -1033,15 +807,27 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	let shpath = termConf.get(`shell.${osName[process.platform]}`) || '/bin/bash';
 
 	try {
-		/* Get enviroment from bash */
+		/* && control character for bash */
+		let andCtrl = '&&';
+
+		/* In Windows environment(cmd.exe), && need a escape character */
+		if (process.platform === 'win32') {
+			andCtrl = '^&^&';
+		}
+		/* Get enviroment from bash
+		 * Line 1: PATH
+		 * Line 2: Openocd path
+		 */
 		const shellEnv = cp.execSync(
-			`${shpath} --login -c \"source ~/spresenseenv/setup && echo $PATH && dirname \`which openocd\`\"`
+			`${shpath} --login -c 'source ~/spresenseenv/setup ${andCtrl} echo $PATH ${andCtrl} which openocd'`
 			).toString().trim().split('\n');
 
 		/* Parse PATH */
-		const envPath = shellEnv[0];
-		const sprEnvPath = shellEnv[1];
-		const openocdPath = `${sprEnvPath}/openocd`;
+		const envPath     = shellEnv[0]; /* Line 1 */
+		const openocdPath = shellEnv[1]; /* Line 2 */
+
+		/* Get toolchain directory by openocd path */
+		const sprEnvPath = path.dirname(openocdPath);
 
 		/* Prepare shell environment done */
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
@@ -1076,52 +862,6 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 
 	/* Inform complete */
 	progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
-}
-
-/**
- * Check spresense sdk folder
- *
- * This function detecting folder as spresense sdk or not.
- *
- * @param folderPath Path to target folder for detecting.
- * @returns If target folder is spresense sdk, return true. If not, return false.
- */
-
-function isSpresenseSdkFolder(folderPath: string): boolean {
-	/* If first folder is spresense, set sdk path to settings */
-	if (fs.existsSync(path.join(folderPath, 'sdk'))
-		&& fs.existsSync(path.join(folderPath, 'nuttx'))
-		&& fs.statSync(path.join(folderPath, 'sdk')).isDirectory()
-		&& fs.statSync(path.join(folderPath, 'nuttx')).isDirectory()) {
-		/* This folder is spresense sdk */
-		return true;
-	} else {
-		return false;
-	}
-}
-
-/**
- * Check Msys folder
- *
- * This function detecting folder as Msys install path or not.
- *
- * @param folderPath Path to target folder for detecting.
- * @returns If target folder is Msys install path, return true. If not, return false.
- */
-
-function isMsysInstallFolder(folderPath: string): boolean {
-	/* If first folder is spresense, set sdk path to settings */
-	if (fs.existsSync(path.join(folderPath, 'home'))
-		&& fs.statSync(path.join(folderPath, 'home')).isDirectory()
-		&& fs.existsSync(path.join(folderPath, 'usr'))
-		&& fs.statSync(path.join(folderPath, 'usr')).isDirectory()
-		&& fs.existsSync(path.join(folderPath, 'msys2.exe'))
-		&& fs.statSync(path.join(folderPath, 'msys2.exe')).isFile()) {
-		/* This folder is Msys install path */
-		return true;
-	} else {
-		return false;
-	}
 }
 
 function isSpresenseEnvironment() {
@@ -1248,8 +988,12 @@ function isAlreadySetup(folderPath: string): boolean {
 			 */
 			return false;
 		} else if (projectVersion > spresenseExtInterfaceVersion) {
-			/* Newer extension's project */
+			/* If project folder created by newer version of extension, show notice to update extension. */
 			vscode.window.showWarningMessage(nls.localize("spresense.src.error.newer", "Project folder was created by newer version of Spresense extension. Please update Spresense extension."));
+			return true;
+		} else if (projectVersion < spresenseExtInterfaceVersion) {
+			/* If project folder created by older version of extension, show notice to update project settings. */
+			vscode.window.showWarningMessage(nls.localize("spresense.src.error.older", "Project folder was created by older version of Spresense extension. Please update project folder by F1 -> '{0}'.", nls.localize("spresense.src.update.project.folder", "Spresense: Update project folder settings")));
 			return true;
 		} else {
 			/* Keep current .vscode */
@@ -1258,12 +1002,21 @@ function isAlreadySetup(folderPath: string): boolean {
 	}
 }
 
-async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vscode.Uri) {
+async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vscode.Uri, force?: boolean) {
 	const wsFolders = vscode.workspace.workspaceFolders;
 	const folderPath = folderUri.fsPath;
 
 	if (!wsFolders) {
 		return;
+	}
+
+	if (folderPath.indexOf(' ') !== -1) {
+			/* If folderPath contain ' ', show error and do not setup */
+			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.space", "Spresense extension can not use this folder that contain ' '. "));
+
+			/* Remove folder in advance */
+			removeWorkspaceFolder(folderUri);
+			return;
 	}
 
 	if (isSpresenseSdkFolder(folderPath) && folderUri !== wsFolders[0].uri) {
@@ -1276,7 +1029,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
-	if (isAlreadySetup(folderPath)) {
+	if (!force && isAlreadySetup(folderPath)) {
 		return;
 	}
 
@@ -1286,8 +1039,7 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 	/* For build/flash task */
 	await sdkTaskConfig(folderUri, context);
 
-	/* For debug */
-	if (! await sdkLaunchConfig(folderUri)) {
+	if (! setupDebugEnv(folderUri)) {
 		return;
 	}
 
@@ -1330,11 +1082,32 @@ export function activate(context: vscode.ExtensionContext) {
 	/* Detect Spresense environment */
 	if (isSpresenseEnvironment()) {
 		/* Handle workspace change event */
-		context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders((event: vscode.WorkspaceFoldersChangeEvent) => {
-			event.added.forEach((addedFolder) => {
-				/* Create several json files for new folder */
-				spresenseEnvSetup(context, addedFolder.uri);
-			});
+		context.subscriptions.push(vscode.workspace.onDidChangeWorkspaceFolders(async (event: vscode.WorkspaceFoldersChangeEvent) => {
+			/* 1sec to wait for the completion of folder addition.
+			 * TODO: Json file must not update by this event. Move this operation to such as build configuration or item creation timing.
+			 */
+			await new Promise(resolve => setTimeout(resolve, 1000));
+
+			/* If in folder view windows, force deactivate when achieve this event. In this case, skip this operation.
+			 * After re-open the window, this operation will execute by folder scan.
+			 * TODO: This is just a temporary solution. Need to implement deactivate() function for update json file more secure.
+			 */
+			if (vscode.workspace.workspaceFile) {
+				event.added.forEach((addedFolder) => {
+					/* Create several json files for new folder */
+					spresenseEnvSetup(context, addedFolder.uri);
+				});
+			}
+		}));
+
+		let watcher = vscode.workspace.createFileSystemWatcher("**/* *", false, true, true);
+		context.subscriptions.push(watcher.onDidCreate((event) => {
+			/* This event is triggered from file creation or coping or moving.
+			 * Therefore, it is dangerous to delete. So just only to show warning message.
+			 */
+			vscode.window.showWarningMessage(
+				nls.localize("spresense.src.create.error.space", "Spresense extension can not use this new folder or file that contain ' '. ")
+			);
 		}));
 
 		context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor((event) => {

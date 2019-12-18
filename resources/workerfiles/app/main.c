@@ -9,10 +9,10 @@
 #include <asmp/mpmutex.h>
 
 /* Include worker header */
-#include "__app_name__.h"
+#include "__worker_name__.h"
 
 /* Worker ELF path */
-#define WORKER_FILE "/mnt/spif/__app_name__"
+#define WORKER_FILE "/mnt/spif/__worker_name__"
 
 /* Check configuration.  This is not all of the configuration settings that
  * are required -- only the more obvious.
@@ -54,7 +54,7 @@ int __app_name___main(int argc, char *argv[])
 
   /* Initialize MP mutex and bind it to MP task */
 
-  ret = mpmutex_init(&mutex, __APP_NAME__KEY_MUTEX);
+  ret = mpmutex_init(&mutex, __WORKER_NAME__KEY_MUTEX);
   if (ret < 0)
     {
       err("mpmutex_init() failure. %d\n", ret);
@@ -69,7 +69,7 @@ int __app_name___main(int argc, char *argv[])
 
   /* Initialize MP message queue with assigned CPU ID, and bind it to MP task */
 
-  ret = mpmq_init(&mq, __APP_NAME__KEY_MQ, mptask_getcpuid(&mptask));
+  ret = mpmq_init(&mq, __WORKER_NAME__KEY_MQ, mptask_getcpuid(&mptask));
   if (ret < 0)
     {
       err("mpmq_init() failure. %d\n", ret);
@@ -84,7 +84,7 @@ int __app_name___main(int argc, char *argv[])
 
   /* Initialize MP shared memory and bind it to MP task */
 
-  ret = mpshm_init(&shm, __APP_NAME__KEY_SHM, 1024);
+  ret = mpshm_init(&shm, __WORKER_NAME__KEY_SHM, 1024);
   if (ret < 0)
     {
       err("mpshm_init() failure. %d\n", ret);
@@ -118,7 +118,7 @@ int __app_name___main(int argc, char *argv[])
     }
 
   /* Send command to worker */
-  ret = mpmq_send(&mq, MSG_ID___APP_NAME__, (uint32_t) &data);
+  ret = mpmq_send(&mq, MSG_ID___WORKER_NAME__, (uint32_t) &data);
   if (ret < 0)
     {
       err("mpmq_send() failure. %d\n", ret);

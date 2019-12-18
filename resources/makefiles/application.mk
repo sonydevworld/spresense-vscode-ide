@@ -34,9 +34,46 @@
 #
 ############################################################################
 
+# SPRESENSE_IDE_VERSION := 1.1.0
+
+############################################################################
+#              THIS FILE IS AUTO GENERATED. DO NOT MODIFY                  #
+############################################################################
+
+-include $(TOPDIR)/Make.defs
+-include $(SDKDIR)/Make.defs
 -include $(SDKDIR)/.config
 include $(APPDIR)/Make.defs
 
+# Take application name
+APP_FOLDER_NAME := $(notdir $(shell pwd))
+
+# Application command configurable parameters
+ifeq ($(APPNAME),)
+	APPNAME = $(APP_FOLDER_NAME)
+endif
+
+ifeq ($(PRIORITY),)
+	PRIORITY = SCHED_PRIORITY_DEFAULT
+endif
+
+ifeq ($(STACKSIZE),)
+	STACKSIZE = 2048
+endif
+
+ifeq ($(MAINSRC),)
+	MAINSRC = $(APP_FOLDER_NAME)_main.c
+endif
+ASRCS +=
+CSRCS += $(filter-out $(MAINSRC),$(wildcard *.c) $(wildcard */*.c))
+CXXSRCS += $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
+
+CFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
+CXXFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
+
+PROGNAME = $(APPNAME)$(EXEEXT)
+
+# From Application.mk
 CXXEXT ?= .cxx
 
 AOBJS = $(ASRCS:.S=$(OBJEXT))

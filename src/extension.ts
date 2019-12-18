@@ -23,6 +23,8 @@ import * as vscode from 'vscode';
 import * as settings from './settings';
 import * as serial_terminal from './serial_terminal';
 import * as sdk_config from './sdk_config';
+import * as wizard_workspace from './wizard_workspace';
+import * as wizard_item from './wizard_item';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -34,6 +36,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	/* Activate SDK Config */
 	sdk_config.activate(context);
+
+	/* Activate Workspace Wizard */
+	wizard_workspace.activate(context);
+
+	/* Activate Item Wizard */
+	wizard_item.activate(context);
 }
 
 export function deactivate() {
@@ -42,4 +50,10 @@ export function deactivate() {
 
 	/* Deactivate Serial terminal */
 	serial_terminal.deactivate();
+
+	/* Deactivate Workspace Wizard */
+	wizard_workspace.deactivate();
+
+	/* Deactivate Item Wizard */
+	wizard_item.deactivate();
 }
