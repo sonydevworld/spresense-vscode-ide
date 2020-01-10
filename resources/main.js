@@ -849,8 +849,7 @@ function widgetFactory(node) {
 		widget = new IntWidget(node);
 	}
 	else if (node.type == TRISTATE) {
-		// May not comes here because kconfiglib.py is not supported to
-		// treat tristate. They treated as a boolean.
+		// May not comes here because SDK don't use tristate for now.
 		widget = new TristateWidget(node);
 	}
 	else if (node.type == STRING) {
