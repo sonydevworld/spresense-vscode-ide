@@ -274,9 +274,21 @@ export class SDKConfigView {
 	 */
 
 	private _updateHeaderFiles() {
+		let workspaceFolder: vscode.WorkspaceFolder | undefined;
 		let dotConfig: string | undefined;
 		let options: object | undefined;
 		let args: Array<string> | undefined;
+		let includePath: string | undefined;
+		let headerPath: string | undefined;
+		let headerFile: string | undefined;
+
+		workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this._configFile));
+
+		if (!workspaceFolder) {
+			return;
+		}
+
+		includePath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'include');
 
 		if (this._mode === SDKConfigView.sdkMode) {
 			options = { cwd: this._sdkDir };
@@ -285,6 +297,8 @@ export class SDKConfigView {
 				"dirlinks"
 			];
 			dotConfig = path.join(this._sdkDir, '.config');
+			headerFile = path.join(this._sdkDir, "bsp/include/sdk/config.h");
+			headerPath = path.join(includePath, 'sdk');
 		} else {
 			options = { cwd: this._kernelDir };
 			args = [
@@ -296,6 +310,8 @@ export class SDKConfigView {
 				"dirlinks"
 			];
 			dotConfig = path.join(this._kernelDir, '.config');
+			headerFile = path.join(this._kernelDir, "include/nuttx/config.h");
+			headerPath = path.join(includePath, 'nuttx');
 		}
 
 		if (!fs.existsSync(dotConfig) || !isSameContents(this._configFile, dotConfig)) {
@@ -306,6 +322,23 @@ export class SDKConfigView {
 			cp.execFileSync("make", args, options);
 		} catch (err) {
 			vscode.window.showErrorMessage(err.message);
+		}
+
+		try {
+			/* Save config.h at project folder, it would be referred by C++ Extension (mainly code completion).
+			 * config.h may be changed by other projects sharing with Spresense repository.
+			 * So we need to save generated config.h for prevent unexpected code completion.
+			 */
+			if (!fs.existsSync(includePath)) {
+				fs.mkdirSync(includePath);
+			}
+			if (!fs.existsSync(headerPath)) {
+				fs.mkdirSync(headerPath);
+			}
+			fs.copyFileSync(headerFile, path.join(headerPath, 'config.h'));
+		} catch (err) {
+			vscode.window.showErrorMessage(err.message);
+			return;
 		}
 	}
 
