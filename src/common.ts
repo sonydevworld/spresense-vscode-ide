@@ -25,6 +25,13 @@ import * as fs from 'fs';
 
 import * as nls from './localize';
 
+export interface Version {
+	major: number;
+	minor: number;
+	patch: number;
+	str: string;
+}
+
 /**
  * Check Msys folder
  *
@@ -348,24 +355,35 @@ export const UNKNOWN_SDK_VERSION = "Unknown";
  * 
  * @param sdkFolder Path to SDK repository folder
  * 
- * @returns Version string (e.g. "1.5.0") or UNKNOWN_SDK_VERSION
+ * @returns Version data
  */
 
-export function getSDKVersion(sdkFolder: string) {
+export function getSDKVersion(sdkFolder: string) : Version {
 	const versionFilePath = path.join(sdkFolder, 'sdk', 'tools', 'mkversion.sh');
 	let buff: string;
+	let ver : Version = {
+		major: 0,
+		minor: 0,
+		patch: 0,
+		str: UNKNOWN_SDK_VERSION
+	};
 
 	try {
 		buff = fs.readFileSync(versionFilePath).toString();
 	} catch (error) {
-		return UNKNOWN_SDK_VERSION;
+		return ver;
 	}
 
-	const results = buff.match(/^SDK_VERSION=\"([A-Za-z0-9.]+)\"/m);
-	if  (!results) {
-		return UNKNOWN_SDK_VERSION;
+	const results = buff.match(/^SDK_VERSION="(SDK\d+\.\d+\.\d+)"/m);
+	if (results) {
+		let vers = results[1].split(".");
+		ver.major = parseInt(vers[0].replace("SDK", ""));
+		ver.minor = parseInt(vers[1]);
+		ver.patch = parseInt(vers[2]);
+		ver.str = results[1];
 	}
-	return results[1];
+	console.log(ver);
+	return ver;
 }
 
 /**

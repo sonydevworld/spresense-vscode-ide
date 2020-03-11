@@ -940,13 +940,12 @@ function createSpresenseConfFile(folderPath: string) {
 	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
 	let jsonItem: SpresenseJsonInterface = {};
 	let version = getSDKVersion(sdkFolder);
-	if (version === UNKNOWN_SDK_VERSION) {
+	if (version.str === UNKNOWN_SDK_VERSION) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
 	}
-	console.log(version);
 
 	/* Append item (SDK version) */
-	jsonItem['SdkVersion'] = version;
+	jsonItem['SdkVersion'] = version.str;
 
 	/* Append item (Spresense Extension compatibility revision) */
 	jsonItem['SpresenseExtInterfaceVersion'] = spresenseExtInterfaceVersion;
