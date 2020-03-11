@@ -28,8 +28,7 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder } from './common';
-import { isSpresenseSdkFolder } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION } from './common';
 
 import * as launch from './launch';
 
@@ -939,24 +938,12 @@ function createSpresenseConfFile(folderPath: string) {
 	}
 
 	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
-	const versionFilePath = path.join(sdkFolder, 'sdk', 'tools', 'mkversion.sh');
 	let jsonItem: SpresenseJsonInterface = {};
-	let version: string = 'Unknown';
-	if (fs.existsSync(versionFilePath) && fs.statSync(versionFilePath).isFile()) {
-		try {
-			const buff = fs.readFileSync(versionFilePath).toString();
-
-			/* Get SDK version */
-			const results = buff.match(/^SDK_VERSION=\"([A-Za-z0-9.]+)\"/m);
-			if  (!results) {
-				throw new Error();
-			}
-			version = results[1];
-		} catch (error) {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
-		}
-		console.log(version);
+	let version = getSDKVersion(sdkFolder);
+	if (version === UNKNOWN_SDK_VERSION) {
+		vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
 	}
+	console.log(version);
 
 	/* Append item (SDK version) */
 	jsonItem['SdkVersion'] = version;

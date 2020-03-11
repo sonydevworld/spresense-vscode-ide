@@ -340,3 +340,30 @@ export function getNonce() {
 	}
 	return text;
 }
+
+export const UNKNOWN_SDK_VERSION = "Unknown";
+
+/**
+ * Get SDK version from repository.
+ * 
+ * @param sdkFolder Path to SDK repository folder
+ * 
+ * @returns Version string (e.g. "1.5.0") or UNKNOWN_SDK_VERSION
+ */
+
+export function getSDKVersion(sdkFolder: string) {
+	const versionFilePath = path.join(sdkFolder, 'sdk', 'tools', 'mkversion.sh');
+	let buff: string;
+
+	try {
+		buff = fs.readFileSync(versionFilePath).toString();
+	} catch (error) {
+		return UNKNOWN_SDK_VERSION;
+	}
+
+	const results = buff.match(/^SDK_VERSION=\"([A-Za-z0-9.]+)\"/m);
+	if  (!results) {
+		return UNKNOWN_SDK_VERSION;
+	}
+	return results[1];
+}
