@@ -367,3 +367,27 @@ export function getSDKVersion(sdkFolder: string) {
 	}
 	return results[1];
 }
+
+/**
+ * Check if two contents are the same
+ *
+ * This function check if two contents are the same.
+ *
+ * @param partA Part of contents
+ * @param partB Other contents
+ * @returns true: Same file / false: Different file
+ */
+
+export function isSameContents(partA: fs.PathLike, partB: fs.PathLike):boolean {
+	let buf1;
+	let buf2;
+
+	try {
+		buf1 = fs.readFileSync(partA);
+		buf2 = fs.readFileSync(partB);
+	} catch (e) {
+		return false;
+	}
+
+	return buf1.equals(buf2);
+}

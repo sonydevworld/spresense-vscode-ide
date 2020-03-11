@@ -28,7 +28,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from './shell_exec';
 import * as nls from './localize';
-import { getNonce } from './common';
+import { getNonce, isSameContents } from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -224,30 +224,6 @@ function tweakPlatform(configfile: string) {
 		// XXX: Currently only MSYS2 is supported
 		tweakConfig(configfile, "WINDOWS_MSYS", true);
 	}
-}
-
-/**
- * Check if two contents are the same
- *
- * This function check if two contents are the same.
- *
- * @param partA Part of contents
- * @param partB Other contents
- * @returns true: Same file / false: Different file
- */
-
-function isSameContents(partA: fs.PathLike, partB: fs.PathLike):boolean {
-	let buf1;
-	let buf2;
-
-	try {
-		buf1 = fs.readFileSync(partA);
-		buf2 = fs.readFileSync(partB);
-	} catch (e) {
-		return false;
-	}
-
-	return buf1.equals(buf2);
 }
 
 /**
