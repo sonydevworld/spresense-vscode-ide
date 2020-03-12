@@ -60,7 +60,7 @@ export function getPythonPath(): string | undefined {
  * @param enable     Boolean option value
  */
 
-export function tweakConfig(configfile: string, configname: string, enable: boolean) {
+export function tweakConfigBool(configfile: string, configname: string, enable: boolean) {
 	let config;
 
 	if (enable) {
@@ -70,6 +70,10 @@ export function tweakConfig(configfile: string, configname: string, enable: bool
 	}
 
 	fs.writeFileSync(configfile, config, { flag: "a" });
+}
+
+export function tweakConfigStr(configfile: string, configname: string, value: string) {
+	fs.writeFileSync(configfile, `CONFIG_${configname}="${value}"\n`, { flag: "a" });
 }
 
 /**
@@ -83,10 +87,10 @@ export function tweakConfig(configfile: string, configname: string, enable: bool
 export function tweakPlatform(configfile: string) {
 	if (process.platform === "win32") {
 		console.log(`tweak ${configfile} for Windows`);
-		tweakConfig(configfile, "HOST_WINDOWS", true);
-		tweakConfig(configfile, "TOOLCHAIN_WINDOWS", true);
+		tweakConfigBool(configfile, "HOST_WINDOWS", true);
+		tweakConfigBool(configfile, "TOOLCHAIN_WINDOWS", true);
 		// XXX: Currently only MSYS2 is supported
-		tweakConfig(configfile, "WINDOWS_MSYS", true);
+		tweakConfigBool(configfile, "WINDOWS_MSYS", true);
 	}
 }
 
