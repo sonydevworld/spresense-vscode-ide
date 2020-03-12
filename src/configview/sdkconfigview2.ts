@@ -31,7 +31,7 @@ import * as nls from '../localize';
 import { getNonce, isSameContents } from '../common';
 import * as util from './util';
 
-class SDKConfigView2 {
+export class SDKConfigView2 {
 
 	public static currentPanel: SDKConfigView2 | undefined;
 
@@ -113,13 +113,12 @@ class SDKConfigView2 {
 
 		const makedefs = path.join(this._kernelDir, "Make.defs");
 		try {
-			fs.copyFileSync(path.join(this._sdkDir, "bsp", "scripts", "Make.defs.nuttx"),	makedefs,
+			fs.copyFileSync(path.join(this._sdkDir, "tools", "scripts", "Make.defs"), makedefs,
 				fs.constants.COPYFILE_EXCL);
 		} catch (e) {
 			// Ignore errors
 		}
 
-		// sdkconfig.src.webviewTitle
 		let _folder;
 		if (targetConfig) {
 			let _proj = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(targetConfig));
@@ -249,11 +248,9 @@ class SDKConfigView2 {
 	 *
 	 * This function update config dependent header files (ex. config.h).
 	 * And this operation is necessary for code completion and worker build.
-	 *
 	 */
 
 	private _updateHeaderFiles() {
-		let dotConfig: string | undefined;
 		let options: object | undefined;
 		let args: Array<string> | undefined;
 
@@ -266,11 +263,6 @@ class SDKConfigView2 {
 			"include/stdarg.h",
 			"dirlinks"
 		];
-		dotConfig = path.join(this._kernelDir, '.config');
-
-		if (!fs.existsSync(dotConfig) || !isSameContents(this._configFile, dotConfig)) {
-			fs.copyFileSync(this._configFile, dotConfig);
-		}
 
 		try {
 			cp.execFileSync("make", args, options);
@@ -280,8 +272,16 @@ class SDKConfigView2 {
 	}
 
 	private _saveConfigFile(filePath: string, content: string) {
+		const dotConfig = path.join(this._kernelDir, '.config');
+
 		try {
 			fs.writeFileSync(filePath, content, { mode: 0o644 });
+
+			if (filePath === dotConfig) {
+				if (!fs.existsSync(dotConfig) || !isSameContents(this._configFile, dotConfig)) {
+					fs.copyFileSync(this._configFile, dotConfig);
+				}
+			}
 			vscode.window.showInformationMessage(nls.localize("sdkconfig.src.save.done", "Configuration has been saved. {0}", filePath));
 		} catch (err) {
 			vscode.window.showErrorMessage(err.message);
@@ -300,7 +300,7 @@ class SDKConfigView2 {
 		let data = "";
 
 		for (let p of list) {
-			const filename = path.join(configDir, p + "-defconfig");
+			const filename = path.join(configDir, p, "defconfig");
 			let buf;
 
 			try {
@@ -359,8 +359,9 @@ class SDKConfigView2 {
 			if (force || !fs.existsSync(dotconfig)) {
 				console.log("create kernel .config");
 				try {
-					fs.copyFileSync(path.join(this._sdkDir, "configs", "kernel", "release-defconfig"), dotconfig);
+					fs.copyFileSync(path.join(this._sdkDir, "configs", "default", "defconfig"), dotconfig);
 					util.tweakPlatform(dotconfig);
+					util.tweakConfigStr(dotconfig, "APPS_DIR", "../sdk/apps");
 				} catch (e) {
 					// XXX: show error message
 					console.error(e);
@@ -395,7 +396,7 @@ class SDKConfigView2 {
 	}
 
 	private _genKernelConfigMenuData() {
-		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
+		const appsDir = path.join("..", "sdk", "apps");
 		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
 		const options = {
@@ -412,7 +413,7 @@ class SDKConfigView2 {
 			nls.localize("sdkconfig.src.progress.parse", "Parsing Kconfig"), 20);
 
 		Promise.resolve().then(() => {
-			if (!fs.existsSync(path.join(this._kernelDir, "configs", "dummy", "Kconfig"))) {
+			if (!fs.existsSync(path.join(this._kernelDir, "boards", "dummy", "Kconfig"))) {
 				return new Promise((resolve, reject) => {
 					console.log("make dirlinks");
 					this._currentProcess = cp.exec("make dirlinks", options, (error, stdout, stderr) => {
@@ -449,6 +450,7 @@ class SDKConfigView2 {
 			console.log("parse config");
 			child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
+					console.error(stderr);
 					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
 					this.dispose();
 				} else {
