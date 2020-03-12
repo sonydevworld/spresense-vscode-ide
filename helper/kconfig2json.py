@@ -95,7 +95,7 @@ def build_nodetree(node, nodelist):
             # We use type as int for reduce string size in JSON.
             #
 
-            d['type'] = node.item.type
+            d['type'] = node.item.orig_type
             d['name'] = node.item.name
             d['value'] = node.item.str_value
             d['user_value'] = node.item.user_value
