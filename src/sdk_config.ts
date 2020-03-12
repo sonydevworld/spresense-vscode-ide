@@ -26,6 +26,8 @@ import * as fs from 'fs';
 import * as nls from './localize';
 
 import { SDKConfigView } from './configview/sdkconfigview';
+import { SDKConfigView2 } from './configview/sdkconfigview2';
+import { getSDKVersion } from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -33,7 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('spresense.sdkconfig', async (uri) => {
-			if (!detectSpresenseSDK()) {
+			const repo = getSpresenseRepositoryPath();
+			if (repo === undefined) {
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.repository",
 					"Spresense repository not found."));
 				return;
@@ -46,13 +49,19 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			SDKConfigView.createOrShow(context.extensionPath, config, SDKConfigView.sdkMode);
+			const version = getSDKVersion(repo);
+			if (version.major >= 2) {
+				SDKConfigView2.createOrShow(context.extensionPath, config);
+			} else {
+				SDKConfigView.createOrShow(context.extensionPath, config, SDKConfigView.sdkMode);
+			}
 		})
 	);
 
 	context.subscriptions.push(
 		vscode.commands.registerCommand('spresense.kernelconfig', async (uri) => {
-			if (!detectSpresenseSDK()) {
+			const repo = getSpresenseRepositoryPath();
+			if (repo === undefined) {
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.repository",
 					"Spresense repository not found."));
 				return;
@@ -75,7 +84,7 @@ export function activate(context: vscode.ExtensionContext) {
  * If first folder has 'sdk' and 'nuttx' subfolders, it may Spresense SDK folder.
  */
 
-function detectSpresenseSDK(): boolean {
+function getSpresenseRepositoryPath(): string | undefined {
 	const wf = vscode.workspace.workspaceFolders;
 
 	if (wf) {
@@ -84,14 +93,14 @@ function detectSpresenseSDK(): boolean {
 			const nuttx = fs.statSync(path.join(wf[0].uri.fsPath, 'nuttx'));
 
 			if (sdk.isDirectory && nuttx.isDirectory) {
-				return true;
+				return wf[0].uri.fsPath;
 			}
 		} catch (e) {
-			return false;
+			return undefined;
 		}
 	}
 
-	return false;
+	return undefined;
 }
 
 /**
