@@ -46,7 +46,10 @@ def _expr_str(sc):
 def make_default_list(defaults):
     ret = []
     for default, cond in defaults:
-        ret.append({"name": default.name, "default": default.str_value, "cond": _expr_str(cond)})
+        if type(default) is tuple:
+            ret.append({"name": "", "default": expr_str(default), "cond": _expr_str(cond)})
+        else:
+            ret.append({"name": default.name, "default": default.str_value, "cond": _expr_str(cond)})
     return ret
 
 # This function is for 'select' and 'imply' list
@@ -144,6 +147,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Create JSON from Kconfig')
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Output file')
+    parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('kconfig', metavar='<Kconfig file>', type=str, nargs='?',
                         default='Kconfig', help='Path to Kconfig')
     opts = parser.parse_args()
@@ -167,5 +171,9 @@ if __name__ == '__main__':
         f = sys.stdout
 
     # f.write('var menudata = ' + json.dumps(d) + ';\n')
-    f.write(json.dumps(d))
+    if opts.debug:
+        f.write(json.dumps(d, indent=4))
+    else:
+        f.write(json.dumps(d))
+
     f.close()
