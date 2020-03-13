@@ -38,6 +38,7 @@ const YMN = {0: "n", 1: "m", 2: "y"};
 
 // To use dependency calculation
 const y = true;
+const m = true;
 const n = false;
 
 // Set class "inactive" or "invisible", it is for view mode of
@@ -463,6 +464,9 @@ class BaseWidget {
 	}
 }
 
+// FIXME: bool type option can be used in <expr> style,
+// So we need to process them except 'ymn' values.
+
 class BoolWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
@@ -612,28 +616,10 @@ class IntWidget extends BaseWidget {
 	}
 }
 
-/*
- * Tristate is not supported because of kconfiglib.py.
- */
-class TristateWidget extends BaseWidget {
+class TristateWidget extends BoolWidget {
 	constructor(node) {
 		super(node);
 		this._element.classList.add("tristate");
-		var _input = document.createElement("select");
-		var _y = document.createElement("option");
-		var _n = document.createElement("option");
-		var _m = document.createElement("option");
-		_y.value = "y";
-		_y.innerText = "Yes";
-		_n.value = "n";
-		_n.innerHTML = "No";
-		_m.value = "m"
-		_m.innerHTML = "Module";
-
-		_input.appendChild(_y);
-		_input.appendChild(_n);
-		_input.appendChild(_m);
-		this.addInputField(_input);
 	}
 }
 
@@ -849,7 +835,6 @@ function widgetFactory(node) {
 		widget = new IntWidget(node);
 	}
 	else if (node.type == TRISTATE) {
-		// May not comes here because SDK don't use tristate for now.
 		widget = new TristateWidget(node);
 	}
 	else if (node.type == STRING) {
@@ -1040,7 +1025,9 @@ function generateConfigFileContent() {
 		} else if (opt instanceof BoolWidget || opt instanceof ChoiceOption) {
 			if (opt.value === "y" || opt.value === "2") {
 				config = `CONFIG_${opt.name}=y`;
-			} else {
+			} else if (opt.value === "m" || opt.value === "1") {
+				config = `CONFIG_${opt.name}=m`;
+			} else if (opt.value === "n" || opt.value === "0") {
 				config = `# CONFIG_${opt.name} is not set`;
 			}
 		} else {
