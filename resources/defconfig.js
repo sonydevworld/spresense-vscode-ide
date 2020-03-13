@@ -66,7 +66,8 @@ function showSdkDefconfigSelection(deflist, callback) {
 
 	for (let c of deflist) {
 		var e = document.createElement("div");
-		c = c.replace("-defconfig", "")
+		// '-defconfig' is old defconfig file structure, '/defconfig' is SDK 2.0 and above.
+		c = c.replace("-defconfig", "").replace("/defconfig", "");
 		var def = c.split("/");
 
 		e.dataset.exactName = c;
@@ -260,7 +261,7 @@ function showKernelDefconfigSelection(deflist, callback) {
 	modal.style.display = "block";
 }
 
-function showDefconfigSelection(deflist, callback, mode) {
+function showDefconfigSelection(deflist, callback) {
 	if (document.body.dataset.mode === "Kernel") {
 		showKernelDefconfigSelection(deflist, callback);
 	} else {
