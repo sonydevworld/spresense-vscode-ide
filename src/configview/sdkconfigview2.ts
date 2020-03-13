@@ -291,7 +291,7 @@ export class SDKConfigView2 {
 	private _getDefconfigs(): string[] {
 		let opts = { cwd: path.join(this._sdkDir, "configs") };
 
-		return glob.sync("configs/**/defconfig", opts);
+		return glob.sync("**/defconfig", opts);
 	}
 
 	private _loadDefconfigFiles(paths: string): string {
@@ -316,14 +316,28 @@ export class SDKConfigView2 {
 		// This workaround is the same with tweakPlatform() function but
 		// patch it on demand. So be careful if you want to change this tweaks.
 
-		if (process.platform === "win32") {
-			const tweaks = [
-				"CONFIG_HOST_WINDOWS=y",
-				"CONFIG_TOOLCHAIN_WINDOWS=y",
-				"CONFIG_WINDOWS_MSYS=y"
-			];
-			data += tweaks.join("\n");
+		switch (process.platform) {
+			case "win32":
+				const tweaks = [
+					"CONFIG_HOST_WINDOWS=y",
+					"CONFIG_TOOLCHAIN_WINDOWS=y",
+					"CONFIG_WINDOWS_MSYS=y",
+				];
+				data += tweaks.join("\n");
+				break;
+
+			case "linux":
+				data += "CONFIG_HOST_LINUX=y\n";
+				break;
+
+			case "darwin":
+				data += "CONFIG_HOST_MACOS=y\n";
+				break;
+			default:
+				break;
 		}
+		data += 'CONFIG_APPS_DIR="../sdk/apps"\n';
+
 		return data;
 	}
 
@@ -413,22 +427,20 @@ export class SDKConfigView2 {
 			nls.localize("sdkconfig.src.progress.parse", "Parsing Kconfig"), 20);
 
 		Promise.resolve().then(() => {
-			if (!fs.existsSync(path.join(this._kernelDir, "boards", "dummy", "Kconfig"))) {
-				return new Promise((resolve, reject) => {
-					console.log("make dirlinks");
-					this._currentProcess = cp.exec("make dirlinks", options, (error, stdout, stderr) => {
-						this._currentProcess = undefined;
-						if (error) {
-							if (!error.killed) {
-								vscode.window.showErrorMessage(error.message);
-							}
-							reject(error);
-						} else {
-							resolve();
+			return new Promise((resolve, reject) => {
+				console.log("make dirlinks");
+				this._currentProcess = cp.exec("make dirlinks apps_preconfig", options, (error, stdout, stderr) => {
+					this._currentProcess = undefined;
+					if (error) {
+						if (!error.killed) {
+							vscode.window.showErrorMessage(error.message);
 						}
-					});
+						reject(error);
+					} else {
+						resolve();
+					}
 				});
-			}
+			});
 		})
 		.then(() => {
 			if (this._isUserConfig && !fs.existsSync(this._configFile)) {
