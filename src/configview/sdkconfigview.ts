@@ -599,7 +599,7 @@ export class SDKConfigView {
 <body data-mode="${this._mode}">
 	<div class="container">
 		<div class="topmenu">
-			<input id="search-box" type="search" placeholder="Filter">
+			<!-- <input id="search-box" type="search" placeholder="Filter"> -->
 			<ul>
 				<li><a class="button" id="new" href="javascript:void(0)">${newStr}</a></li>
 				<li><a class="button" id="save" href="javascript:void(0)">${saveStr}</a></li>
@@ -608,10 +608,10 @@ export class SDKConfigView {
 			</ul>
 		</div>
 
-		<div class="contents">
-			<div class="side-menu" id="category"></div>
-			<div class="main" id="configs"></div>
+		<div class="contents" id="configs">
 		</div>
+
+		<div id="help"></div>
 	</div>
 
 	<div id="defconfig" class="modal">

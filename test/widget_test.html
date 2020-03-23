@@ -31,6 +31,10 @@
 		display: flex;
 		flex-direction: column;
 	}
+
+	.menuitems {
+		margin-left: 18px;
+	}
 	.menu-container > label {
 		cursor: pointer;
 		user-select: none;
@@ -86,18 +90,18 @@
 		user-select: none;
 		cursor: pointer;
 	}
-	.tristate.no {
+	.tristate[data-value=no] {
 		background-color: #ccc;
 	}
-	.tristate.mod {
+	.tristate[data-value=mod] {
 		background-color: rgb(236, 92, 82);
 		color:rgb(201, 40, 28)
 	}
-	.tristate.yes {
+	.tristate[data-value=yes] {
 		background-color: rgb(68, 196, 68);
 		color: rgb(47, 139, 47)
 	}
-	.tristate::before {
+	.tristate::before, .tristate[data-value=no]::before {
 		position: absolute;
 		content: "N";
 		line-height: 30px;
@@ -110,11 +114,11 @@
 		border-radius: 4px;
 		text-align: center;
 	}
-	.tristate.mod::before {
+	.tristate[data-value=mod]::before {
 		content: "M";
 		transform: translateX(30px);
 	}
-	.tristate.yes::before {
+	.tristate[data-value=yes]::before {
 		content: "Y";
 		transform: translateX(60px);
 	}
@@ -335,13 +339,17 @@
 		Array.prototype.forEach.call(elems, (e) => {
 			e.addEventListener("click", () => {
 				// Change triangle state: no -> mod -> yes -> no -> ...
-				if (e.classList.contains("mod")) {
-					e.classList.remove("mod");
-					e.classList.add("yes");
-				} else if (e.classList.contains("yes")) {
-					e.classList.remove("yes");
-				} else {
-					e.classList.add("mod");
+				switch (e.dataset.value) {
+					case "mod":
+						e.dataset.value = "yes";
+						break;
+					case "yes":
+						e.dataset.value = "no";
+						break;
+					case "no":
+					default:
+						e.dataset.value = "mod";
+						break;
 				}
 			});
 		})

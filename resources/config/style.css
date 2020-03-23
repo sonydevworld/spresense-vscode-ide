@@ -36,6 +36,9 @@
 
 .contents {
     display: flex;
+    flex-direction: column;
+    min-width: 944px;
+    overflow: auto;
 }
 
 a {
@@ -65,25 +68,6 @@ a:visited {
     white-space: nowrap;
 }
 
-.side-menu {
-    min-width: 180px;
-    overflow-y: auto;
-}
-
-.side-menu ul {
-    padding-left: 2px;
-}
-
-.side-menu li {
-    list-style-type: none;
-    padding: 4px;
-}
-
-.main {
-    padding-left: 20px;
-    overflow: auto;
-}
-
 .hide {
     display: none;
 }
@@ -99,65 +83,13 @@ a:visited {
     border-bottom: 1px solid;
 }
 
-.widget {
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid rgb(128, 128, 128);
-    padding-top: 8px;
-    margin-top: 2px;
-    width: 800px;
-}
-
-.hierarchy {
-    margin-top: 2px;
-    margin-bottom: 2px;
-    font-style: italic;
-    text-align: left;
-}
-
-.prompt {
-    margin-right: 8px;
-}
-
-.no-prompt {
-    display: none;
-}
-
-.inactive {
-    filter: opacity(30%);
-}
-
-.invisible {
-    display: none;
-}
-
-.config-and-input {
-    display: flex;
-    align-items: baseline;
-}
-
-.config-and-input > p {
-    margin-top: auto;
-    margin-bottom: auto;
-    margin-left: 10px;
-}
-
-.config-help {
-    margin-top: 8px;
-    margin-bottom: 8px;
-}
-
-.config-symbol, .config-cond {
-    margin: 2px;
-}
-
-.node-child {
-    filter: opacity(1);
-}
-
 select {
-    padding: 2px;
-    border: 1px solid rgb(128, 128, 128);
+    padding: 7px 4px;
+    background-color: #eee;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    box-shadow: none;
+    text-overflow: ellipsis;
 }
 
 input[type=search] {
@@ -165,10 +97,185 @@ input[type=search] {
     border: 1px solid rgb(128, 128, 128);
 }
 
-input[type=text] {
+.menu-container, .menuitems {
+    display: flex;
+    flex-direction: column;
+}
+.menuitems {
+    margin-left: 40px;
+}
+.menu-container > label {
+    cursor: pointer;
+    user-select: none;
+}
+.menu-container > input[type="checkbox"] + label::before {
+    content: "\02295"; /* circled plus */
+    width: 28px;
+    font-size: 24px;
+    color: rgb(1, 149, 194);
+    text-align: center;
+}
+.menu-container > input[type="checkbox"]:checked + label::before {
+    content: "\02296"; /* circled minus */
+}
+.menu-container > input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.menu-container > input[type="checkbox"] ~ .menuitems {
+    display: none;
+}
+.menu-container > input[type="checkbox"]:checked ~ .menuitems {
+    display: flex;
+}
+
+.config {
+    display: flex;
+    line-height: 42px;
+    transition: .1s;
+    align-items: center;
+}
+.config:hover {
+    background-color: var(--vscode-editor-findRangeHighlightBackground);
+}
+.config > .prompt {
+    margin-left: 4px;
+    flex-grow: 1;
+}
+.config > .symbol {
+    margin-right: 8px;
+    margin-left: 20px;
+}
+
+.tristate, .tristate[data-value=n] {
+    position: relative;
+    display: flex;
+    width: 94px;
+    height: 34px;
+    line-height: 34px;
+    background-color: #ccc;
+    transition: .2s;
+    border-radius: 4px;
+    user-select: none;
+    cursor: pointer;
+}
+.tristate[data-value=m] {
+    background-color: rgb(236, 92, 82);
+    color:rgb(201, 40, 28)
+}
+.tristate[data-value=y] {
+    background-color: rgb(68, 196, 68);
+    color: rgb(47, 139, 47)
+}
+.tristate::before, .tristate[data-value=n]::before {
+    position: absolute;
+    content: "N";
+    line-height: 30px;
+    width: 30px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    color: black;
+    transition: .2s;
+    border-radius: 4px;
+    text-align: center;
+}
+.tristate[data-value=m]::before {
+    content: "M";
+    transform: translateX(30px);
+}
+.tristate[data-value=y]::before {
+    content: "Y";
+    transform: translateX(60px);
+}
+.tristate > div {
+    text-align: center;
+    flex: 1;
+    color: #666;
+}
+
+.bool {
+    position: relative;
+    display: inline-block;
+    width: 94px;
+    height: 34px;
+    line-height: 34px;
+}
+.bool input {
+    opacity: 0;
+
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    border-radius: 4px;
+    transition: .2s;
+}
+.slider::before {
+    position: absolute;
+    content: "N";
+    line-height: 30px;
+    width: 45px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    color: black;
+    transition: .2s;
+    border-radius: 4px;
+    text-align: center;
+}
+.slider::after {
+    position: absolute;
+    content: "Y";
+    line-height: 30px;
+    width: 45px;
+    bottom: 2px;
+    text-align: center;
+    transform: translateX(0);
+    color: #666;
+}
+.bool input[type="checkbox"]:checked + .slider {
+    background-color: rgb(68, 196, 68);
+    color: rgb(47, 139, 47)
+}
+.bool input[type="checkbox"]:checked + .slider::before {
+    content: "Y";
+    transform: translateX(45px);
+}
+.bool input[type="checkbox"] + .slider::after {
+    transform: translateX(45px);
+}
+.bool input[type="checkbox"]:checked + .slider::after {
+    content: "N";
+    transform: translateX(0);
+}
+
+.config > input[type="text"] {
+    width: 94px;
+    padding: 7px 4px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    transition: .2s;
+}
+.config > input[type="text"]:focus {
+    width: 216px;
+}
+
+#help {
+    width: 100%;
+    height: 100px;
+    min-height: 100px;
+    border-top: 1px solid #666;
     padding: 4px;
-    border: none;
-    background-color: rgb(218, 218, 218);
+    overflow: auto;
 }
 
 /* defconfig selector */
@@ -320,4 +427,16 @@ input[type=text] {
 
 .progress {
     width: 40%;
+}
+
+.inactive {
+    filter: opacity(30%);
+}
+
+.invisible {
+    display: none;
+}
+
+.no-prompt {
+    display: none;
 }
