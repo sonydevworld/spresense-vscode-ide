@@ -103,7 +103,7 @@ export class SDKConfigView {
 	private constructor(panel: vscode.WebviewPanel, extensionPath: string, targetConfig: string | undefined, mode: string) {
 		this._panel = panel;
 		this._extensionPath = extensionPath;
-		this._resourcePath = path.join(extensionPath, 'resources');
+		this._resourcePath = path.join(extensionPath, 'resources', 'config');
 		this._mode = mode;
 		this._configFile = '';
 		this._isUserConfig = targetConfig !== undefined;
