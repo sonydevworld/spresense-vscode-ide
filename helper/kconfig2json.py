@@ -100,6 +100,9 @@ def build_nodetree(node, nodelist):
             d['value'] = node.item.str_value
             d['user_value'] = node.item.user_value
 
+            if node.item is node.item.kconfig.modules:
+                d['modules'] = True
+
             if node.is_menuconfig:
                 d['menuconfig'] = True
 
@@ -148,11 +151,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create JSON from Kconfig')
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Output file')
     parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('kconfig', metavar='<Kconfig file>', type=str, nargs='?',
                         default='Kconfig', help='Path to Kconfig')
     opts = parser.parse_args()
 
     kconf = Kconfig(opts.kconfig, warn=False)
+    if opts.verbose:
+        kconf.enable_warnings()
     kconf.load_config()
 
     # Create root node
