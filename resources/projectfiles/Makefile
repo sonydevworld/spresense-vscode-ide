@@ -33,8 +33,16 @@
 #
 ############################################################################
 
+include $(SPRESENSE_HOME)/.vscode/version.mk
+
+ifeq ($(SDK_VERSION_MAJ),1)
+# For SDK 1.x.x
 MENUDESC = "User application"
 
 BIN = libuserapps$(LIBEXT)
 
 include $(SDKDIR)/Makefile.ext
+else
+# For SDK 2.0.0 ~
+include $(SDKDIR)/tools/Sdk.mk
+endif
