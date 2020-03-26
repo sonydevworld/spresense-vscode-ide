@@ -321,7 +321,7 @@ input[type=search] {
 }
 
 #defconfig-selected {
-    flex-grow: 1;
+    width: 200px;
 }
 
 #defconfig-selected p {
@@ -337,7 +337,7 @@ input[type=search] {
     flex-direction: row;
 }
 
-.tab {
+.tabitem {
     flex-grow: 1;
     text-align: center;
     padding: 14px 16px;
@@ -346,13 +346,17 @@ input[type=search] {
     margin: auto 1px;
 }
 
-.tab:hover {
-    background-color: rgb(0,153,115);
-    color: white;
+.tabitem:hover {
+    background-color: rgb(154, 228, 209);
     cursor: pointer;
 }
 
-.tab.active {
+.tabitem.active {
+    background-color: rgb(0,153,115);
+    color: white;
+}
+
+.tabitem[data-active=true] {
     background-color: rgb(0,153,115);
     color: white;
 }
@@ -386,11 +390,16 @@ input[type=search] {
 }
 
 .defconfig-item:hover {
+    background-color: rgb(154, 228, 209);
     cursor: pointer;
-    font-weight: bold;
 }
 
 .defconfig-item.active {
+    background-color: rgb(0,153,115);
+    color: white;
+}
+
+.defconfig-item[data-active=true] {
     background-color: rgb(0,153,115);
     color: white;
 }

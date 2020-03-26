@@ -191,15 +191,12 @@ export class SDKConfigView2 {
 
 					case "load-defconfigs":
 						let data;
+						let l;
 
-						// If no defconfig selected, return zero length string to webview, and
-						// all of options will be default.
+						// If no defconfig selected, use default defconfig.
 
-						if (message.content.length > 0) {
-							data = this._loadDefconfigFiles(message.content);
-						} else {
-							data = "";
-						}
+						l = message.content.length > 0 ? message.content : "default/defconfig";
+						data = this._loadDefconfigFiles(l);
 						this._panel.webview.postMessage({command: "load-defconfigs", content: data});
 						return;
 				}
@@ -289,20 +286,25 @@ export class SDKConfigView2 {
 	}
 
 	private _getDefconfigs(): string[] {
-		let opts = { cwd: path.join(this._sdkDir, "configs") };
-
-		return glob.sync("**/defconfig", opts);
+		let list = glob.sync("**/defconfig", {
+			cwd: path.join(this._sdkDir, "configs")
+		});
+		return list.concat(glob.sync("**/defconfig", {
+			cwd: path.join(this._kernelDir, "boards", "arm", "cxd56xx")
+		}));
 	}
 
 	private _loadDefconfigFiles(paths: string): string {
-		const configDir = path.join(this._sdkDir, "configs");
+		const sdkdir = path.join(this._sdkDir, "configs");
+		const kerneldir = path.join(this._kernelDir, "boards", "arm", "cxd56xx");
 		const list = paths.split("\n");
 		let data = "";
 
 		for (let p of list) {
-			const filename = path.join(configDir, p, "defconfig");
+			const filename = path.join(p.startsWith("spresense") ? kerneldir : sdkdir, p);
 			let buf;
 
+			console.log(`Loading file: ${filename}`);
 			try {
 				buf = fs.readFileSync(filename);
 			} catch (e) {
@@ -537,9 +539,6 @@ export class SDKConfigView2 {
 			<div id="defconfig-body">
 				<div id="defconfig-selector">
 					<div id="defconfig-category">
-						<div id="category-device" class="tab">Device</div>
-						<div id="category-feature" class="tab">Feature</div>
-						<div id="category-examples" class="tab">Examples</div>
 					</div>
 					<div id="defconfig-list"></div>
 				</div>
@@ -547,7 +546,6 @@ export class SDKConfigView2 {
 					<p>selected defconfigs</p>
 					<div id="selected-defconfig-list"></div>
 				</div>
-				<div id="defconfig-kernel"></div>
 			</div>
 			<div id="defconfig-footer">
 				<div id="defconfig-ok">OK</div>

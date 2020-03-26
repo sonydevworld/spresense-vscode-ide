@@ -622,9 +622,9 @@ export class SDKConfigView {
 			<div id="defconfig-body">
 				<div id="defconfig-selector">
 					<div id="defconfig-category">
-						<div id="category-device" class="tab">Device</div>
-						<div id="category-feature" class="tab">Feature</div>
-						<div id="category-examples" class="tab">Examples</div>
+						<div id="category-device" class="tabitem">Device</div>
+						<div id="category-feature" class="tabitem">Feature</div>
+						<div id="category-examples" class="tabitem">Examples</div>
 					</div>
 					<div id="defconfig-list"></div>
 				</div>

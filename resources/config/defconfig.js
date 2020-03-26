@@ -261,10 +261,201 @@ function showKernelDefconfigSelection(deflist, callback) {
 	modal.style.display = "block";
 }
 
+/*
+ * The Modal class
+ *
+ * This class controls modal dialog box. This class has header, content and footer
+ * frames, and their handling logic.
+ *
+ * Header frame holds modal title.
+ * Footer frame holds OK and cancel button.
+ * Content is a place holder, it will be replaced by @a contentobj.
+ */
+
+class Modal {
+	constructor(contentobj, deflist, callback) {
+		this._element = document.querySelector("#defconfig > .modal-content");
+
+		// Create content and replace it to old "defconfig-body" tag
+		this.content = new contentobj(deflist);
+		let old = document.getElementById("defconfig-body");
+		this._element.replaceChild(this.content.body, old);
+
+		// Create new OK and cancel button. This process is for simplified
+		// the event handler control.
+		let ok = document.createElement("div");
+		ok.id = "defconfig-ok";
+		ok.innerHTML = "OK";
+		let cancel = document.createElement("div");
+		cancel.id = "defconfig-cancel";
+		cancel.innerHTML = "Cancel";
+
+		ok.addEventListener("click", () => {
+			this.content.handle_ok(callback);
+			this.hide();
+		});
+
+		cancel.addEventListener("click", () => {
+			callback("cancel", undefined);
+			this.hide();
+		});
+
+		document.getElementById("defconfig-ok").replaceWith(ok);
+		document.getElementById("defconfig-cancel").replaceWith(cancel);
+	}
+
+	show() {
+		document.getElementById("defconfig").style.display = "block";
+	}
+
+	hide() {
+		document.getElementById("defconfig").style.display = "none";
+	}
+}
+
+/*
+ * Defconfig selection dialog content object
+ *
+ * This class is dialog content for Modal class.
+ * This class is for SDK 2.0.
+ */
+
+class DefconfigDialogContent {
+	constructor(deflist) {
+		this.body = document.createElement("div");
+		this.body.id = "defconfig-body";
+
+		let selector = document.createElement("div");
+		selector.id = "defconfig-selector";
+
+		this.tab = document.createElement("div");
+		this.tab.id = "defconfig-category";
+		this.list = document.createElement("div");
+		this.list.id = "defconfig-list";
+		selector.append(this.tab, this.list);
+
+		let selected = document.createElement("div");
+		selected.id = "defconfig-selected";
+		let p = document.createElement("p");
+		p.innerHTML = "Selected defconfigs";
+		let list = document.createElement("div");
+		list.id = "selected-defconfig-list";
+		selected.append(p, list);
+
+		// Add selector and selected window to dialog body.
+		// body property will be placed at modal content tag ("defconfig-body").
+		this.body.append(selector, selected);
+
+		this._createCategoryList("Kernel", "spresense/configs/", deflist);
+		this._createCategoryList("Device", "device/", deflist);
+		this._createCategoryList("Feature", "feature/", deflist);
+		this._createCategoryList("Examples", "examples/", deflist);
+
+		// First category to be activated
+		this.tab.firstChild.dataset.active = "true";
+		this.list.firstChild.style.display = "block";
+	}
+
+	_createTabItem(name) {
+		let e = document.createElement("div");
+		e.id = "category-" + name.toLowerCase();
+		e.className = "tabitem";
+		e.innerHTML = name;
+		e.dataset.active = "false";
+		e.addEventListener("click", this.tab_clicked);
+		return e;
+	}
+
+	_createCategoryList(name, prefix, deflist) {
+		this.tab.appendChild(this._createTabItem(name));
+		let defconfiglist = document.createElement("div");
+		defconfiglist.id = "defconfig-list-" + name.toLowerCase();
+		defconfiglist.style.display = "none";
+
+		let l = deflist.filter(c => c.startsWith(prefix));
+		l.forEach(c => {
+			let e = document.createElement("div");
+			e.dataset.exactName = c;
+			e.classList.add("defconfig-item");
+			e.innerHTML = c.replace(prefix, "").replace("/defconfig", "");
+			e.addEventListener("click", this.defconfig_clicked);
+			defconfiglist.appendChild(e);
+		});
+		this.list.appendChild(defconfiglist);
+	}
+
+	/*
+	 * Event handler for tab click event
+	 *
+	 * Switch clicked tab to be active and deactivate other tabs.
+	 */
+
+	tab_clicked(event) {
+		document.getElementById("defconfig-category").childNodes.forEach(node => {
+			if (node === event.target) {
+				node.dataset.active = "true";
+				document.getElementById(node.id.replace("category-", "defconfig-list-")).style.display = "block";
+			} else {
+				node.dataset.active = "false";
+				document.getElementById(node.id.replace("category-", "defconfig-list-")).style.display = "none";
+			}
+		});
+	}
+
+	/*
+	 * Event handler for defconfig item click event
+	 *
+	 * Copy clicked defconfig to selected list, or remove defconfig from selected list when
+	 * it is selected.
+	 */
+
+	defconfig_clicked(event) {
+		let list = document.getElementById("selected-defconfig-list");
+		if (event.target.dataset.active === "true") {
+			list.removeChild(list.querySelector(`div[data-exact-name="${event.target.dataset.exactName}"]`));
+			event.target.dataset.active = "false";
+		} else {
+			let c = document.querySelector("#defconfig-category > .tabitem[data-active=true]");
+			let e = document.createElement("div");
+
+			e.dataset.exactName = event.target.dataset.exactName;
+			e.innerHTML = `${c.innerHTML}/${event.target.innerHTML}`;
+			list.appendChild(e);
+			event.target.dataset.active = "true";
+		}
+	}
+
+	/*
+	 * Handle event when OK button is clicked
+	 *
+	 * In this class, gather selected defconfigs and they concatnate with '\n',
+	 * and callback to main.js with gathered defconfigs.
+	 *
+	 * This API called from Modal OK button handler.
+	 */
+
+	handle_ok(callback) {
+		let selected = [];
+		let list = document.getElementById("selected-defconfig-list");
+
+		for (let e of list.childNodes) {
+			selected.push(e.dataset.exactName);
+		}
+
+		// T.B.D: Do we need sort to selected defconfigs?
+		callback("ok", selected.join('\n'));
+	}
+}
+
 function showDefconfigSelection(deflist, callback) {
-	if (document.body.dataset.mode === "Kernel") {
+	if (!document.body.dataset.mode) {
+		let modal = new Modal(DefconfigDialogContent, deflist, callback);
+		modal.show();
+	}
+	else if (document.body.dataset.mode === "Kernel") {
 		showKernelDefconfigSelection(deflist, callback);
-	} else {
+	}
+	else {
 		showSdkDefconfigSelection(deflist, callback);
 	}
 }
