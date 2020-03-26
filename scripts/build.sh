@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # SDK Version check
-LOCAL_SDK_VERSION_STR=`grep -oP "(?<=^SDK_VERSION=\"SDK).*(?=\")" ${SDK_PATH}/sdk/tools/mkversion.sh`
-LOCAL_SDK_VERSION_MAJ=`echo ${LOCAL_SDK_VERSION_STR} | cut -d "." -f 1`
+SDK_VERSION_STR=`grep -oP "(?<=^SDK_VERSION=\"SDK).*(?=\")" ${SDK_PATH}/sdk/tools/mkversion.sh`
+SDK_VERSION_MAJ=`echo ${SDK_VERSION_STR} | cut -d "." -f 1`
 
 # Location of .config
 LOCAL_NUTTX_CONFIG=${SDK_PATH}/nuttx/.config
-if [ "${LOCAL_SDK_VERSION_MAJ}" == 1 ]; then
+if [ "${SDK_VERSION_MAJ}" == 1 ]; then
 LOCAL_APP_CONFIG=${SDK_PATH}/sdk/.config
 else
 LOCAL_APP_CONFIG=${LOCAL_NUTTX_CONFIG}
@@ -81,12 +81,12 @@ function build_sdk (){
     fi
 
     # Check Make.defs and copy it if not exist
-    if [ "${LOCAL_SDK_VERSION_MAJ}" != "1" -a ! -f "${SDK_PATH}/nuttx/Make.defs" ]; then
+    if [ "${SDK_VERSION_MAJ}" != "1" -a ! -f "${SDK_PATH}/nuttx/Make.defs" ]; then
         cp -a ${SDK_PATH}/sdk/tools/scripts/Make.defs ${SDK_PATH}/nuttx/Make.defs
     fi
 
     # Initialize builtin registry
-    if [ "${LOCAL_SDK_VERSION_MAJ}" == "1" ]; then
+    if [ "${SDK_VERSION_MAJ}" == "1" ]; then
         rm -f ${SDK_PATH}/sdk/system/builtin/registry/.updated
     else
         rm -f ${SDK_PATH}/sdk/apps/builtin/registry/.updated
@@ -214,6 +214,7 @@ if [ "${ISAPPFOLDER}" == "true" ]; then
 fi
 
 CMD=${1}
+export SDK_VERSION_MAJ
 
 if [ "${CMD}" == "buildkernel" ]; then
     # Build kernel first

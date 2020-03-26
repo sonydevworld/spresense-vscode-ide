@@ -33,8 +33,6 @@
 #
 ############################################################################
 
-include $(SPRESENSE_HOME)/.vscode/version.mk
-
 ifeq ($(SDK_VERSION_MAJ),1)
 # For SDK 1.x.x
 MENUDESC = "User application"

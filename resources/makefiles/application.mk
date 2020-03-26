@@ -40,8 +40,6 @@
 #              THIS FILE IS AUTO GENERATED. DO NOT MODIFY                  #
 ############################################################################
 
-include $(SPRESENSE_HOME)/.vscode/version.mk
-
 ifeq ($(SDK_VERSION_MAJ),1)
 -include $(TOPDIR)/Make.defs
 -include $(SDKDIR)/Make.defs

@@ -1,5 +1,4 @@
 # SPRESENSE_IDE_VERSION := 1.1.0
-include $(SPRESENSE_HOME)/.vscode/version.mk
 -include $(TOPDIR)/Make.defs
 -include $(SDKDIR)/Make.defs
 
