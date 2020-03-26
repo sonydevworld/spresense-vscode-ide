@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" type="text/css" href="../resources/style.css">
+<link rel="stylesheet" type="text/css" href="../resources/config/style.css">
 
 <title>Layout test</title>
 <script>
@@ -33,11 +33,10 @@
 </style>
 </head>
 
-<!-- <body data-mode="Kernel"> -->
-<body>
+<body data-mode="SDK">
 	<div class="container">
 		<div class="topmenu">
-			<input id="search-box" type="search" placeholder="Filter">
+			<!-- <input id="search-box" type="search" placeholder="Filter"> -->
 			<ul>
 				<li><a class="button" id="new" href="javascript:void(0)">New</a></li>
 				<li><a class="button" id="save" href="javascript:void(0)">Save</a></li>
@@ -46,10 +45,9 @@
 			</ul>
 		</div>
 
-		<div class="contents">
-			<div class="side-menu" id="category"></div>
-			<div class="main" id="configs"></div>
+		<div class="contents" id="configs">
 		</div>
+		<div id="help"></div>
 	</div>
 
 	<div id="defconfig" class="modal">
@@ -60,9 +58,9 @@
 			<div id="defconfig-body">
 				<div id="defconfig-selector">
 					<div id="defconfig-category">
-						<div id="category-device" class="tab">Device</div>
-						<div id="category-feature" class="tab">Feature</div>
-						<div id="category-examples" class="tab">Examples</div>
+						<div id="category-device" class="tabitem">Device</div>
+						<div id="category-feature" class="tabitem">Feature</div>
+						<div id="category-examples" class="tabitem">Examples</div>
 					</div>
 					<div id="defconfig-list"></div>
 				</div>
@@ -82,8 +80,8 @@
 	<div id="progress" class="modal">
 	</div>
 	
-	<script src="../resources/progress.js"></script>
-	<script src="../resources/main.js"></script>
-	<script src="../resources/defconfig.js"></script>
+	<script src="../resources/config/progress.js"></script>
+	<script src="../resources/config/main.js"></script>
+	<script src="../resources/config/defconfig.js"></script>
 </body>
 </html>
