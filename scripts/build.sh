@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# SDK Version check
+LOCAL_SDK_VERSION_STR=`grep -oP "(?<=^SDK_VERSION=\"SDK).*(?=\")" ${SDK_PATH}/sdk/tools/mkversion.sh`
+LOCAL_SDK_VERSION_MAJ=`echo ${LOCAL_SDK_VERSION_STR} | cut -d "." -f 1`
+
+# Location of .config
+LOCAL_NUTTX_CONFIG=${SDK_PATH}/nuttx/.config
+if [ "${LOCAL_SDK_VERSION_MAJ}" == 1 ]; then
+LOCAL_APP_CONFIG=${SDK_PATH}/sdk/.config
+else
+LOCAL_APP_CONFIG=${LOCAL_NUTTX_CONFIG}
+fi
+
 # Name: check_exit_status
 # Description: Check exit status after executed and if it is not 0, exit this script
 function check_exit_status (){
@@ -18,11 +30,11 @@ function build_kernel (){
     if [ "${SPRESENSE_HOME}" != "" ]; then
         APP_KERNEL_CFG=${SPRESENSE_HOME}/kernel.config
     else
-        APP_KERNEL_CFG=${SDK_PATH}/nuttx/.config
+        APP_KERNEL_CFG=${LOCAL_NUTTX_CONFIG}
     fi
 
     # SDK folder config
-    KERNEL_CFG=${SDK_PATH}/nuttx/.config
+    KERNEL_CFG=${LOCAL_NUTTX_CONFIG}
 
     # Check target config file
     if [ ! -f "${APP_KERNEL_CFG}" ]; then
@@ -56,11 +68,11 @@ function build_sdk (){
     if [ "${SPRESENSE_HOME}" != "" ]; then
         APP_SDK_CFG=${SPRESENSE_HOME}/sdk.config
     else
-        APP_SDK_CFG=${SDK_PATH}/sdk/.config
+        APP_SDK_CFG=${LOCAL_APP_CONFIG}
     fi
 
     # SDK folder config
-    SDK_CFG=${SDK_PATH}/sdk/.config
+    SDK_CFG=${LOCAL_APP_CONFIG}
 
     # Check target config file
     if [ ! -f "${APP_SDK_CFG}" ]; then
@@ -68,8 +80,17 @@ function build_sdk (){
         exit 1
     fi
 
+    # Check Make.defs and copy it if not exist
+    if [ "${LOCAL_SDK_VERSION_MAJ}" != "1" -a ! -f "${SDK_PATH}/nuttx/Make.defs" ]; then
+        cp -a ${SDK_PATH}/sdk/tools/scripts/Make.defs ${SDK_PATH}/nuttx/Make.defs
+    fi
+
     # Initialize builtin registry
-    rm -f ${SDK_PATH}/sdk/system/builtin/registry/.updated
+    if [ "${LOCAL_SDK_VERSION_MAJ}" == "1" ]; then
+        rm -f ${SDK_PATH}/sdk/system/builtin/registry/.updated
+    else
+        rm -f ${SDK_PATH}/sdk/apps/builtin/registry/.updated
+    fi
 
     # Check SDK config
     if [ ! -f "${SDK_CFG}" -o "`diff ${APP_SDK_CFG} ${SDK_CFG}`" != "" ]; then
@@ -108,7 +129,7 @@ function build_worker (){
         OUTDIR=${SPRESENSE_HOME}/out/worker
 
         # Check make context
-        if [ ! -f ${TOPDIR}/include/nuttx/config.h -o ! -f ${SDKDIR}/bsp/include/sdk/config.h ]; then
+        if [ ! -f ${LOCAL_NUTTX_CONFIG} -o ! -f ${LOCAL_APP_CONFIG} ]; then
             echo "Error: Please configure build first."
             exit 1
         fi
