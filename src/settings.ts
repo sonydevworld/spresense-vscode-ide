@@ -28,7 +28,7 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version } from './common';
 
 import * as launch from './launch';
 
@@ -52,6 +52,14 @@ const taskBootFlashLabel = 'Burn bootloader';
 /* For component creation */
 const createAppMode: string = 'app';
 const createWorkerMode: string = 'worker';
+
+/* SDK Version */
+var sdkVersion: Version = {
+	major: 0,
+	minor: 0,
+	patch: 0,
+	str: UNKNOWN_SDK_VERSION
+};
 
 /* Interface for Configuration definition */
 interface ConfigInterface {
@@ -869,6 +877,17 @@ function isSpresenseEnvironment() {
 
 	/* If first folder is spresense, set sdk path to settings */
 	if (isSpresenseSdkFolder(firstFolder)) {
+		/* Get SDK Version */
+		sdkVersion = getSDKVersion(firstFolder);
+		if (sdkVersion.str === UNKNOWN_SDK_VERSION) {
+			vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
+		}
+
+		/* Set SDK version into context */
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionMajor', `${sdkVersion.major}`);
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionMinor', `${sdkVersion.minor}`);
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionPatch', `${sdkVersion.patch}`);
+
 		return true;
 	} else {
 		if (fs.existsSync(path.join(firstFolder, '.vscode', 'spresense_prj.json'))) {
@@ -927,21 +946,11 @@ function createSpresenseConfFile(folderPath: string) {
 		[key: string]: string | number;
 	}
 
-	const sdkFolder = getFirstFolderPath();
-
-	if (!sdkFolder) {
-		return;
-	}
-
 	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
 	let jsonItem: SpresenseJsonInterface = {};
-	let version = getSDKVersion(sdkFolder);
-	if (version.str === UNKNOWN_SDK_VERSION) {
-		vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
-	}
 
 	/* Append item (SDK version) */
-	jsonItem['SdkVersion'] = version.str;
+	jsonItem['SdkVersion'] = sdkVersion.str;
 
 	/* Append item (Spresense Extension compatibility revision) */
 	jsonItem['SpresenseExtInterfaceVersion'] = spresenseExtInterfaceVersion;
@@ -1109,9 +1118,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		/* Register Commands */
 		registerSpresenseCommands(context);
-
-		/* Enable Spresense IDE */
-		vscode.commands.executeCommand('setContext', 'spresenseIdeEnabled', true);
 	} else {
 		/* For error handling */
 
