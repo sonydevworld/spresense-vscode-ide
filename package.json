@@ -134,7 +134,8 @@
 			},
 			{
 				"command": "spresense.msys.path",
-				"title": "%spresense.command.msys.path%"
+				"title": "%spresense.command.msys.path%",
+				"enablement": "isWindows"
 			},
 			{
 				"command": "spresense.burn.bootloader",
@@ -374,6 +375,12 @@
 					"when": "spresenseIdeEnabled",
 					"command": "spresense.kernelconfig",
 					"group": "13_SpresenseConfig@2"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "spresense.msys.path",
+					"when": "isWindows"
 				}
 			]
 		}

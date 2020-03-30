@@ -454,38 +454,34 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 	/* Register msys command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.msys.path', async () => {
 		/* Only enable for Windows */
-		if (process.platform === 'win32') {
-			const defaultMsysPath = `${process.env.SystemDrive}\\msys64`;
-			const conf = vscode.workspace.getConfiguration();
-			const folderUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
-				defaultUri: vscode.Uri.file(defaultMsysPath),
-				canSelectFiles: false,
-				canSelectFolders: true,
-				canSelectMany: false
-			});
 
-			if (folderUris && folderUris.length) {
-				/* If directory opened, set shell path into settings.json */
-				const msysPath = folderUris[0].fsPath;
+		const defaultMsysPath = `${process.env.SystemDrive}\\msys64`;
+		const conf = vscode.workspace.getConfiguration();
+		const folderUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+			defaultUri: vscode.Uri.file(defaultMsysPath),
+			canSelectFiles: false,
+			canSelectFolders: true,
+			canSelectMany: false
+		});
 
-				/* Check Msys install path */
-				if (!isMsysInstallFolder(msysPath)) {
-					/* If necessary directory missing, target direcgtory is invalid */
-					vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
+		if (folderUris && folderUris.length) {
+			/* If directory opened, set shell path into settings.json */
+			const msysPath = folderUris[0].fsPath;
 
-					return;
-				}
+			/* Check Msys install path */
+			if (!isMsysInstallFolder(msysPath)) {
+				/* If necessary directory missing, target direcgtory is invalid */
+				vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 
-				await conf.update(configMsysPathKey, msysPath, vscode.ConfigurationTarget.Global);
-
-				if (isSpresenseEnvironment()) {
-					/* Reset spresense workspace, if spresense workspace opened */
-					spresenseSdkSetup();
-				}
+				return;
 			}
 
-		} else {
-			vscode.window.showInformationMessage(nls.localize("spresense.src.msys.error.platform", "Msys path setting is only for Windows."));
+			await conf.update(configMsysPathKey, msysPath, vscode.ConfigurationTarget.Global);
+
+			if (isSpresenseEnvironment()) {
+				/* Reset spresense workspace, if spresense workspace opened */
+				spresenseSdkSetup();
+			}
 		}
 	}));
 }
