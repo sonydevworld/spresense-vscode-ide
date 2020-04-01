@@ -74,6 +74,8 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
+			// For SDK2.0, spresense.kernelconfig command is hide and disabled by package.json.
+			// So, for only SDK1.x logics at here.
 			SDKConfigView.createOrShow(context.extensionPath, config, SDKConfigView.kernelMode);
 		})
 	);
