@@ -163,7 +163,8 @@
 			},
 			{
 				"command": "spresense.kernelconfig",
-				"title": "%sdkconfig.command.kernelconfig.title%"
+				"title": "%sdkconfig.command.kernelconfig.title%",
+				"enablement": "spresenseSdkVersionMajor == '1'"
 			},
 			{
 				"command": "spresense.workspace.wizard",
@@ -384,6 +385,10 @@
 				},
 				{
 					"command": "spresense.clean.kernel",
+					"when": "spresenseSdkVersionMajor == '1'"
+				},
+				{
+					"command": "spresense.kernelconfig",
 					"when": "spresenseSdkVersionMajor == '1'"
 				},
 				{
