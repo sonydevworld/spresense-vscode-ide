@@ -499,6 +499,7 @@ export class SDKConfigView2 {
 		const saveStr = nls.localize("sdkconfig.src.menu.save", "Save");
 		const loadStr = nls.localize("sdkconfig.src.menu.load", "Load...");
 		const saveasStr = nls.localize("sdkconfig.src.menu.saveas", "Save as...");
+		const visibilityHelp = nls.localize("sdkconfig.src.menu.visible", "Show all options");
 
 		return `<!DOCTYPE html>
 <html>
@@ -529,7 +530,7 @@ export class SDKConfigView2 {
 				<div class="icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 				</div>
-				<div class="tooltip">Show all options</div>
+				<div class="tooltip">${visibilityHelp}</div>
 			</div>
 		</div>
 		<div id="search">

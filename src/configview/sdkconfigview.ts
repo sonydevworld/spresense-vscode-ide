@@ -582,6 +582,7 @@ export class SDKConfigView {
 		const saveStr = nls.localize("sdkconfig.src.menu.save", "Save");
 		const loadStr = nls.localize("sdkconfig.src.menu.load", "Load...");
 		const saveasStr = nls.localize("sdkconfig.src.menu.saveas", "Save as...");
+		const visibilityHelp = nls.localize("sdkconfig.src.menu.visible", "Show all options");
 
 		return `<!DOCTYPE html>
 <html>
@@ -599,10 +600,10 @@ export class SDKConfigView {
 <body data-mode="${this._mode}">
 	<div class="container">
 		<div class="topmenu">
-			<div class="button" id="new">New</div>
-			<div class="button" id="save">Save</div>
-			<div class="button" id="load">Load...</div>
-			<div class="button" id="saveas">Save as...</div>
+			<div class="button" id="new">${newStr}</div>
+			<div class="button" id="save">${saveStr}</div>
+			<div class="button" id="load">${loadStr}</div>
+			<div class="button" id="saveas">${saveasStr}</div>
 			<div class="button" id="search-icon">
 				<div class="icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -612,7 +613,7 @@ export class SDKConfigView {
 				<div class="icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
 				</div>
-				<div class="tooltip">Show all options</div>
+				<div class="tooltip">${visibilityHelp}</div>
 			</div>
 		</div>
 		<div id="search">
