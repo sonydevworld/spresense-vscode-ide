@@ -29,15 +29,41 @@
 .button {
     border: none;
     display: inline-block;
-    padding: 8px 16px;
+    padding: 4px;
+    margin-right: 24px;
     overflow: hidden;
     text-decoration: none;
-    color: inherit;
     background-color: inherit;
     text-align: center;
     cursor:pointer;
     white-space: nowrap;
-    line-height: 24px;
+}
+
+.button.off > .icon {
+    filter: invert(75%);
+}
+
+.button > .tooltip {
+    visibility: hidden;
+    background-color: #555;
+    color: white;
+    text-align: center;
+    padding: 5px 8px;
+    border-radius: 6px;
+
+    position: absolute;
+    z-index: 1;
+    top: 56px;
+    /* margin-left: -52px; */
+
+    opacity: 0;
+    transition: opacity 0.3s;
+
+    user-select: none;
+}
+.button:hover > .tooltip {
+    visibility: visible;
+    opacity: 1;
 }
 
 #search {

@@ -1303,6 +1303,9 @@ function main() {
 		inactive = "invisible";
 	}
 
+	// Set "show all options" icon initial state to off
+	document.getElementById("visibility-icon").classList.add("off");
+
 	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
 	document.getElementById("search-box").addEventListener("search", filterConfigs);
 	document.getElementById("search-icon").addEventListener("click", event => {
@@ -1312,6 +1315,11 @@ function main() {
 			document.getElementById("search-box").focus();
 		}
 	});
+
+	document.getElementById("visibility-icon").addEventListener("click", event => {
+		document.getElementById("visibility-icon").classList.toggle("off");
+	});
+
 	document.getElementById("new").addEventListener("click", event => {
 		vscode.postMessage({command: "get-defconfigs"});
 	});
