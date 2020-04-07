@@ -106,6 +106,7 @@
 	"sdkconfig.src.menu.save": "保存",
 	"sdkconfig.src.menu.load": "読み込み...",
 	"sdkconfig.src.menu.saveas": "名前を付けて保存...",
+	"sdkconfig.src.menu.visible": "すべてのオプションを表示",
 
 	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード",
 	"spresense.workspace.wizard.label": "新規ワークスペースの作成",
