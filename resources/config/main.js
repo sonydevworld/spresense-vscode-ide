@@ -1292,6 +1292,16 @@ function loadConfig(buf) {
 	}
 }
 
+function changeVisibility() {
+	const old = inactive;
+	inactive = inactive === "invisible" ? "inactive" : "invisible";
+	const configs = document.querySelectorAll(".config." + old);
+
+	for (let n of configs) {
+		n.classList.replace(old, inactive);
+	}
+}
+
 function main() {
 
 	if (document.body.dataset.mode === "Kernel") {
@@ -1303,8 +1313,10 @@ function main() {
 		inactive = "invisible";
 	}
 
-	// Set "show all options" icon initial state to off
-	document.getElementById("visibility-icon").classList.add("off");
+	// Apply inactive type to visibility icon
+	if (inactive === "invisible") {
+		document.getElementById("visibility-icon").classList.add("off");
+	}
 
 	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
 	document.getElementById("search-box").addEventListener("search", filterConfigs);
@@ -1318,6 +1330,12 @@ function main() {
 
 	document.getElementById("visibility-icon").addEventListener("click", event => {
 		document.getElementById("visibility-icon").classList.toggle("off");
+		changeVisibility();
+
+		// Clear search box for prevent search result is affected by
+		// config visibility.
+		document.getElementById("search-box").value = "";
+		filterConfigs();
 	});
 
 	document.getElementById("new").addEventListener("click", event => {
