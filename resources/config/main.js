@@ -62,6 +62,10 @@ var underConstruction;
 // menu_id is for set ID to menu checkbox
 var menu_id;
 
+// The choice option has not the actual symbol, so we need to
+// assign the ID for scroll to them.
+var choice_id;
+
 // modules option, it would be BoolWidget actually.
 // the Modules option will be affected to tristate options.
 var MODULES;
@@ -733,6 +737,7 @@ class ChoiceWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
 		this._element.classList.add("choice");
+		this._element.id = "choice-" + choice_id++;
 		this._options = [];
 		this._input = document.createElement("select");
 
@@ -1093,6 +1098,8 @@ function constructTree(data) {
 	}
 
 	menu_id = 0;
+	choice_id = 0;
+
 	underConstruction = true;
 	layoutConfigs(configs, data.children);
 	underConstruction = false;
@@ -1115,24 +1122,87 @@ function constructTree(data) {
 	vscode.postMessage({command: "loading", content: 100});
 }
 
-function filterConfigs() {
-	var input = document.getElementById("search-box");
-	var filter = input.value.toLowerCase();
-	var widgets = document.getElementsByClassName("widget");
+function expandConfig(node) {
+	if (node.parentNode.classList.contains("contents")) {
+		// Break when reached to root node of config contents
+		return;
+	}
 
-	for (var w of widgets) {
-		var prompt = w.getElementsByTagName("h3")[0];
-		if (prompt == undefined) continue;
-		var txt = prompt.textContent || prompt.innerText;
-		var h = w.getElementsByClassName("hierarchy")[0];
-		txt += " " + h.textContent || h.innerText;
-		txt += " " + w.id;
-		if (txt.toLowerCase().indexOf(filter) > -1) {
-			w.style.display = "";
-		} else {
-			w.style.display = "none";
+	// Menu trees are constructed with .menu-container > .menuitem > .config,
+	// and menu expand/collapse with hidden checkbox in .menu-container.
+
+	let parent = node.parentNode.parentNode;
+	let input = parent.querySelector("input");
+	input.checked = true;
+
+	// Open parent menu
+	expandConfig(parent);
+}
+
+function jumpToConfig(event) {
+	// Delegate events from child
+	let sym;
+	if (event.target.className === "item") {
+		sym = event.target.dataset.symbol;
+	} else {
+		sym = event.target.parentNode.dataset.symbol;
+	}
+
+	let opt = document.getElementById(sym);
+	if (opt) {
+		expandConfig(opt);
+		opt.scrollIntoView();
+	} else {
+		console.log("No symbols for " + event.target.textContent);
+	}
+}
+
+function createResultItem(config, prompt) {
+	let item = document.createElement("div");
+
+	item.className = "item";
+	item.appendChild(prompt.cloneNode(true));
+	item.addEventListener("click", jumpToConfig);
+	item.dataset.symbol = config.id;
+
+	let ischoice = /^choice-\d+/;
+	if (!config.id.match(ischoice)) {
+		const sym = document.createElement("div");
+		sym.innerHTML = config.id;
+		sym.className = "symbol";
+		item.appendChild(sym);
+	}
+
+	return item;
+}
+
+function filterConfigs() {
+	const input = document.getElementById("search-box");
+	const results = document.getElementById("search-results");
+
+	results.innerHTML = ""; // Clear all of child nodes
+
+	if (input.value === "") {
+		document.getElementById("search-results").dataset.show = false;
+		return;
+	}
+
+	const configs = document.getElementById("configs").querySelectorAll(".config:not(.no-prompt):not(.invisible):not(.comment)")
+	const keyword = new RegExp(input.value, 'i');
+
+	let nfound = false;
+	for (let n of configs) {
+		// Skip when node is not a menu config
+		if (n.classList.contains("menu") && !n.dataset.hasSymbol) {
+			continue;
+		}
+		let prompt = n.querySelector(".prompt");
+		if (prompt.textContent.search(keyword) >= 0 || n.id.search(keyword) >= 0) {
+			results.appendChild(createResultItem(n, prompt));
+			nfound = true;
 		}
 	}
+	document.getElementById("search-results").dataset.show = nfound;
 }
 
 function generateConfigFileContent() {
@@ -1233,9 +1303,15 @@ function main() {
 		inactive = "invisible";
 	}
 
-	//document.getElementById("search-box").addEventListener("keyup", filterConfigs);
-	//document.getElementById("search-box").addEventListener("search", filterConfigs);
-
+	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
+	document.getElementById("search-box").addEventListener("search", filterConfigs);
+	document.getElementById("search-icon").addEventListener("click", event => {
+		let search = document.getElementById("search");
+		search.classList.toggle("show");
+		if (search.classList.contains("show")) {
+			document.getElementById("search-box").focus();
+		}
+	});
 	document.getElementById("new").addEventListener("click", event => {
 		vscode.postMessage({command: "get-defconfigs"});
 	});

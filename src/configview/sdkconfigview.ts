@@ -599,13 +599,21 @@ export class SDKConfigView {
 <body data-mode="${this._mode}">
 	<div class="container">
 		<div class="topmenu">
-			<!-- <input id="search-box" type="search" placeholder="Filter"> -->
-			<ul>
-				<li><a class="button" id="new" href="javascript:void(0)">${newStr}</a></li>
-				<li><a class="button" id="save" href="javascript:void(0)">${saveStr}</a></li>
-				<li><a class="button" id="load" href="javascript:void(0)">${loadStr}</a></li>
-				<li><a class="button" id="saveas" href="javascript:void(0)">${saveasStr}</a></li>
-			</ul>
+			<div class="button" id="new">New</div>
+			<div class="button" id="save">Save</div>
+			<div class="button" id="load">Load...</div>
+			<div class="button" id="saveas">Save as...</div>
+			<div class="button" id="search-icon">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+			</div>
+		</div>
+		<div id="search">
+			<div id="search-menu">
+				<input type="search" id="search-box" placeholder="Search...">
+			</div>
+			<div id="search-results">
+
+			</div>
 		</div>
 
 		<div class="contents" id="configs">

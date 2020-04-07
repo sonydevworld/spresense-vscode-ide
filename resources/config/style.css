@@ -1,5 +1,6 @@
 * {
     box-sizing: border-box;
+    scroll-behavior: smooth;
 }
 
 .container {
@@ -9,29 +10,12 @@
     height: 100vh;
 }
 
-#search-box {
-    display: block;
-    padding: 8px;
-    width: 100%;
-}
-
 .topmenu {
     top: 0;
     margin: 8px 0px;
     max-width: 1012px;
-}
-
-.topmenu ul {
-    padding: 0;
-    margin: 2px;
-    width: 100%;
-}
-
-.topmenu li {
-    float: left;
-    list-style-type: none;
-    text-align: center;
-    padding: 4px 16px;
+    display: flex;
+    flex-direction: row;;
 }
 
 .contents {
@@ -39,26 +23,13 @@
     flex-direction: column;
     min-width: 944px;
     overflow: auto;
-}
-
-a {
-    color: inherit;
-    background-color: inherit;
-}
-
-a:link {
-    text-decoration: none;
-}
-
-a:visited {
-    text-decoration: none;
+    margin-top: 4px;
 }
 
 .button {
     border: none;
     display: inline-block;
     padding: 8px 16px;
-    vertical-align: middle;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
@@ -66,6 +37,70 @@ a:visited {
     text-align: center;
     cursor:pointer;
     white-space: nowrap;
+    line-height: 24px;
+}
+
+#search {
+    display: none;
+    background: #444;
+    border-radius: 4px;
+}
+#search.show {
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+}
+
+#search-box {
+    display: block;
+    padding: 8px;
+    width: 300px;
+    height: 32px;
+    margin: 4px;
+    border: none;
+    border-radius: 4px;
+    background: #666;
+    color: white;
+}
+#search-box:focus {
+    outline: none;
+}
+::placeholder {
+    color: #ccc;
+}
+
+#search-results {
+    max-height: 300px;
+    display: none;
+    flex-direction: column;
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    overflow-y: auto;
+    background-color: #444;
+}
+#search-results[data-show=true] {
+    display: flex;
+}
+
+#search-results > .item {
+    color: #ccc;
+    line-height: 24px;
+    padding: 2px;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+}
+#search-results > .item:hover {
+    background: #666;
+    cursor: pointer;
+}
+#search-results > .item > .prompt {
+    min-width: 300px;
+    margin-right: 10px;
+}
+#search-results > .item > .symbol {
+    font-style: italic;
 }
 
 .hide {
