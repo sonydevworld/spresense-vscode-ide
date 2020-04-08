@@ -1176,6 +1176,22 @@ function createResultItem(config, prompt) {
 	return item;
 }
 
+/**
+ * The prompt and symbol test function
+ *
+ * This function would be called by eval() in filterConfigs().
+ */
+
+function _test(prompt, symbol, keyword) {
+	if (keyword.startsWith('CONFIG_')) {
+		const re = new RegExp(keyword.replace("CONFIG_", ""));
+		return symbol.search(re) >= 0;
+	} else {
+		const re = new RegExp(keyword, "i");
+		return prompt.search(re) >= 0 || symbol.search(re) >= 0;
+	}
+}
+
 function filterConfigs() {
 	const input = document.getElementById("search-box");
 	const results = document.getElementById("search-results");
@@ -1188,7 +1204,6 @@ function filterConfigs() {
 	}
 
 	const configs = document.getElementById("configs").querySelectorAll(".config:not(.no-prompt):not(.invisible):not(.comment)")
-	const keyword = new RegExp(input.value, 'i');
 
 	let nfound = false;
 	for (let n of configs) {
@@ -1196,10 +1211,26 @@ function filterConfigs() {
 		if (n.classList.contains("menu") && !n.dataset.hasSymbol) {
 			continue;
 		}
+
 		let prompt = n.querySelector(".prompt");
-		if (prompt.textContent.search(keyword) >= 0 || n.id.search(keyword) >= 0) {
-			results.appendChild(createResultItem(n, prompt));
-			nfound = true;
+		let formula = input.value.replace(/&/g, "&&").replace(/[|]/g, "||");
+		formula = formula.replace(/\w*/g, (match) => {
+			if (match.length == 0) {
+				// XXX: This regexp pattern matches zero length string.
+				// I don't know why match it, ignore anyway.
+				return "";
+			}
+			const text = prompt.textContent.replace(/"/g, '\\"');
+			return `_test("${text}", '${n.id}', '${match}')`;
+		});
+
+		try {
+			if (eval(formula)) {
+				results.appendChild(createResultItem(n, prompt));
+				nfound = true;
+			}
+		} catch(error) {
+			break;
 		}
 	}
 	document.getElementById("search-results").dataset.show = nfound;
