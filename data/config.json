@@ -2,6 +2,7 @@
     "name": "Spresense SDK",
     "intelliSenseMode": "${default}",
     "includePath": [
+        "${mySpresenseSdkPath}/sdk/apps/include",
         "${mySpresenseSdkPath}/sdk/modules/include",
         "${mySpresenseSdkPath}/sdk/modules/asmp/worker",
         "${mySpresenseSdkPath}/sdk/system/include",
