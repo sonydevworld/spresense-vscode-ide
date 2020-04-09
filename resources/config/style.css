@@ -170,14 +170,14 @@ input[type=search] {
     user-select: none;
 }
 .menu-container > input[type="checkbox"] + label::before {
-    content: "\02295"; /* circled plus */
-    width: 28px;
-    font-size: 24px;
-    color: rgb(1, 149, 194);
-    text-align: center;
+    content: url(chevron-right.svg);
+    width: 24px;
+    height: 24px;
+    filter: invert(50%);
+    transition: .2s;
 }
 .menu-container > input[type="checkbox"]:checked + label::before {
-    content: "\02296"; /* circled minus */
+    transform: rotate(90deg);
 }
 .menu-container > input[type="checkbox"] {
     opacity: 0;
