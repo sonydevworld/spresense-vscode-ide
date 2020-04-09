@@ -916,6 +916,7 @@ class MenuWidget extends BaseWidget {
 		input.id = id;
 		label.classList.add("menu", "config");
 		label.setAttribute("for", id);
+		label.id = id + "-label";
 		prompt.innerHTML = node.prompt;
 		prompt.classList.add("prompt");
 		label.appendChild(prompt);
@@ -1135,7 +1136,6 @@ function expandConfig(node) {
 	let input = parent.querySelector("input");
 	input.checked = true;
 
-	// Open parent menu
 	expandConfig(parent);
 }
 
@@ -1150,7 +1150,13 @@ function jumpToConfig(event) {
 
 	let opt = document.getElementById(sym);
 	if (opt) {
-		expandConfig(opt);
+		if (opt.tagName === "LABEL") {
+			if (!opt.parentNode.parentNode.classList.contains("contents")) {
+				expandConfig(opt.parentNode);
+			}
+		} else {
+			expandConfig(opt);
+		}
 		opt.scrollIntoView();
 	} else {
 		console.log("No symbols for " + event.target.textContent);
@@ -1165,8 +1171,7 @@ function createResultItem(config, prompt) {
 	item.addEventListener("click", jumpToConfig);
 	item.dataset.symbol = config.id;
 
-	let ischoice = /^choice-\d+/;
-	if (!config.id.match(ischoice)) {
+	if (!config.id.match(/^choice-\d+/) && config.tagName !== "LABEL") {
 		const sym = document.createElement("div");
 		sym.innerHTML = config.id;
 		sym.className = "symbol";
@@ -1207,9 +1212,9 @@ function filterConfigs() {
 
 	let nfound = false;
 	for (let n of configs) {
-		// Skip when node is not a menu config
+		let symbol = n.id;
 		if (n.classList.contains("menu") && !n.dataset.hasSymbol) {
-			continue;
+			symbol = "";
 		}
 
 		let prompt = n.querySelector(".prompt");
@@ -1221,7 +1226,7 @@ function filterConfigs() {
 				return "";
 			}
 			const text = prompt.textContent.replace(/"/g, '\\"');
-			return `_test("${text}", '${n.id}', '${match}')`;
+			return `_test("${text}", '${symbol}', '${match}')`;
 		});
 
 		try {
