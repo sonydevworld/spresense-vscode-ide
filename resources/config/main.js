@@ -1336,7 +1336,7 @@ function loadConfig(buf) {
 function changeVisibility() {
 	const old = inactive;
 	inactive = inactive === "invisible" ? "inactive" : "invisible";
-	const configs = document.querySelectorAll(".config." + old);
+	const configs = document.querySelectorAll("." + old);
 
 	for (let n of configs) {
 		n.classList.replace(old, inactive);
