@@ -372,14 +372,15 @@ class DefconfigDialogContent {
 		defconfiglist.id = "defconfig-list-" + name.toLowerCase();
 		defconfiglist.style.display = "none";
 
-		let l = deflist.filter(c => c.startsWith(prefix));
+		let l = deflist.filter(c => c.defconfig.startsWith(prefix));
 		l.forEach(c => {
 			let e = document.createElement("div");
-			e.dataset.exactName = c;
+			e.dataset.exactName = c.defconfig;
 			e.classList.add("defconfig-item");
-			e.innerHTML = c.replace(prefix, "").replace("/defconfig", "");
+			e.innerHTML = c.defconfig.replace(prefix, "").replace("/defconfig", "");
 			e.addEventListener("click", this.defconfig_clicked);
 			defconfiglist.appendChild(e);
+			console.debug(c);
 		});
 		this.list.appendChild(defconfiglist);
 	}

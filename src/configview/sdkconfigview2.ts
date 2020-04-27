@@ -285,13 +285,27 @@ export class SDKConfigView2 {
 		}
 	}
 
-	private _getDefconfigs(): string[] {
+	private _getDefconfigs(): any[] {
 		let list = glob.sync("**/defconfig", {
 			cwd: path.join(this._sdkDir, "configs")
 		});
-		return list.concat(glob.sync("**/defconfig", {
+		list = list.concat(glob.sync("**/defconfig", {
 			cwd: path.join(this._kernelDir, "boards", "arm", "cxd56xx")
 		}));
+		let ret = [];
+		for (let c of list) {
+			let p = path.join(this._sdkDir, "configs", path.dirname(c), "README.txt");
+			let desc = '';
+
+			try {
+				desc = fs.readFileSync(p).toString();
+			} catch (err) {
+				// Ignore read error
+			}
+			let item = {'defconfig': c, 'desc': desc};
+			ret.push(item);
+		}
+		return ret;
 	}
 
 	private _loadDefconfigFiles(paths: string): string {
