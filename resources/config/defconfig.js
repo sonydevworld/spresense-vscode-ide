@@ -386,7 +386,9 @@ class DefconfigDialogContent {
 			e.dataset.exactName = c.defconfig;
 			e.classList.add("defconfig-item");
 			e.innerHTML = c.defconfig.replace(prefix, "").replace("/defconfig", "");
+			e.dataset.desc = c.desc;
 			e.addEventListener("click", this.defconfig_clicked);
+			e.addEventListener("mouseover", this.show_description);
 			defconfiglist.appendChild(e);
 			console.debug(c);
 		});
@@ -432,6 +434,17 @@ class DefconfigDialogContent {
 			list.appendChild(e);
 			event.target.dataset.active = "true";
 		}
+	}
+
+	/*
+	 * Event handler for defconfig item mouseover event
+	 *
+	 * Show defconfig description at the bottom of dialog.
+	 */
+
+	show_description(event) {
+		let frame = document.getElementById("defconfig-desc");
+		frame.innerText = event.target.dataset.desc;
 	}
 
 	/*
