@@ -1214,7 +1214,7 @@ function filterConfigs() {
 	for (let n of configs) {
 		// Ignore invisible menu
 		if (n.tagName === "LABEL" && n.parentNode.classList.contains("invisible")) {
-			break;
+			continue;
 		}
 
 		let symbol = n.id;
