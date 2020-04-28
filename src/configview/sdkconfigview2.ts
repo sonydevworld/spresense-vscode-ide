@@ -195,8 +195,7 @@ export class SDKConfigView2 {
 
 						// If no defconfig selected, use default defconfig.
 
-						l = message.content.length > 0 ? message.content : "default/defconfig";
-						data = this._loadDefconfigFiles(l);
+						data = this._loadDefconfigFiles(message.content);
 						this._panel.webview.postMessage({command: "load-defconfigs", content: data});
 						return;
 				}
@@ -204,7 +203,6 @@ export class SDKConfigView2 {
 			undefined,
 			this._disposables
 		);
-
 	}
 
 	private _generateMenu() {
@@ -308,24 +306,103 @@ export class SDKConfigView2 {
 		return ret;
 	}
 
+	private _loadDefconfig(path: string): string {
+		try {
+			let buf = fs.readFileSync(path);
+			return buf.toString();
+		} catch (e) {
+			console.assert('File not found ' + path);
+		}
+		return "";
+	}
+
+	private _tweakDefconfig(defconfig: Array<string>, tweak: string): Array<string> {
+		console.log("tweak: " + tweak);
+		let m = tweak.match(/([ +-])(.*)=(.*)/);
+		if (!m) {
+			return defconfig; // unknown tweak pattern, ignored
+		}
+
+		let pm = m[1];
+		let name = m[2];
+		let val = m[3];
+		let pat = new RegExp("[# ]*CONFIG_" + name + "[ =]");
+		let i;
+		let line;
+
+		switch (pm) {
+			case '-':
+				return defconfig.filter(value => {
+					return !value.match(pat);
+				});
+
+			case '+':
+				i = defconfig.findIndex((value) => {
+					return value.match(pat);
+				});
+				line = val === 'n' ? `# CONFIG_${name} is not set` : `CONFIG_${name}=${val}`;
+				if (i >= 0) {
+					defconfig[i] = line;
+				} else {
+					defconfig.push(line);
+				}
+				return defconfig;
+
+			case ' ':
+			default:
+				let v = val.split('->');
+				line = v[1] === 'n' ? `# CONFIG_${name} is not set` : `CONFIG_${name}=${v[1]}`;
+
+				for (i in defconfig) {
+					if (defconfig[i].match(pat)) {
+						defconfig[i] = line;
+						break;
+					}
+				}
+				return defconfig;
+		}
+	}
+
 	private _loadDefconfigFiles(paths: string): string {
 		const sdkdir = path.join(this._sdkDir, "configs");
 		const kerneldir = path.join(this._kernelDir, "boards", "arm", "cxd56xx");
 		const list = paths.split("\n");
-		let data = "";
+
+		if (list[0].indexOf('/') === -1) {
+			// If no slash contained name is passed, it treat as kernel defconfig, then
+			// just read and return its contents.
+			const filename = path.join(kerneldir, list[0]);
+			return this._loadDefconfig(filename);
+		}
+
+		const defpath = path.join(sdkdir, "default", "defconfig");
+		let content: Array<string>;
+		try {
+			let buf;
+			buf = fs.readFileSync(defpath).toString();
+			content = buf.split('\n');
+		} catch (e) {
+			console.log("default defconfig not found.");
+			return "";
+		}
+
+		console.log(content);
 
 		for (let p of list) {
-			const filename = path.join(p.startsWith("spresense") ? kerneldir : sdkdir, p);
+			const filename = path.join(sdkdir, p);
 			let buf;
 
 			console.log(`Loading file: ${filename}`);
 			try {
 				buf = fs.readFileSync(filename);
 			} catch (e) {
-				return "";
+				console.log("File not found " + filename);
+				continue;
 			}
 
-			data += buf.toString();
+			for (let l of buf.toString().split('\n')) {
+				content = this._tweakDefconfig(content, l);
+			}
 		}
 
 		// XXX: Add tweak options for windows build environment.
@@ -339,22 +416,24 @@ export class SDKConfigView2 {
 					"CONFIG_TOOLCHAIN_WINDOWS=y",
 					"CONFIG_WINDOWS_MSYS=y",
 				];
-				data += tweaks.join("\n") + "\n";
+				content = content.concat(tweaks);
 				break;
 
 			case "linux":
-				data += "CONFIG_HOST_LINUX=y\n";
+				content.push("CONFIG_HOST_LINUX=y");
 				break;
 
 			case "darwin":
-				data += "CONFIG_HOST_MACOS=y\n";
+				content.push("CONFIG_HOST_MACOS=y");
 				break;
 			default:
 				break;
 		}
-		data += 'CONFIG_APPS_DIR="../sdk/apps"\n';
+		content.push('CONFIG_APPS_DIR="../sdk/apps"');
 
-		return data;
+		console.log("content after apply tweaks");
+		console.log(content);
+		return content.join('\n');
 	}
 
 	public dispose() {
