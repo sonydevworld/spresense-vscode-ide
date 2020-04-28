@@ -373,12 +373,28 @@ input[type=search] {
 
 #defconfig-body {
     display: flex;
+    flex-direction: column;
     margin: 8px auto;
     height: calc(100% - 110px);
 }
 
+#defconfig-body-upper {
+    display: flex;
+    flex-direction: row;
+    height: calc(100% - 50px);
+}
+
+#defconfig-body-lower {
+    display: flex;
+}
+
+#defconfig-desc {
+    height: 50px;
+}
+
 #defconfig-selector {
     flex-grow: 1;
+    margin-right: 8px;
 }
 
 #defconfig-selected {
@@ -425,8 +441,7 @@ input[type=search] {
 #defconfig-list {
     display: flex;
     flex-direction: column;
-    margin: 2px 8px;
-    height: calc(100% - 44px);
+    height: calc(100% - 47px);
     overflow-y: auto;
 }
 
@@ -435,7 +450,7 @@ input[type=search] {
     flex-direction: column;
     margin: 2px 8px;
     width: 100%;
-    height: calc(100% - 44px);
+    height: calc(100% - 47px);
     overflow-y: auto;
 }
 
@@ -467,8 +482,8 @@ input[type=search] {
 
 #selected-defconfig-list {
     background-color: rgb(218,218,218);
-    margin: 2px auto;
-    height: calc(100% - 44px);
+    margin-right: 8px;
+    height: calc(100% - 47px);
     width: 200px;
     overflow-y: auto;
 }

@@ -344,7 +344,15 @@ class DefconfigDialogContent {
 
 		// Add selector and selected window to dialog body.
 		// body property will be placed at modal content tag ("defconfig-body").
-		this.body.append(selector, selected);
+		let upper = document.createElement("div");
+		upper.id = "defconfig-body-upper";
+		upper.append(selector, selected);
+		let lower = document.createElement("div");
+		lower.id = "defconfig-body-lower";
+		let desc = document.createElement("p");
+		desc.id = "defconfig-desc";
+		lower.append(desc);
+		this.body.append(upper, lower);
 
 		this._createCategoryList("Kernel", "spresense/configs/", deflist);
 		this._createCategoryList("Device", "device/", deflist);
