@@ -364,7 +364,8 @@ input[type=search] {
 
 .defconfig {
     width: 600px;
-    height: 75%;
+    height: calc(100% - 100px);
+    min-height: 400px;
 }
 
 #defconfig-header {
@@ -381,15 +382,19 @@ input[type=search] {
 #defconfig-body-upper {
     display: flex;
     flex-direction: row;
-    height: calc(100% - 50px);
+    height: calc(100% - 110px);
 }
 
 #defconfig-body-lower {
     display: flex;
+    margin-top: 4px;
+    overflow-y: auto;
+    background: #eee;
+    flex-grow: 1;
 }
 
 #defconfig-desc {
-    height: 50px;
+    margin: 0 0;
 }
 
 #defconfig-selector {
