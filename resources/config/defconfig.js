@@ -354,31 +354,27 @@ class DefconfigDialogContent {
 		lower.append(desc);
 		this.body.append(upper, lower);
 
-		this._createCategoryList("Kernel", "spresense/configs/", deflist);
-		this._createCategoryList("Device", "device/", deflist);
-		this._createCategoryList("Feature", "feature/", deflist);
-		this._createCategoryList("Examples", "examples/", deflist);
-
-		// First category to be activated
-		this.tab.firstChild.dataset.active = "true";
-		this.list.firstChild.style.display = "block";
+		this._createCategoryList("Kernel", "spresense/configs/", deflist, false);
+		this._createCategoryList("Device", "device/", deflist, true);
+		this._createCategoryList("Feature", "feature/", deflist, false);
+		this._createCategoryList("Examples", "examples/", deflist, false);
 	}
 
-	_createTabItem(name) {
+	_createTabItem(name, active) {
 		let e = document.createElement("div");
 		e.id = "category-" + name.toLowerCase();
 		e.className = "tabitem";
 		e.innerHTML = name;
-		e.dataset.active = "false";
+		e.dataset.active = active ? "true" : "false";
 		e.addEventListener("click", this.tab_clicked);
 		return e;
 	}
 
-	_createCategoryList(name, prefix, deflist) {
-		this.tab.appendChild(this._createTabItem(name));
+	_createCategoryList(name, prefix, deflist, active) {
+		this.tab.appendChild(this._createTabItem(name, active));
 		let defconfiglist = document.createElement("div");
 		defconfiglist.id = "defconfig-list-" + name.toLowerCase();
-		defconfiglist.style.display = "none";
+		defconfiglist.style.display = active ? "block" : "none";
 
 		let l = deflist.filter(c => c.defconfig.startsWith(prefix));
 		l.forEach(c => {
