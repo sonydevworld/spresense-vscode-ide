@@ -146,6 +146,24 @@ class BaseWidget {
 				} else {
 					help.innerHTML = DEFAULT_HELP;
 				}
+
+				// Append dependency information
+				let dep = "";
+				if (node.cond && node.cond != "y") {
+					dep += "<br>Depends on: " + node.cond;
+				}
+				if (node.selects) {
+					for (let s of node.selects) {
+						dep += "<br>Selects: " + s.symbol;
+						if (s.cond && s.cond != "y") {
+							dep += " if " + s.cond;
+						}
+					}
+				}
+
+				if (dep.length > 0) {
+					help.innerHTML += "<br>" + dep;
+				}
 			});
 			this._element.appendChild(e);
 		} else {
