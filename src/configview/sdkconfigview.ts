@@ -636,7 +636,7 @@ export class SDKConfigView {
 			<div id="defconfig-header">
 				<h1>New Configuration</h1>
 			</div>
-			<div id="defconfig-body">
+			<div id="defconfig-body" data-version="1">
 				<div id="defconfig-selector">
 					<div id="defconfig-category">
 						<div id="category-device" class="tabitem">Device</div>

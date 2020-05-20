@@ -379,6 +379,11 @@ input[type=search] {
     height: calc(100% - 110px);
 }
 
+/* XXX: Compat for SDK 1.5 repository */
+#defconfig-body[data-version="1"] {
+    flex-direction: row;
+}
+
 #defconfig-body-upper {
     display: flex;
     flex-direction: row;
