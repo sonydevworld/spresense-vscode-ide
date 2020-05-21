@@ -52,7 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const version = getSDKVersion(repo);
 
 			if (!checkSdkCompatibility(version, uri)) {
-				vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK. Cannot configure.", {modal: true}, "OK");
+				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.error.compatibility", "Your project folder does not compatible with using Spresense SDK. Cannot configure a your project."), {modal: true}, "OK");
 				return;
 			}
 
@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
 			const version = getSDKVersion(repo);
 
 			if (!checkSdkCompatibility(version, uri)) {
-				vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK. Cannot configure.", {modal: true}, "OK");
+				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.error.compatibility", "Your project folder does not compatible with using Spresense SDK. Cannot configure a your project."), {modal: true}, "OK");
 				return;
 			}
 

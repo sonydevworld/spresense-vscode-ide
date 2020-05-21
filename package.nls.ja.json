@@ -69,6 +69,8 @@
 	"spresense.src.create.error.space": "Spresense拡張機能ではパスにスペース(' ')の入ったフォルダー及びファイルは使用できません。 ",
 	"spresense.src.activeate.error.usage": "Spresenseリポジトリはワークスペースの最初のフォルダになければいけません。",
 	"spresense.src.update.project.folder": "Spresense: プロジェクトフォルダ設定の更新",
+	"spresense.src.warning.compatibility": "対象プロジェクト {0} がお使いのSpresense SDKと互換性がありません。互換性のあるSpresense SDKをお使いください。",
+	"spresense.src.error.compatibility": "対象プロジェクト {0} がお使いのSpresense SDKと互換性がありません。",
 
 	"serial.property.baudrate": "シリアルターミナルのボーレートを設定します。",
 	"serial.property.port": "使用するシリアルポートを設定します。",
@@ -107,6 +109,8 @@
 	"sdkconfig.src.menu.load": "読み込み...",
 	"sdkconfig.src.menu.saveas": "名前を付けて保存...",
 	"sdkconfig.src.menu.visible": "すべてのオプションを表示",
+
+	"sdkconfig.src.error.compatibility": "対象プロジェクトがお使いのSpresense SDKと互換性がありません。コンフィグを開くことができませんでした。",
 
 	"spresense.workspace.wizard.title": "Spresense: ワークスペースセットアップウィザード",
 	"spresense.workspace.wizard.label": "新規ワークスペースの作成",

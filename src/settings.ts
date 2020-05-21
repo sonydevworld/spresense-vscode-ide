@@ -668,7 +668,7 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 	let wsFolderPath: string | undefined;
 	const wsFolders = vscode.workspace.workspaceFolders;
 
-	if (!wsFolders) {
+	if (!wsFolders || !selectedUri) {
 		return;
 	}
 
@@ -691,8 +691,8 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 		return;
 	}
 
-	if ( !checkSdkCompatibility(sdkVersion, wsFolderPath) ) {
-		vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK.", {modal: true}, "OK");
+	if (!checkSdkCompatibility(sdkVersion, selectedUri)) {
+		vscode.window.showErrorMessage(nls.localize("spresense.src.error.compatibility", "Your project folder {0} does not compatible with using Spresense SDK.", wsFolderPath), {modal: true}, "OK");
 		return;
 	}
 
@@ -967,8 +967,8 @@ function isAlreadySetup(folderPath: string): boolean {
 	} else {
 		const projectVersion: number = parseInt(jsonItem['SpresenseExtInterfaceVersion']);
 
-		if (!checkSdkCompatibility(sdkVersion, jsonItem)) {
-			vscode.window.showErrorMessage(`Folder ${folderPath} is not compatible with includes Spresense SDK.`);
+		if (!checkSdkCompatibility(sdkVersion, vscode.Uri.file(folderPath))) {
+			vscode.window.showWarningMessage(nls.localize("spresense.src.warning.compatibility", "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.", folderPath));
 		}
 
 		/* TODO: WIll implement for update .vscode */

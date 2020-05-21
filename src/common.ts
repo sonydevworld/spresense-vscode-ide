@@ -350,14 +350,6 @@ export function getNonce() {
 
 export const UNKNOWN_SDK_VERSION = "Unknown";
 
-/* SDK Version */
-export var sdkVersion: Version = {
-	major: 0,
-	minor: 0,
-	patch: 0,
-	str: UNKNOWN_SDK_VERSION
-};
-
 /**
  * Get SDK version from repository.
  * 
@@ -418,6 +410,15 @@ export function isSameContents(partA: fs.PathLike, partB: fs.PathLike):boolean {
 	return buf1.equals(buf2);
 }
 
+/**
+ * Load Json file.
+ * 
+ * @param file Path to Json file
+ * @param create If true, create json with empty.
+ * 
+ * @returns Json data
+ */
+
 export function loadJson(file: string, create: boolean):{[key: string]: any} | null {
 	try {
 		return JSON.parse(fs.readFileSync(file, 'utf-8'));
@@ -434,6 +435,14 @@ export function loadJson(file: string, create: boolean):{[key: string]: any} | n
 	}
 }
 
+/**
+ * Load spresense_prj.json.
+ * 
+ * @param folderPath Path to project folder
+ * 
+ * @returns Spresense config Json data
+ */
+
 export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} | null {
 	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
 	const jsonItem = loadJson(sprConfFile, false);
@@ -441,22 +450,25 @@ export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} 
 	return jsonItem;
 }
 
-export function checkSdkCompatibility(sdkVersion: Version, pathorjson: string | vscode.Uri | {[key: string]: any}): boolean {
+/**
+ * Check project folder compatibility.
+ * 
+ * @param sdkVersion Includes Spresense SDK version
+ * @param path Project folder path
+ * 
+ * @returns If project folder has compaibility, return true
+ */
+
+export function checkSdkCompatibility(sdkVersion: Version, uri: vscode.Uri): boolean {
+	let wsFolder = vscode.workspace.getWorkspaceFolder(uri);
 	let jsonItem: {[key: string]: any} | null;
 	let pjVer: any;
 
-	if (typeof pathorjson === 'string') {
-		jsonItem = loadSpresenseConfFile(pathorjson);
-	} else if (pathorjson instanceof vscode.Uri) {
-		let wfolder = vscode.workspace.getWorkspaceFolder(pathorjson);
-		if (wfolder) {
-			jsonItem = loadSpresenseConfFile(wfolder.uri.fsPath);
-		} else {
-			return false;
-		}
-	} else {
-		jsonItem = pathorjson;
+	if (!wsFolder) {
+		return false;
 	}
+
+	jsonItem = loadSpresenseConfFile(wsFolder.uri.fsPath);
 
 	if (!jsonItem) {
 		return false;
