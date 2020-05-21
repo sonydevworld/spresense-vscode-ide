@@ -27,14 +27,14 @@ import * as nls from './localize';
 
 import { SDKConfigView } from './configview/sdkconfigview';
 import { SDKConfigView2 } from './configview/sdkconfigview2';
-import { getSDKVersion } from './common';
+import { getSDKVersion, checkSdkCompatibility } from './common';
 
 export function activate(context: vscode.ExtensionContext) {
 
 	nls.config(context);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('spresense.sdkconfig', async (uri) => {
+		vscode.commands.registerCommand('spresense.sdkconfig', async (uri:vscode.Uri) => {
 			const repo = getSpresenseRepositoryPath();
 			if (repo === undefined) {
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.repository",
@@ -50,6 +50,12 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			const version = getSDKVersion(repo);
+
+			if (!checkSdkCompatibility(version, uri)) {
+				vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK. Cannot configure.", {modal: true}, "OK");
+				return;
+			}
+
 			if (version.major >= 2) {
 				SDKConfigView2.createOrShow(context.extensionPath, config);
 			} else {
@@ -59,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 
 	context.subscriptions.push(
-		vscode.commands.registerCommand('spresense.kernelconfig', async (uri) => {
+		vscode.commands.registerCommand('spresense.kernelconfig', async (uri: vscode.Uri) => {
 			const repo = getSpresenseRepositoryPath();
 			if (repo === undefined) {
 				vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.repository",
@@ -71,6 +77,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 			if (config === '') {
 				/* Canceled */
+				return;
+			}
+
+			const version = getSDKVersion(repo);
+
+			if (!checkSdkCompatibility(version, uri)) {
+				vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK. Cannot configure.", {modal: true}, "OK");
 				return;
 			}
 

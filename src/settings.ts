@@ -28,7 +28,7 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility } from './common';
 
 import * as launch from './launch';
 
@@ -123,20 +123,6 @@ function removeWorkspaceFolder(folderUri: vscode.Uri) {
 	}
 }
 
-function loadJson(file: string, create: boolean) {
-	try {
-		return JSON.parse(fs.readFileSync(file, 'utf-8'));
-	} catch (err) {
-		if (err) {
-			if (create) {
-				return JSON.parse('{}');
-			} else {
-				return null;
-			}
-		}
-	}
-}
-
 function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 	/* Interface for C/C++ Extension .json file */
 	interface CppInterface {
@@ -151,7 +137,7 @@ function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 
 	const jsonObj = loadJson(configurationPath, true);
 
-	if (!sdkFolder) {
+	if (!sdkFolder || !jsonObj) {
 		return;
 	}
 
@@ -510,6 +496,10 @@ function getBootloaderDownloadUrl(requestPath: string, suggestPath: string): str
 	const requestJson = loadJson(requestPath, true);
 	const suggestJson = loadJson(suggestPath, true);
 
+	if (!suggestJson || !requestJson) {
+		return undefined;
+	}
+
 	if (!suggestJson[VersionKey] || requestJson[VersionKey] !== suggestJson[VersionKey]) {
 		/* If stored_version.json doesn't have VersionKey or version is not same, need to update. */
 		return requestJson['DownloadURL'];
@@ -698,6 +688,11 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 
 	if (!wsFolderPath) {
 		/* Canceled */
+		return;
+	}
+
+	if ( !checkSdkCompatibility(sdkVersion, wsFolderPath) ) {
+		vscode.window.showErrorMessage("Your project does not compatible with includes Spresense SDK.", {modal: true}, "OK");
 		return;
 	}
 
@@ -964,14 +959,18 @@ function createSpresenseConfFile(folderPath: string) {
 }
 
 function isAlreadySetup(folderPath: string): boolean {
-	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
-	const jsonItem = loadJson(sprConfFile, false);
+	const jsonItem = loadSpresenseConfFile(folderPath);
 
 	if (!jsonItem) {
 		/* Not created yet */
 		return false;
 	} else {
 		const projectVersion: number = parseInt(jsonItem['SpresenseExtInterfaceVersion']);
+
+		if (!checkSdkCompatibility(sdkVersion, jsonItem)) {
+			vscode.window.showErrorMessage(`Folder ${folderPath} is not compatible with includes Spresense SDK.`);
+		}
+
 		/* TODO: WIll implement for update .vscode */
 		if (isNaN(projectVersion)) {
 			/* Force update for alpha version. There are no compatibility between alpha version and later version.

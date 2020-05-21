@@ -350,6 +350,14 @@ export function getNonce() {
 
 export const UNKNOWN_SDK_VERSION = "Unknown";
 
+/* SDK Version */
+export var sdkVersion: Version = {
+	major: 0,
+	minor: 0,
+	patch: 0,
+	str: UNKNOWN_SDK_VERSION
+};
+
 /**
  * Get SDK version from repository.
  * 
@@ -408,4 +416,57 @@ export function isSameContents(partA: fs.PathLike, partB: fs.PathLike):boolean {
 	}
 
 	return buf1.equals(buf2);
+}
+
+export function loadJson(file: string, create: boolean):{[key: string]: any} | null {
+	try {
+		return JSON.parse(fs.readFileSync(file, 'utf-8'));
+	} catch (err) {
+		if (err) {
+			if (create) {
+				return JSON.parse('{}');
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+}
+
+export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} | null {
+	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
+	const jsonItem = loadJson(sprConfFile, false);
+
+	return jsonItem;
+}
+
+export function checkSdkCompatibility(sdkVersion: Version, pathorjson: string | vscode.Uri | {[key: string]: any}): boolean {
+	let jsonItem: {[key: string]: any} | null;
+	let pjVer: any;
+
+	if (typeof pathorjson === 'string') {
+		jsonItem = loadSpresenseConfFile(pathorjson);
+	} else if (pathorjson instanceof vscode.Uri) {
+		let wfolder = vscode.workspace.getWorkspaceFolder(pathorjson);
+		if (wfolder) {
+			jsonItem = loadSpresenseConfFile(wfolder.uri.fsPath);
+		} else {
+			return false;
+		}
+	} else {
+		jsonItem = pathorjson;
+	}
+
+	if (!jsonItem) {
+		return false;
+	}
+
+	pjVer = jsonItem['SdkVersion'].match(/SDK(\d+).(\d+).(\d+)/);
+
+	if (sdkVersion.major === parseInt(pjVer[1])) {
+		return true;
+	} else {
+		return false;
+	}
 }
