@@ -129,7 +129,7 @@ export class SDKConfigView2 {
 		}
 
 		this._configFile = targetConfig || path.join(this._kernelDir, '.config');
-		this._panel.title = nls.localize("sdkconfig.src.webview.title.kernel", "Kernel Config ({0})", _folder);
+		this._panel.title = nls.localize("sdkconfig.src.webview.title.sdk", "SDK Config ({0})", _folder);
 
 		this._update();
 
