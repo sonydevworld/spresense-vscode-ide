@@ -399,7 +399,13 @@ export class SDKConfigView2 {
 		const kerneldir = path.join(this._kernelDir, "boards", "arm", "cxd56xx");
 		const list = paths.split("\n");
 
-		if (list[0].indexOf('/') === -1) {
+		/* REVISIT: paths takes list of defconfig file paths, but empty string would be acceptable.
+		 * In this case, choose "default" defconfig, but it is not a kernel defconfig.
+		 *
+		 * We decided the kernel defconfigs are not supported in the SDK config tools.
+		 * So this logic is not needed for now, but remain this for future spec changes.
+		 */
+		if (list[0] !== "" && list[0].indexOf('/') === -1) {
 			// If no slash contained name is passed, it treat as kernel defconfig, then
 			// just read and return its contents.
 			const filename = path.join(kerneldir, list[0]);
