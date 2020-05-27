@@ -354,7 +354,8 @@ class DefconfigDialogContent {
 		lower.append(desc);
 		this.body.append(upper, lower);
 
-		this._createCategoryList("Kernel", "spresense/configs/", deflist, false);
+		// TENTATIVE:
+		//this._createCategoryList("Kernel", "spresense/configs/", deflist, false);
 		this._createCategoryList("Device", "device/", deflist, true);
 		this._createCategoryList("Feature", "feature/", deflist, false);
 		this._createCategoryList("Examples", "examples/", deflist, false);
