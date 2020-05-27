@@ -169,7 +169,12 @@ export class SDKConfigView2 {
 								} catch (e) {
 									return;
 								}
-								this._panel.webview.postMessage({command: "loaded", content: buf.toString()});
+								// Add platform tweak options and apps directory option.
+								// If already set them in read config file, overwrite at loading
+								// process, so it can be taken a raw .config and a saved defconfig.
+								buf = this._tweakPlatform(buf.toString());
+								buf += 'CONFIG_APPS_DIR="../sdk/apps"\n';
+								this._panel.webview.postMessage({command: "loaded", content: buf});
 							}
 						});
 						return;
@@ -394,6 +399,34 @@ export class SDKConfigView2 {
 		}
 	}
 
+	private _tweakPlatform(buf: string): string {
+		// XXX: Add tweak options for windows build environment.
+		// This workaround is the same with tweakPlatform() function but
+		// patch it on demand. So be careful if you want to change this tweaks.
+
+		switch (process.platform) {
+			case "win32":
+				buf += [
+					"CONFIG_HOST_WINDOWS=y",
+					"CONFIG_TOOLCHAIN_WINDOWS=y",
+					"CONFIG_WINDOWS_MSYS=y",
+				].join("\n");
+				break;
+
+			case "linux":
+				buf += "CONFIG_HOST_LINUX=y";
+				break;
+
+			case "darwin":
+				buf += "CONFIG_HOST_MACOS=y";
+				break;
+			default:
+				return buf;
+		}
+		buf += "\n";
+		return buf;
+	}
+
 	private _loadDefconfigFiles(paths: string): string {
 		const sdkdir = path.join(this._sdkDir, "configs");
 		const kerneldir = path.join(this._kernelDir, "boards", "arm", "cxd56xx");
@@ -442,35 +475,12 @@ export class SDKConfigView2 {
 			}
 		}
 
-		// XXX: Add tweak options for windows build environment.
-		// This workaround is the same with tweakPlatform() function but
-		// patch it on demand. So be careful if you want to change this tweaks.
-
-		switch (process.platform) {
-			case "win32":
-				const tweaks = [
-					"CONFIG_HOST_WINDOWS=y",
-					"CONFIG_TOOLCHAIN_WINDOWS=y",
-					"CONFIG_WINDOWS_MSYS=y",
-				];
-				content = content.concat(tweaks);
-				break;
-
-			case "linux":
-				content.push("CONFIG_HOST_LINUX=y");
-				break;
-
-			case "darwin":
-				content.push("CONFIG_HOST_MACOS=y");
-				break;
-			default:
-				break;
-		}
-		content.push('CONFIG_APPS_DIR="../sdk/apps"');
+		let buf = this._tweakPlatform(content.join('\n') + '\n');
+		buf += 'CONFIG_APPS_DIR="../sdk/apps"\n';
 
 		console.log("content after apply tweaks");
-		console.log(content);
-		return content.join('\n');
+		console.log(buf);
+		return buf;
 	}
 
 	public dispose() {
