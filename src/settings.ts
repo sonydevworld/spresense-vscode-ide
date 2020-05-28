@@ -668,7 +668,7 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 	let wsFolderPath: string | undefined;
 	const wsFolders = vscode.workspace.workspaceFolders;
 
-	if (!wsFolders || !selectedUri) {
+	if (!wsFolders) {
 		return;
 	}
 
@@ -691,7 +691,7 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 		return;
 	}
 
-	if (!checkSdkCompatibility(sdkVersion, selectedUri)) {
+	if (!checkSdkCompatibility(sdkVersion, vscode.Uri.file(wsFolderPath))) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.error.compatibility", "Your project folder {0} does not compatible with using Spresense SDK.", wsFolderPath), {modal: true}, "OK");
 		return;
 	}
