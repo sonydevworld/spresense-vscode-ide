@@ -17,9 +17,12 @@
 * [User Interface] Update a configuration user interface.
   * Hierarchical structure is visualized.
   * The selection status is color coded.
-  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_en.png" width="80%">
+
+    <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_en.png" width="50%">
+
   * The description is displayed in the preset dialog.
-  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="80%">
+
+    <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="20%">
 
 ### Improved features
 
@@ -43,9 +46,12 @@
 * [User Interface] コンフィグのユーザインタフェースを更新しました。
   * 階層構造がビジュアル化されるようになりました。
   * 選択状態が色分けされました。
-  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_ja.png" width="80%">
+
+    <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_ja.png" width="50%">
+
   * プリセットに説明が表示されるようになりました。
-  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="80%">
+
+    <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="20%">
 
 ### 改善された機能
 
