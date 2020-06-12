@@ -69,6 +69,8 @@
 	"spresense.src.create.error.space": "Spresense擴展名不能使用路徑中帶有空格（' '）的文件夾和文件。",
 	"spresense.src.activeate.error.usage": "Spresense存儲庫必須位於工作空間的第一個文件夾中。",
 	"spresense.src.update.project.folder": "Spresense: 更新項目文件夾設置",
+	"spresense.src.warning.compatibility": "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.",
+	"spresense.src.error.compatibility": "Your project folder {0} does not compatible with using Spresense SDK.",
 
 	"serial.property.baudrate": "設置串行終端波特率。",
 	"serial.property.port": "設置要使用的串口。",
@@ -106,6 +108,8 @@
 	"sdkconfig.src.menu.save": "保存到",
 	"sdkconfig.src.menu.load": "加載...",
 	"sdkconfig.src.menu.saveas": "另存為...",
+
+	"sdkconfig.src.error.compatibility": "Your project folder does not compatible with using Spresense SDK. Cannot configure a your project.",
 
 	"spresense.workspace.wizard.title": "Spresense: 工作區設置嚮導",
 	"spresense.workspace.wizard.label": "創建新工作區",

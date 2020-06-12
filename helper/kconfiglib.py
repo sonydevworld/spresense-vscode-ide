@@ -3138,6 +3138,7 @@ class Kconfig(object):
                                    "implementation did when 'option modules' "
                                    "wasn't used.",
                                    self._filename, self._linenr)
+                        self.modules = node.item
 
                 elif self._check_token(_T_ALLNOCONFIG_Y):
                     if node.item.__class__ is not Symbol:

@@ -28,13 +28,12 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder } from './common';
-import { isSpresenseSdkFolder } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility } from './common';
 
 import * as launch from './launch';
 
 
-const spresenseExtInterfaceVersion: number = 1001;
+const spresenseExtInterfaceVersion: number = 1002;
 
 const configSdkPathKey = 'spresense.sdk.path';
 const configSdkToolsPathKey = 'spresense.sdk.tools.path';
@@ -53,6 +52,14 @@ const taskBootFlashLabel = 'Burn bootloader';
 /* For component creation */
 const createAppMode: string = 'app';
 const createWorkerMode: string = 'worker';
+
+/* SDK Version */
+var sdkVersion: Version = {
+	major: 0,
+	minor: 0,
+	patch: 0,
+	str: UNKNOWN_SDK_VERSION
+};
 
 /* Interface for Configuration definition */
 interface ConfigInterface {
@@ -116,20 +123,6 @@ function removeWorkspaceFolder(folderUri: vscode.Uri) {
 	}
 }
 
-function loadJson(file: string, create: boolean) {
-	try {
-		return JSON.parse(fs.readFileSync(file, 'utf-8'));
-	} catch (err) {
-		if (err) {
-			if (create) {
-				return JSON.parse('{}');
-			} else {
-				return null;
-			}
-		}
-	}
-}
-
 function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 	/* Interface for C/C++ Extension .json file */
 	interface CppInterface {
@@ -144,7 +137,7 @@ function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
 
 	const jsonObj = loadJson(configurationPath, true);
 
-	if (!sdkFolder) {
+	if (!sdkFolder || !jsonObj) {
 		return;
 	}
 
@@ -455,38 +448,34 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 	/* Register msys command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.msys.path', async () => {
 		/* Only enable for Windows */
-		if (process.platform === 'win32') {
-			const defaultMsysPath = `${process.env.SystemDrive}\\msys64`;
-			const conf = vscode.workspace.getConfiguration();
-			const folderUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
-				defaultUri: vscode.Uri.file(defaultMsysPath),
-				canSelectFiles: false,
-				canSelectFolders: true,
-				canSelectMany: false
-			});
 
-			if (folderUris && folderUris.length) {
-				/* If directory opened, set shell path into settings.json */
-				const msysPath = folderUris[0].fsPath;
+		const defaultMsysPath = `${process.env.SystemDrive}\\msys64`;
+		const conf = vscode.workspace.getConfiguration();
+		const folderUris: vscode.Uri[] | undefined = await vscode.window.showOpenDialog({
+			defaultUri: vscode.Uri.file(defaultMsysPath),
+			canSelectFiles: false,
+			canSelectFolders: true,
+			canSelectMany: false
+		});
 
-				/* Check Msys install path */
-				if (!isMsysInstallFolder(msysPath)) {
-					/* If necessary directory missing, target direcgtory is invalid */
-					vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
+		if (folderUris && folderUris.length) {
+			/* If directory opened, set shell path into settings.json */
+			const msysPath = folderUris[0].fsPath;
 
-					return;
-				}
+			/* Check Msys install path */
+			if (!isMsysInstallFolder(msysPath)) {
+				/* If necessary directory missing, target direcgtory is invalid */
+				vscode.window.showErrorMessage(nls.localize("spresense.src.msys.error.path", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 
-				await conf.update(configMsysPathKey, msysPath, vscode.ConfigurationTarget.Global);
-
-				if (isSpresenseEnvironment()) {
-					/* Reset spresense workspace, if spresense workspace opened */
-					spresenseSdkSetup();
-				}
+				return;
 			}
 
-		} else {
-			vscode.window.showInformationMessage(nls.localize("spresense.src.msys.error.platform", "Msys path setting is only for Windows."));
+			await conf.update(configMsysPathKey, msysPath, vscode.ConfigurationTarget.Global);
+
+			if (isSpresenseEnvironment()) {
+				/* Reset spresense workspace, if spresense workspace opened */
+				spresenseSdkSetup();
+			}
 		}
 	}));
 }
@@ -506,6 +495,10 @@ function getBootloaderDownloadUrl(requestPath: string, suggestPath: string): str
 	const VersionKey = 'LoaderVersion';
 	const requestJson = loadJson(requestPath, true);
 	const suggestJson = loadJson(suggestPath, true);
+
+	if (!suggestJson || !requestJson) {
+		return undefined;
+	}
 
 	if (!suggestJson[VersionKey] || requestJson[VersionKey] !== suggestJson[VersionKey]) {
 		/* If stored_version.json doesn't have VersionKey or version is not same, need to update. */
@@ -698,6 +691,11 @@ async function triggerSpresenseTask(selectedUri: vscode.Uri | undefined, label: 
 		return;
 	}
 
+	if (!checkSdkCompatibility(sdkVersion, vscode.Uri.file(wsFolderPath))) {
+		vscode.window.showErrorMessage(nls.localize("spresense.src.error.compatibility", "Your project folder {0} does not compatible with using Spresense SDK.", wsFolderPath), {modal: true}, "OK");
+		return;
+	}
+
 	vscode.tasks.fetchTasks().then((tasks: vscode.Task[]) => {
 		const targetTask = tasks.find((task) => {
 			return task.scope &&
@@ -874,6 +872,17 @@ function isSpresenseEnvironment() {
 
 	/* If first folder is spresense, set sdk path to settings */
 	if (isSpresenseSdkFolder(firstFolder)) {
+		/* Get SDK Version */
+		sdkVersion = getSDKVersion(firstFolder);
+		if (sdkVersion.str === UNKNOWN_SDK_VERSION) {
+			vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
+		}
+
+		/* Set SDK version into context */
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionMajor', `${sdkVersion.major}`);
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionMinor', `${sdkVersion.minor}`);
+		vscode.commands.executeCommand('setContext', 'spresenseSdkVersionPatch', `${sdkVersion.patch}`);
+
 		return true;
 	} else {
 		if (fs.existsSync(path.join(firstFolder, '.vscode', 'spresense_prj.json'))) {
@@ -932,34 +941,11 @@ function createSpresenseConfFile(folderPath: string) {
 		[key: string]: string | number;
 	}
 
-	const sdkFolder = getFirstFolderPath();
-
-	if (!sdkFolder) {
-		return;
-	}
-
 	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
-	const versionFilePath = path.join(sdkFolder, 'sdk', 'tools', 'mkversion.sh');
 	let jsonItem: SpresenseJsonInterface = {};
-	let version: string = 'Unknown';
-	if (fs.existsSync(versionFilePath) && fs.statSync(versionFilePath).isFile()) {
-		try {
-			const buff = fs.readFileSync(versionFilePath).toString();
-
-			/* Get SDK version */
-			const results = buff.match(/^SDK_VERSION=\"([A-Za-z0-9.]+)\"/m);
-			if  (!results) {
-				throw new Error();
-			}
-			version = results[1];
-		} catch (error) {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.error.version", 'Cannot read SDK version.'));
-		}
-		console.log(version);
-	}
 
 	/* Append item (SDK version) */
-	jsonItem['SdkVersion'] = version;
+	jsonItem['SdkVersion'] = sdkVersion.str;
 
 	/* Append item (Spresense Extension compatibility revision) */
 	jsonItem['SpresenseExtInterfaceVersion'] = spresenseExtInterfaceVersion;
@@ -973,14 +959,18 @@ function createSpresenseConfFile(folderPath: string) {
 }
 
 function isAlreadySetup(folderPath: string): boolean {
-	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
-	const jsonItem = loadJson(sprConfFile, false);
+	const jsonItem = loadSpresenseConfFile(folderPath);
 
 	if (!jsonItem) {
 		/* Not created yet */
 		return false;
 	} else {
 		const projectVersion: number = parseInt(jsonItem['SpresenseExtInterfaceVersion']);
+
+		if (!checkSdkCompatibility(sdkVersion, vscode.Uri.file(folderPath))) {
+			vscode.window.showWarningMessage(nls.localize("spresense.src.warning.compatibility", "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.", folderPath));
+		}
+
 		/* TODO: WIll implement for update .vscode */
 		if (isNaN(projectVersion)) {
 			/* Force update for alpha version. There are no compatibility between alpha version and later version.
@@ -1127,9 +1117,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		/* Register Commands */
 		registerSpresenseCommands(context);
-
-		/* Enable Spresense IDE */
-		vscode.commands.executeCommand('setContext', 'spresenseIdeEnabled', true);
 	} else {
 		/* For error handling */
 

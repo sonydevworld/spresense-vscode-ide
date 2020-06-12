@@ -27,4 +27,4 @@ CFLAGS =
 # C++ compiler flags
 CXXFLAGS =
 
-include $(APPDIR)/.vscode/application.mk
+include $(SPRESENSE_HOME)/.vscode/application.mk

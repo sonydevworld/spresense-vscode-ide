@@ -69,6 +69,8 @@
 	"spresense.src.create.error.space": "Spresense extension can not use this new folder or file that contain ' '. ",
 	"spresense.src.activeate.error.usage": "Spresense repository folder needs to be placed at the top of workspace. Please move {0} to the top.",
 	"spresense.src.update.project.folder": "Spresense: Update project folder settings",
+	"spresense.src.warning.compatibility": "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.",
+	"spresense.src.error.compatibility": "Your project folder {0} does not compatible with using Spresense SDK.",
 
 	"serial.property.baudrate": "Serial baudrate: Baudrate for serial terminal",
 	"serial.property.port": "Serial port: Port path for serial terminal",
@@ -106,6 +108,9 @@
 	"sdkconfig.src.menu.save": "Save",
 	"sdkconfig.src.menu.load": "Load...",
 	"sdkconfig.src.menu.saveas": "Save as...",
+	"sdkconfig.src.menu.visible": "Show all options",
+
+	"sdkconfig.src.error.compatibility": "Your project folder does not compatible with using Spresense SDK. Cannot configure a your project.",
 
 	"spresense.workspace.wizard.title": "Spresense: Workspace setup wizard",
 	"spresense.workspace.wizard.label": "Creating a new workspace",

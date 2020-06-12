@@ -25,6 +25,13 @@ import * as fs from 'fs';
 
 import * as nls from './localize';
 
+export interface Version {
+	major: number;
+	minor: number;
+	patch: number;
+	str: string;
+}
+
 /**
  * Check Msys folder
  *
@@ -339,4 +346,139 @@ export function getNonce() {
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
 	}
 	return text;
+}
+
+export const UNKNOWN_SDK_VERSION = "Unknown";
+
+/**
+ * Get SDK version from repository.
+ * 
+ * @param sdkFolder Path to SDK repository folder
+ * 
+ * @returns Version data
+ */
+
+export function getSDKVersion(sdkFolder: string) : Version {
+	const versionFilePath = path.join(sdkFolder, 'sdk', 'tools', 'mkversion.sh');
+	let buff: string;
+	let ver : Version = {
+		major: 0,
+		minor: 0,
+		patch: 0,
+		str: UNKNOWN_SDK_VERSION
+	};
+
+	try {
+		buff = fs.readFileSync(versionFilePath).toString();
+	} catch (error) {
+		return ver;
+	}
+
+	const results = buff.match(/^SDK_VERSION="(SDK\d+\.\d+\.\d+)"/m);
+	if (results) {
+		let vers = results[1].split(".");
+		ver.major = parseInt(vers[0].replace("SDK", ""));
+		ver.minor = parseInt(vers[1]);
+		ver.patch = parseInt(vers[2]);
+		ver.str = results[1];
+	}
+	console.log(ver);
+	return ver;
+}
+
+/**
+ * Check if two contents are the same
+ *
+ * This function check if two contents are the same.
+ *
+ * @param partA Part of contents
+ * @param partB Other contents
+ * @returns true: Same file / false: Different file
+ */
+
+export function isSameContents(partA: fs.PathLike, partB: fs.PathLike):boolean {
+	let buf1;
+	let buf2;
+
+	try {
+		buf1 = fs.readFileSync(partA);
+		buf2 = fs.readFileSync(partB);
+	} catch (e) {
+		return false;
+	}
+
+	return buf1.equals(buf2);
+}
+
+/**
+ * Load Json file.
+ * 
+ * @param file Path to Json file
+ * @param create If true, create json with empty.
+ * 
+ * @returns Json data
+ */
+
+export function loadJson(file: string, create: boolean):{[key: string]: any} | null {
+	try {
+		return JSON.parse(fs.readFileSync(file, 'utf-8'));
+	} catch (err) {
+		if (err) {
+			if (create) {
+				return JSON.parse('{}');
+			} else {
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+}
+
+/**
+ * Load spresense_prj.json.
+ * 
+ * @param folderPath Path to project folder
+ * 
+ * @returns Spresense config Json data
+ */
+
+export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} | null {
+	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
+	const jsonItem = loadJson(sprConfFile, false);
+
+	return jsonItem;
+}
+
+/**
+ * Check project folder compatibility.
+ * 
+ * @param sdkVersion Includes Spresense SDK version
+ * @param path Project folder path
+ * 
+ * @returns If project folder has compaibility, return true
+ */
+
+export function checkSdkCompatibility(sdkVersion: Version, uri: vscode.Uri): boolean {
+	let wsFolder = vscode.workspace.getWorkspaceFolder(uri);
+	let jsonItem: {[key: string]: any} | null;
+	let pjVer: any;
+
+	if (!wsFolder) {
+		return false;
+	}
+
+	jsonItem = loadSpresenseConfFile(wsFolder.uri.fsPath);
+
+	if (!jsonItem) {
+		return false;
+	}
+
+	pjVer = jsonItem['SdkVersion'].match(/SDK(\d+).(\d+).(\d+)/);
+
+	if (sdkVersion.major === parseInt(pjVer[1])) {
+		return true;
+	} else {
+		return false;
+	}
 }

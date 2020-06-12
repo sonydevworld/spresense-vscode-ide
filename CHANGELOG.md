@@ -1,5 +1,56 @@
 # Change Log
 
+## v1.2.0
+
+(日本語の説明文は英語の後に記載しています。)
+
+### Summary
+
+* Feature enhancements are available
+
+* This release has a new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader) before use.
+
+### New features and feature enhancements
+
+* [Build System] Support Spresense SDK v2.0.0 new build system.
+
+* [User Interface] Update a configuration user interface.
+  * Hierarchical structure is visualized.
+  * The selection status is color coded.
+  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_en.png" width="80%">
+  * The description is displayed in the preset dialog.
+  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="80%">
+
+### Improved features
+
+* [Other] Fix a problem that keyword completion does not work when dealing with multiple projects.
+
+------------------------
+
+(Below is in Japanese)
+
+### 概要
+
+* 新規機能追加および機能拡張を行いました
+
+* 今回のリリースにより[ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール)が必要になります
+
+### 新規機能追加および機能拡張
+
+
+* [Build System] Spresense SDK v2.0.0の新ビルドシステムに対応しました。
+
+* [User Interface] コンフィグのユーザインタフェースを更新しました。
+  * 階層構造がビジュアル化されるようになりました。
+  * 選択状態が色分けされました。
+  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_update_ja.png" width="80%">
+  * プリセットに説明が表示されるようになりました。
+  <img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/v1.2.0_config_preset_update.png" width="80%">
+
+### 改善された機能
+
+* [その他] 複数プロジェクトを扱っている場合、一部キーワード補完が効かなくなってしまう問題を修正しました。
+
 ## v1.1.0
 
 (日本語の説明文は英語の後に記載しています。)

@@ -3,7 +3,7 @@
 	"publisher": "sony-spresense",
 	"displayName": "Spresense VSCode IDE",
 	"description": "Spresense Extension for VSCode",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"license": "MIT",
 	"author": {
 		"name": "Sony Semiconductor Solutions"
@@ -110,31 +110,32 @@
 			{
 				"command": "spresense.build.kernel",
 				"title": "%spresense.command.build.kernel%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor == '1'"
 			},
 			{
 				"command": "spresense.build",
 				"title": "%spresense.command.build.app%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
 				"command": "spresense.clean.kernel",
 				"title": "%spresense.command.clean.kernel%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor == '1'"
 			},
 			{
 				"command": "spresense.clean.sdk",
 				"title": "%spresense.command.clean.sdk%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
 				"command": "spresense.flash",
 				"title": "%spresense.command.flash%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
 				"command": "spresense.msys.path",
-				"title": "%spresense.command.msys.path%"
+				"title": "%spresense.command.msys.path%",
+				"enablement": "isWindows"
 			},
 			{
 				"command": "spresense.burn.bootloader",
@@ -162,7 +163,8 @@
 			},
 			{
 				"command": "spresense.kernelconfig",
-				"title": "%sdkconfig.command.kernelconfig.title%"
+				"title": "%sdkconfig.command.kernelconfig.title%",
+				"enablement": "spresenseSdkVersionMajor == '1'"
 			},
 			{
 				"command": "spresense.workspace.wizard",
@@ -171,12 +173,12 @@
 			{
 				"command": "spresense.item.wizard",
 				"title": "%spresense.item.wizard.title%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
 				"command": "spresense.update.project.folder",
 				"title": "%spresense.src.update.project.folder%",
-				"enablement": "spresenseIdeEnabled"
+				"enablement": "spresenseSdkVersionMajor"
 			}
 		],
 		"debuggers": [
@@ -329,51 +331,69 @@
 		"menus": {
 			"editor/title": [
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.serial.open",
 					"group": "navigation@3"
 				}
 			],
 			"explorer/context": [
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.item.wizard",
 					"group": "11_SpresenseCreate@1"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor == '1'",
 					"command": "spresense.build.kernel",
 					"group": "12_SpresenseBuild@4"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.build",
 					"group": "12_SpresenseBuild@2"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor == '1'",
 					"command": "spresense.clean.kernel",
 					"group": "12_SpresenseBuild@5"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.clean.sdk",
 					"group": "12_SpresenseBuild@3"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.flash",
 					"group": "12_SpresenseBuild@1"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.sdkconfig",
 					"group": "13_SpresenseConfig@1"
 				},
 				{
-					"when": "spresenseIdeEnabled",
+					"when": "spresenseSdkVersionMajor == '1'",
 					"command": "spresense.kernelconfig",
 					"group": "13_SpresenseConfig@2"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "spresense.build.kernel",
+					"when": "spresenseSdkVersionMajor == '1'"
+				},
+				{
+					"command": "spresense.clean.kernel",
+					"when": "spresenseSdkVersionMajor == '1'"
+				},
+				{
+					"command": "spresense.kernelconfig",
+					"when": "spresenseSdkVersionMajor == '1'"
+				},
+				{
+					"command": "spresense.msys.path",
+					"when": "isWindows"
 				}
 			]
 		}

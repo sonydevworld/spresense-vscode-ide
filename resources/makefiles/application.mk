@@ -40,10 +40,15 @@
 #              THIS FILE IS AUTO GENERATED. DO NOT MODIFY                  #
 ############################################################################
 
+ifeq ($(SDK_VERSION_MAJ),1)
 -include $(TOPDIR)/Make.defs
 -include $(SDKDIR)/Make.defs
 -include $(SDKDIR)/.config
 include $(APPDIR)/Make.defs
+else
+include $(TOPDIR)/Make.defs
+include $(SDKDIR)/Make.defs
+endif
 
 # Take application name
 APP_FOLDER_NAME := $(notdir $(shell pwd))
@@ -73,6 +78,7 @@ CXXFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
 
 PROGNAME = $(APPNAME)$(EXEEXT)
 
+ifeq ($(SDK_VERSION_MAJ),1)
 # From Application.mk
 CXXEXT ?= .cxx
 
@@ -182,3 +188,6 @@ distclean: clean
 	$(call DELFILE, .depend)
 
 -include Make.dep
+else
+include $(APPDIR)/Application.mk
+endif

@@ -46,7 +46,10 @@ def _expr_str(sc):
 def make_default_list(defaults):
     ret = []
     for default, cond in defaults:
-        ret.append({"name": default.name, "default": default.str_value, "cond": _expr_str(cond)})
+        if type(default) is tuple:
+            ret.append({"name": "", "default": expr_str(default), "cond": _expr_str(cond)})
+        else:
+            ret.append({"name": default.name, "default": default.str_value, "cond": _expr_str(cond)})
     return ret
 
 # This function is for 'select' and 'imply' list
@@ -92,10 +95,13 @@ def build_nodetree(node, nodelist):
             # We use type as int for reduce string size in JSON.
             #
 
-            d['type'] = node.item.type
+            d['type'] = node.item.orig_type
             d['name'] = node.item.name
             d['value'] = node.item.str_value
             d['user_value'] = node.item.user_value
+
+            if node.item is node.item.kconfig.modules:
+                d['modules'] = True
 
             if node.is_menuconfig:
                 d['menuconfig'] = True
@@ -144,11 +150,15 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Create JSON from Kconfig')
     parser.add_argument('-o', '--output', type=str, nargs=1, help='Output file')
+    parser.add_argument('-d', '--debug', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('kconfig', metavar='<Kconfig file>', type=str, nargs='?',
                         default='Kconfig', help='Path to Kconfig')
     opts = parser.parse_args()
 
     kconf = Kconfig(opts.kconfig, warn=False)
+    if opts.verbose:
+        kconf.enable_warnings()
     kconf.load_config()
 
     # Create root node
@@ -167,5 +177,9 @@ if __name__ == '__main__':
         f = sys.stdout
 
     # f.write('var menudata = ' + json.dumps(d) + ';\n')
-    f.write(json.dumps(d))
+    if opts.debug:
+        f.write(json.dumps(d, indent=4))
+    else:
+        f.write(json.dumps(d))
+
     f.close()

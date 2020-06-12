@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!--
+<link rel="stylesheet" type="text/css" href="../resources/newstyle.css">
+-->
+
+<title>Widget test/examples</title>
+<script>
+
+</script>
+
+<style>
+	body {
+		/* Windows */
+		/*
+		font-family: Consolas, "Courier New", monospace;
+		font-size: 14;
+		font-weight: normal;
+		*/
+
+		/* mac, linux */
+		font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", ans-serif;
+		font-size: 13px;
+		font-weight: normal;
+	}
+
+	.menu-container, .menuitems {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.menuitems {
+		margin-left: 18px;
+	}
+	.menu-container > label {
+		cursor: pointer;
+		user-select: none;
+	}
+	.menu-container > input[type="checkbox"] + label::before {
+		content: "\02295"; /* circled plus */
+		width: 42px;
+		font-size: 24px;
+		color: rgb(1, 149, 194);
+		text-align: center;
+	}
+	.menu-container > input[type="checkbox"]:checked + label::before {
+		content: "\02296"; /* circled minus */
+	}
+	.menu-container > input[type="checkbox"] {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+	.menu-container > input[type="checkbox"] ~ .menuitems {
+		display: none;
+	}
+	.menu-container > input[type="checkbox"]:checked ~ .menuitems {
+		display: flex;
+	}
+
+	.config {
+		display: flex;
+		line-height: 42px;
+		transition: .1s;
+		align-items: center;
+	}
+	.config:hover {
+		background-color: #f0f0f0;
+	}
+	.config > .name {
+		margin-left: 4px;
+		flex-grow: 1;
+	}
+	.config > .symbol {
+		margin-right: 8px;
+	}
+
+	.tristate {
+		position: relative;
+		display: flex;
+		width: 94px;
+		height: 34px;
+		line-height: 34px;
+		background-color: #ccc;
+		transition: .2s;
+		border-radius: 4px;
+		user-select: none;
+		cursor: pointer;
+	}
+	.tristate[data-value=no] {
+		background-color: #ccc;
+	}
+	.tristate[data-value=mod] {
+		background-color: rgb(236, 92, 82);
+		color:rgb(201, 40, 28)
+	}
+	.tristate[data-value=yes] {
+		background-color: rgb(68, 196, 68);
+		color: rgb(47, 139, 47)
+	}
+	.tristate::before, .tristate[data-value=no]::before {
+		position: absolute;
+		content: "N";
+		line-height: 30px;
+		width: 30px;
+		left: 2px;
+		bottom: 2px;
+		background-color: white;
+		color: black;
+		transition: .2s;
+		border-radius: 4px;
+		text-align: center;
+	}
+	.tristate[data-value=mod]::before {
+		content: "M";
+		transform: translateX(30px);
+	}
+	.tristate[data-value=yes]::before {
+		content: "Y";
+		transform: translateX(60px);
+	}
+	.tristate > div {
+		text-align: center;
+		flex: 1;
+		color: #666;
+	}
+
+	.bool {
+		position: relative;
+		display: inline-block;
+		width: 94px;
+		height: 34px;
+		line-height: 34px;
+	}
+	.bool input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		border-radius: 4px;
+		transition: .2s;
+	}
+	.slider::before {
+		position: absolute;
+		content: "N";
+		line-height: 30px;
+		width: 45px;
+		left: 2px;
+		bottom: 2px;
+		background-color: white;
+		color: black;
+		transition: .2s;
+		border-radius: 4px;
+		text-align: center;
+	}
+	.slider::after {
+		position: absolute;
+		content: "Y";
+		line-height: 30px;
+		width: 45px;
+		bottom: 2px;
+		text-align: center;
+		transform: translateX(0);
+		color: #666;
+	}
+	.bool input[type="checkbox"]:checked + .slider {
+		background-color: rgb(68, 196, 68);
+		color: rgb(47, 139, 47)
+	}
+	.bool input[type="checkbox"]:checked + .slider::before {
+		content: "Y";
+		transform: translateX(45px);
+	}
+	.bool input[type="checkbox"] + .slider::after {
+		transform: translateX(45px);
+	}
+	.bool input[type="checkbox"]:checked + .slider::after {
+		content: "N";
+		transform: translateX(0);
+	}
+
+	.config > input[type="text"] {
+		width: 94px;
+		padding: 7px 4px;
+		border: 2px solid #ccc;
+		border-radius: 4px;
+		box-sizing: border-box;
+		transition: .2s;
+	}
+	.config > input[type="text"]:focus {
+		width: 216px;
+	}
+
+	select {
+		padding: 7px 4px;
+		background-color: #eee;
+		border: 2px solid #ccc;
+		border-radius: 4px;
+		box-shadow: none;
+		box-sizing: border-box;
+		text-overflow: ellipsis;
+	}
+
+</style>
+</head>
+
+<body>
+
+	<div class="menu-container">
+
+		<input type="checkbox" id="menu1">
+		<label class="menu config" for="menu1">
+			<div class="name">Menu Config widget example</div>
+			<div class="symbol">OPT_BOOL</div>
+			<label class="bool">
+				<input type="checkbox">
+				<span class="slider"></span>
+			</label>
+		</label>
+
+		<div class="menuitems">
+
+			<div class="config">
+				<div class="name">Tristate option widget example</div>
+				<div class="symbol">OPT_TRISTATE</div>
+				<div class="tristate" id="tristate-test">
+					<div>N</div>
+					<div>M</div>
+					<div>Y</div>
+				</div>
+			</div>
+
+			<div class="config">
+				<div class="name">Bool option widget example</div>
+				<div class="symbol">OPT_BOOL</div>
+				<label class="bool">
+					<input type="checkbox">
+					<span class="slider"></span>
+				</label>
+			</div>
+
+			<div class="config">
+				<div class="name">String/Int/Hex option widget example</div>
+				<div class="symbol">OPT_STRING</div>
+				<input type="text">
+			</div>
+
+			<div class="config">
+				<div class="name">Choice option widget example</div>
+				<div class="symbol">OPT_CHOICE</div>
+				<select>
+					<option value="choice1">Choice option 1</option>
+					<option value="choice2">Choice option 2</option>
+					<option value="choice3">Choice option 3</option>
+					<option value="choice4">Choice option 4</option>
+					<option value="choice5">Choice option 5</option>
+					<option value="choice6">Choice option 6</option>
+				</select>
+			</div>
+
+		</div>
+	</div>
+
+	<div class="menu-container">
+		<input type="checkbox" id="menu2">
+		<label class="config" for="menu2">
+			<div class="name">Menu Widget</div>
+		</label>
+
+		<div class="menuitems">
+			<div class="config">
+				<div class="name">Example 1</div>
+				<div class="symbol">OPT_EXAMPLE1</div>
+				<div class="tristate" id="tristate-test">
+					<div>N</div>
+					<div>M</div>
+					<div>Y</div>
+				</div>
+			</div>
+			<div class="config">
+				<div class="name">Example 2</div>
+				<div class="symbol">OPT_EXAMPLE2</div>
+				<div class="tristate" id="tristate-test">
+					<div>N</div>
+					<div>M</div>
+					<div>Y</div>
+				</div>
+			</div>
+			<div class="config">
+				<div class="name">Example 3</div>
+				<div class="symbol">OPT_EXAMPLE3</div>
+				<div class="tristate" id="tristate-test">
+					<div>N</div>
+					<div>M</div>
+					<div>Y</div>
+				</div>
+			</div>
+
+			<div class="menu-container">
+				<input type="checkbox" id="submenu1">
+				<label class="menu config" for="submenu1">
+					<div class="name">Menu Config widget example(Nested)</div>
+					<div class="symbol">OPT_BOOL</div>
+					<label class="bool">
+						<input type="checkbox">
+						<span class="slider"></span>
+					</label>
+				</label>
+		
+				<div class="menuitems">
+		
+					<div class="config">
+						<div class="name">Tristate option widget example</div>
+						<div class="symbol">OPT_TRISTATE</div>
+						<div class="tristate" id="tristate-test">
+							<div>N</div>
+							<div>M</div>
+							<div>Y</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		var elems = document.getElementsByClassName("tristate");
+		Array.prototype.forEach.call(elems, (e) => {
+			e.addEventListener("click", () => {
+				// Change triangle state: no -> mod -> yes -> no -> ...
+				switch (e.dataset.value) {
+					case "mod":
+						e.dataset.value = "yes";
+						break;
+					case "yes":
+						e.dataset.value = "no";
+						break;
+					case "no":
+					default:
+						e.dataset.value = "mod";
+						break;
+				}
+			});
+		})
+	</script>
+</body>
+</html>

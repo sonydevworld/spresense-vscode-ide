@@ -6,7 +6,7 @@
 
 [Spresense](https://developer.sony.com/develop/spresense/) is a compact development board based on Sony’s power-efficient multicore microcontroller CXD5602. It allows developers to create applications in a very short time and is supported by Spresense VSCode IDE.
 
-<img src="https://raw.githubusercontent.com/SPRESENSE/spresense-vscode-ide/extension_images/images/ScreenImage_en.png" width="80%">
+<img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/ScreenImage_en.png" width="80%">
 
 ## Limitation
 
@@ -26,7 +26,7 @@ Please follow to the official documentation [Spresense Documents](https://develo
 
 [Spresense](https://developer.sony.com/ja/develop/spresense/) は ソニーが開発したスマートセンシングプロセッサー 「CXD5602」 が搭載されたボードです。Spresense VSCode IDEを使うことで、手軽にアプリケーションを開発することができます。
 
-<img src="https://raw.githubusercontent.com/SPRESENSE/spresense-vscode-ide/extension_images/images/ScreenImage_ja.png" width="80%">
+<img src="https://raw.githubusercontent.com/sonydevworld/spresense-vscode-ide/master/images/ScreenImage_ja.png" width="80%">
 
 ## 制限事項
 

@@ -38,6 +38,7 @@ const YMN = {0: "n", 1: "m", 2: "y"};
 
 // To use dependency calculation
 const y = true;
+const m = true;
 const n = false;
 
 // Set class "inactive" or "invisible", it is for view mode of
@@ -47,12 +48,27 @@ var inactive;
 // Communicate with VS Code
 const vscode = acquireVsCodeApi();
 
+// Object databases
 var optiondb;
+var menuList;
+var commentList;
+var tristateList;
 
 // Hold a status of building widget class tree. If it is true,
 // no propagation is running caused by value changes.
 
 var underConstruction;
+
+// menu_id is for set ID to menu checkbox
+var menu_id;
+
+// The choice option has not the actual symbol, so we need to
+// assign the ID for scroll to them.
+var choice_id;
+
+// modules option, it would be BoolWidget actually.
+// the Modules option will be affected to tristate options.
+var MODULES;
 
 /**
  * Internal mini database for widget management.
@@ -103,7 +119,6 @@ class OptionDatabase {
 class BaseWidget {
 
 	constructor(node) {
-		var row;
 
 		this._node = node;
 		this._active = true;
@@ -116,99 +131,56 @@ class BaseWidget {
 		// is only useful for ChoiceWidget;
 		this._dependDone = false;
 
-		// Create widget container
+		// Create base div tag with config class.
 		this._element = document.createElement("div");
-		if (node.name) {
-			this._element.id = node.name;
-		}
-		this._element.classList.add("widget");
+		this._element.classList.add("config");
 
-		// 1st row: hierarchy text
-		row = document.createElement("p");
-		row.className = "hierarchy";
-		row.innerHTML = node.hierarchy;
-		this._element.appendChild(row);
+		if (node.prompt) {
+			let e = document.createElement("div");
+			e.className = "prompt";
+			e.innerHTML = node.prompt;
+			e.addEventListener("click", event => {
+				let help = document.getElementById("help");
+				if (node["help"] != null) {
+					help.innerHTML = node.help.replace(/\n/g,"<br>");
+				} else {
+					help.innerHTML = DEFAULT_HELP;
+				}
 
-		// 2nd row: config prompt and inputs (checkbox, string, etc...)
-		row = document.createElement("div");
+				// Append dependency information
+				let dep = "";
+				if (node.cond && node.cond != "y") {
+					dep += "<br>Depends on: " + node.cond;
+				}
+				if (node.selects) {
+					for (let s of node.selects) {
+						dep += "<br>Selects: " + s.symbol;
+						if (s.cond && s.cond != "y") {
+							dep += " if " + s.cond;
+						}
+					}
+				}
 
-		// Now only create element for prompt
-		// input element would be added at subclasses.
-		var _prompt = document.createElement("h3");
-		_prompt.className = "prompt";
-		_prompt.innerHTML = node.prompt;
-		row.appendChild(_prompt);
-		this._element.appendChild(row);
-
-		// No prompted option never shown in the UI.
-		if (!node.prompt) {
+				if (dep.length > 0) {
+					help.innerHTML += "<br>" + dep;
+				}
+			});
+			this._element.appendChild(e);
+		} else {
 			this._element.classList.add("no-prompt");
 		}
 
-		// 3rd row: config symbol
-		row = document.createElement("div");
-		row.className = "config-and-input";
-		if (node.name) {
-			var _name = document.createElement("p");
-			_name.innerHTML = node.name;
-			_name.className = "config-symbol";
-			row.appendChild(_name);
-		}
-		this._element.appendChild(row);
-
-		// 4th row: help
-		row = document.createElement("p");
-		row.className = "config-help";
-		if (node.help) {
-			row.innerHTML = node.help.replace(/\n/g, "<br>");
-		} else {
-			row.innerHTML = DEFAULT_HELP;
-		}
-		this._element.appendChild(row);
-
-		// 5th row: dependency
-		row = document.createElement("div");
-		if (node.cond && node.cond != "y") {
-			var _cond = document.createElement("p");
-			_cond.innerHTML = "Depends on: " + node.cond;
-			_cond.className = "config-cond";
-			row.appendChild(_cond);
-		}
-		if (node.selects) {
-			for (var s of node.selects) {
-				var e = document.createElement("p");
-				e.innerHTML = "Selects: " + s.symbol;
-				if (s.cond && s.cond != "y") {
-					e.innerHTML += " if " + s.cond;
-				}
-				row.appendChild(e);
-			}
+		if (node["name"] != null) {
+			let e = document.createElement("div");
+			e.className = "symbol";
+			e.innerHTML = node.name;
+			this._element.appendChild(e);
+			this._element.id = node.name;
 		}
 
-		// Add dependency div tag only if existed. This is for reducing
-		// a number of tags.
-
-		if (row.innerHTML.length > 0) {
-			this._element.appendChild(row);
-		}
-
-		this.value = node.value;
-		this.user_value = node.user_value || undefined;
-	}
-
-	/**
-	 * Add input element (checkbox, text and select) into widget
-	 *
-	 * @param {HTMLElement} _input
-	 */
-
-	addInputField(_input) {
-		var elem = this._element.getElementsByClassName("config-and-input")[0];
-		var child = elem.getElementsByClassName("config-symbol");
-		if (child.length > 0) {
-			elem.insertBefore(_input, child[0]);
-		} else {
-			elem.appendChild(_input);
+		if (node["value"] != null) {
+			this.value = node.value;
+			this.user_value = node.user_value || undefined;
 		}
 	}
 
@@ -463,18 +435,31 @@ class BaseWidget {
 	}
 }
 
+// FIXME: bool type option can be used in <expr> style,
+// So we need to process them except 'ymn' values.
+
 class BoolWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
 
 		this.user_value = YMN[node.user_value];
 		this.classDefault = "n";
+		this.modules = node["modules"] != null ? true : false;
 
-		this._element.classList.add("boolean");
+		this._body = this._element;
+		if (node["menuconfig"] != null && node.menuconfig) {
+			// Replace responsive element to menu container
+
+			this.transformMenuConfig();
+		}
+
+		let label = document.createElement("label");
+		label.className = "bool";
+		this._body.appendChild(label);
+
 		this._input = document.createElement("input");
 		this._input.type = "checkbox";
 		this._input.checked = this.value === "y";
-		this.addInputField(this._input);
 
 		this._input.addEventListener("change", (event) => {
 			this.value = event.target.checked ? "y" : "n";
@@ -484,7 +469,15 @@ class BoolWidget extends BaseWidget {
 			}
 			this.user_value = this.value;
 			this.propagate();
+			if (MODULES === this) {
+				invalidateTristate();
+			}
 		});
+
+		let slider = document.createElement("span");
+		slider.className = "slider";
+
+		label.append(this._input, slider);
 
 		this.setInitialState();
 	}
@@ -512,10 +505,43 @@ class BoolWidget extends BaseWidget {
 			this.value = x;
 			this._input.checked = x === "y";
 			this.propagate();
+			if (MODULES === this) {
+				invalidateTristate();
+			}
 			return true;
 		}
 
 		return false;
+	}
+
+	transformMenuConfig() {
+		this._element = document.createElement("div");
+		this._element.classList.add("menu-container");
+
+		let id = "menu-" + menu_id++;
+		let input = document.createElement("input");
+		let label = document.createElement("label");
+		let prompt = document.createElement("div");
+		let symbol = document.createElement("div");
+		input.type = "checkbox";
+		input.id = id;
+		label.classList.add("menu", "config");
+		label.setAttribute("for", id);
+
+		prompt.innerHTML = this._node.prompt;
+		prompt.className = "prompt";
+		symbol.innerHTML = this._node.name;
+		symbol.className = "symbol";
+		label.id = this._node.name;
+		label.append(prompt, symbol);
+		// Switch control box to label
+		this._body = label;
+
+		// Create menuitems property to hold configs under this menu.
+		this.menuitems = document.createElement("div");
+		this.menuitems.className = "menuitems";
+
+		this._element.append(input, label, this.menuitems);
 	}
 }
 
@@ -528,7 +554,7 @@ class HexWidget extends BaseWidget {
 		this._input = document.createElement("input");
 		this._input.type = "text";
 		this._input.spellcheck = false;
-		this.addInputField(this._input);
+		this._element.appendChild(this._input);
 
 		this._input.addEventListener("keyup", (event) => {
 			var _pat = /^0x[0-9a-fA-F]+$/;
@@ -560,13 +586,13 @@ class IntWidget extends BaseWidget {
 		this._input.type = "text";
 		this._input.spellcheck = false;
 		this._input.value = this.value;
-		this.addInputField(this._input);
+		this._element.appendChild(this._input);
 
 		this._input.addEventListener("keyup", (event) => {
 			this.checkRange();
 		});
 
-		this._input.addEventListener("change", () => {
+		this._input.addEventListener("change", (event) => {
 			this.value = this.user_value = event.target.value;
 			this.propagate();
 		});
@@ -612,28 +638,96 @@ class IntWidget extends BaseWidget {
 	}
 }
 
-/*
- * Tristate is not supported because of kconfiglib.py.
- */
 class TristateWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
-		this._element.classList.add("tristate");
-		var _input = document.createElement("select");
-		var _y = document.createElement("option");
-		var _n = document.createElement("option");
-		var _m = document.createElement("option");
-		_y.value = "y";
-		_y.innerText = "Yes";
-		_n.value = "n";
-		_n.innerHTML = "No";
-		_m.value = "m"
-		_m.innerHTML = "Module";
 
-		_input.appendChild(_y);
-		_input.appendChild(_n);
-		_input.appendChild(_m);
-		this.addInputField(_input);
+		this.classDefault = "n";
+		this.user_value = YMN[node.user_value];
+
+		this._tristate = document.createElement("div");
+		let _n = document.createElement("div");
+		let _m = document.createElement("div");
+		let _y = document.createElement("div");
+
+		_n.innerHTML = "N";
+		_m.innerHTML = "M";
+		_y.innerHTML = "Y";
+
+		this._tristate.append(_n, _m, _y);
+		this._tristate.className = "tristate";
+		this._tristate.dataset.value = this.value;
+		this._tristate.addEventListener("click", (event) => {
+			this.tristate_next();
+		});
+		this._element.append(this._tristate);
+
+		this._m = _m;
+		this.setInitialState();
+	}
+
+	activated() {
+		this._tristate.classList.remove("disabled");
+	}
+
+	deactivated() {
+		this._tristate.classList.add("disabled");
+	}
+
+	set_value(x) {
+		if (x === undefined) {
+			x = this.getDefault();
+		}
+
+		this.user_value = x;
+		if (this.value !== x) {
+			this.value = x;
+			this._tristate.dataset.value = this.value;
+			this.propagate();
+			return true;
+		}
+
+		return false;
+	}
+
+	tristate_next() {
+		if (this._tristate.classList.contains("disabled")) {
+			return;
+		}
+
+		switch (this.value) {
+			case "n":
+				if (MODULES.value == "y") {
+					this.value = 'm';
+				} else {
+					this.value = 'y';
+				}
+				break;
+			case "m":
+				this.value = 'y';
+				break;
+			case "y":
+				this.value = 'n';
+				break;
+		}
+		this._tristate.dataset.value = this.user_value = this.value;
+		this.propagate();
+	}
+
+	// Special method to reflect MODULES option changes.
+	// user_value member is not changed in here because it holds user
+	// selected data, and it will be restored by MODULES enabled again.
+
+	modulesChange(enable) {
+		if (enable) {
+			this._m.innerHTML = "M";
+			this._tristate.dataset.value = this.value = this.user_value;
+		} else {
+			this._m.innerHTML = "-";
+			if (this.value == 'm') {
+				this._tristate.dataset.value = this.value = 'y';
+			}
+		}
 	}
 }
 
@@ -646,7 +740,7 @@ class StringWidget extends BaseWidget {
 		this._input.type = "text";
 		this._input.spellcheck = false;
 		this._input.value = node.value;
-		this.addInputField(this._input);
+		this._element.appendChild(this._input);
 
 		this._input.addEventListener("change", () => {
 			this.value = this.user_value = this._input.value;
@@ -661,11 +755,12 @@ class ChoiceWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
 		this._element.classList.add("choice");
+		this._element.id = "choice-" + choice_id++;
 		this._options = [];
 		this._input = document.createElement("select");
 
 		this.createSelectInputField();
-		this.addInputField(this._input);
+		this._element.appendChild(this._input);
 
 		this.classDefault = this._input.options[0].id;
 
@@ -822,127 +917,145 @@ class ChoiceOption extends BaseWidget {
 	}
 }
 
-function promptToId(str) {
-	return str.toLowerCase().replace(/\s/g, "-");;
+class MenuWidget extends BaseWidget {
+	constructor (node) {
+		super(node);
+
+		// Add special menu container for create new menu structure
+		// to use expandable menu.
+		this._element = document.createElement("div");
+		this._element.classList.add("menu-container");
+
+		let id = "menu-" + menu_id++;
+		let input = document.createElement("input");
+		let label = document.createElement("label");
+		let prompt = document.createElement("div");
+		input.type = "checkbox";
+		input.id = id;
+		label.classList.add("menu", "config");
+		label.setAttribute("for", id);
+		label.id = id + "-label";
+		prompt.innerHTML = node.prompt;
+		prompt.classList.add("prompt");
+		label.appendChild(prompt);
+
+		this.menuitems = document.createElement("div");
+		this.menuitems.className = "menuitems";
+
+		this._element.append(input, label, this.menuitems);
+
+		this.setInitialState();
+	}
+
+	activated() {
+		// do nothing
+	}
+	deactivated() {
+		// do nothing
+	}
+	set_value() {
+		return true;
+	}
 }
 
-function createCommentWidget(node) {
-	var e = document.createElement("p");
-	e.className = "comment";
-	e.innerHTML = node.prompt;
-	return e;
+class CommentWidget extends BaseWidget {
+	constructor(node) {
+		super(node);
+		this._element.classList.add("comment");
+
+		this.setInitialState();
+	}
+
+	activated() {
+		// do nothing
+	}
+	deactivated() {
+		// do nothing
+	}
+	set_value() {
+		return true;
+	}
+}
+
+function promptToId(str) {
+	return str.toLowerCase().replace(/\s/g, "-");;
 }
 
 function widgetFactory(node) {
 	var widget;
 
-	if (node.type == COMMENT) {
-		return null; // Ignore comments
-	}
-	else if (node.type == BOOL) {
-		widget = new BoolWidget(node);
-	}
-	else if (node.type == HEX) {
-		widget = new HexWidget(node);
-	}
-	else if (node.type == INT) {
-		widget = new IntWidget(node);
-	}
-	else if (node.type == TRISTATE) {
-		// May not comes here because kconfiglib.py is not supported to
-		// treat tristate. They treated as a boolean.
-		widget = new TristateWidget(node);
-	}
-	else if (node.type == STRING) {
-		widget = new StringWidget(node);
-	}
-	else if (node.type == CHOICE) {
-		widget = new ChoiceWidget(node);
-	}
-	else {
-		console.log("ignore type " + node.type);
-		return null; // may not comes here
+	switch (node.type) {
+		case COMMENT:
+			widget = new CommentWidget(node);
+			commentList.push(widget);
+			break;
+
+		case MENU:
+			widget = new MenuWidget(node);
+			menuList.push(widget);
+			break;
+
+		case BOOL:
+			widget = new BoolWidget(node);
+			if (widget.modules) {
+				console.log("MODULE option is " + widget.name);
+				MODULES = widget;
+			}
+			optiondb.set(widget.name, widget);
+			break;
+
+		case HEX:
+			widget = new HexWidget(node);
+			optiondb.set(widget.name, widget);
+			break;
+
+		case INT:
+			widget = new IntWidget(node);
+			optiondb.set(widget.name, widget);
+			break;
+
+		case TRISTATE:
+			widget = new TristateWidget(node);
+			optiondb.set(widget.name, widget);
+			tristateList.push(widget);
+			break;
+
+		case STRING:
+			widget = new StringWidget(node);
+			optiondb.set(widget.name, widget);
+			break;
+
+		case CHOICE:
+			widget = new ChoiceWidget(node);
+			break;
+
+		default:
+			console.log("ignore type " + node.type);
+			return null; // may not comes here
 	}
 
-	// Add created widget to database except Choice widget,
-	// because it is special widget, actual configuration symbols are
-	// ChoiceOption, and they were added at ChoiceWidget constructor.
-
-	if (node.type != CHOICE) {
-		optiondb.set(widget.name, widget);
-	}
-
-	return widget.element;
+	return widget;
 }
 
-function layoutConfigs(parent, list, hierarchy) {
+function layoutConfigs(parent, list) {
 
 	for (let n of list) {
-		var elem;
+		let widget = widgetFactory(n);
+		if (widget) {
+			parent.appendChild(widget.element);
 
-		n.hierarchy = hierarchy;
-		if (n.type != MENU) {
-			var widget = widgetFactory(n);
-			if (widget) {
-				parent.appendChild(widget);
-				elem = widget;
+			if (n.children && !(widget instanceof ChoiceWidget)) {
+
+				if (widget["menuitems"] != null) {
+					layoutConfigs(widget.menuitems, n.children);
+				} else {
+					// Add children to the same lavel of this widget, it
+					// may be bool option.
+					layoutConfigs(parent, n.children);
+				}
 			}
-		} else {
-			// Only first level menu nodes.
-			elem = document.createElement("div");
-			if (hierarchy.length === 0) {
-				var menu = document.createElement("h2");
-				menu.id = promptToId(n.prompt);
-				menu.className = "menu-title";
-				menu.innerHTML = n.prompt;
-				elem.appendChild(menu);
-			}
-			parent.appendChild(elem);
-		}
-
-		if (n.children && n.type != CHOICE) {
-			var h;
-			if (hierarchy.length == 0) {
-				h = n.prompt;
-			} else {
-				h = hierarchy + " &#10148; " + n.prompt;
-			}
-
-			console.assert(elem, `${n}`);
-
-			// node-child div is just a container for cancelling filter.
-
-			var container = document.createElement("div");
-			container.className = "node-child";
-			container.dataset.prompt = n.prompt;
-			container.appendChild(elem);
-			parent.appendChild(container);
-
-			layoutConfigs(container, n.children, h);
 		}
 	}
-}
-
-function createSubMenuItem(node) {
-	var m = document.createElement("li");
-	var a = document.createElement("a");
-	a.innerHTML = node.prompt;
-	a.href = "#" + promptToId(node.prompt);
-	m.appendChild(a);
-	return m;
-}
-
-function createSubmenu(list) {
-	var submenu = document.createElement("ul");
-
-	// List only first level menus at sub menu.
-	for (let n of list) {
-		if (n.type == MENU || n.menuconfig == true) {
-			submenu.appendChild(createSubMenuItem(n));
-		}
-	}
-
-	return submenu;
 }
 
 function getConfiguredValue(name) {
@@ -981,20 +1094,33 @@ function evaluateStr(s) {
 	return eval(_s);
 }
 
+function invalidateTristate() {
+	if (MODULES != null) {
+		for (let t of tristateList) {
+			t.modulesChange(MODULES.value == "y");
+		}
+	}
+}
+
 function constructTree(data) {
-	var category = document.getElementById("category");
 	var configs = document.getElementById("configs");
 
+	// Initialize globals
 	optiondb = new OptionDatabase();
+	menuList = [];
+	commentList = [];
+	tristateList = [];
+	MODULES = null;
 
 	if (!data.children) {
 		return;
 	}
 
-	category.appendChild(createSubmenu(data.children));
+	menu_id = 0;
+	choice_id = 0;
 
 	underConstruction = true;
-	layoutConfigs(configs, data.children, "");
+	layoutConfigs(configs, data.children);
 	underConstruction = false;
 
 	vscode.postMessage({command: "loading", content: 50});
@@ -1002,28 +1128,140 @@ function constructTree(data) {
 	for (let opt of optiondb) {
 		opt.depend();
 	}
+	for (let m of menuList) {
+		m.depend();
+	}
+	for (let c of commentList) {
+		c.depend();
+	}
+
+	// Invalidate tristate widgets by MODULES option
+	invalidateTristate();
 
 	vscode.postMessage({command: "loading", content: 100});
 }
 
-function filterConfigs() {
-	var input = document.getElementById("search-box");
-	var filter = input.value.toLowerCase();
-	var widgets = document.getElementsByClassName("widget");
+function expandConfig(node) {
+	if (node.parentNode.classList.contains("contents")) {
+		// Break when reached to root node of config contents
+		return;
+	}
 
-	for (var w of widgets) {
-		var prompt = w.getElementsByTagName("h3")[0];
-		if (prompt == undefined) continue;
-		var txt = prompt.textContent || prompt.innerText;
-		var h = w.getElementsByClassName("hierarchy")[0];
-		txt += " " + h.textContent || h.innerText;
-		txt += " " + w.id;
-		if (txt.toLowerCase().indexOf(filter) > -1) {
-			w.style.display = "";
+	// Menu trees are constructed with .menu-container > .menuitem > .config,
+	// and menu expand/collapse with hidden checkbox in .menu-container.
+
+	let parent = node.parentNode.parentNode;
+	let input = parent.querySelector("input");
+	input.checked = true;
+
+	expandConfig(parent);
+}
+
+function jumpToConfig(event) {
+	// Delegate events from child
+	let sym;
+	if (event.target.className === "item") {
+		sym = event.target.dataset.symbol;
+	} else {
+		sym = event.target.parentNode.dataset.symbol;
+	}
+
+	let opt = document.getElementById(sym);
+	if (opt) {
+		if (opt.tagName === "LABEL") {
+			if (!opt.parentNode.parentNode.classList.contains("contents")) {
+				expandConfig(opt.parentNode);
+			}
 		} else {
-			w.style.display = "none";
+			expandConfig(opt);
+		}
+		opt.scrollIntoView();
+	} else {
+		console.log("No symbols for " + event.target.textContent);
+	}
+}
+
+function createResultItem(config, prompt) {
+	let item = document.createElement("div");
+
+	item.className = "item";
+	item.appendChild(prompt.cloneNode(true));
+	item.addEventListener("click", jumpToConfig);
+	item.dataset.symbol = config.id;
+
+	if (!config.id.match(/^choice-\d+/) && config.tagName !== "LABEL") {
+		const sym = document.createElement("div");
+		sym.innerHTML = config.id;
+		sym.className = "symbol";
+		item.appendChild(sym);
+	}
+
+	return item;
+}
+
+/**
+ * The prompt and symbol test function
+ *
+ * This function would be called by eval() in filterConfigs().
+ */
+
+function _test(prompt, symbol, keyword) {
+	if (keyword.startsWith('CONFIG_')) {
+		const re = new RegExp(keyword.replace("CONFIG_", ""));
+		return symbol.search(re) >= 0;
+	} else {
+		const re = new RegExp(keyword, "i");
+		return prompt.search(re) >= 0 || symbol.search(re) >= 0;
+	}
+}
+
+function filterConfigs() {
+	const input = document.getElementById("search-box");
+	const results = document.getElementById("search-results");
+
+	results.innerHTML = ""; // Clear all of child nodes
+
+	if (input.value === "") {
+		document.getElementById("search-results").dataset.show = false;
+		return;
+	}
+
+	const configs = document.getElementById("configs").querySelectorAll(".config:not(.no-prompt):not(.invisible):not(.comment)")
+
+	let nfound = false;
+	for (let n of configs) {
+		// Ignore invisible menu
+		if (n.tagName === "LABEL" && n.parentNode.classList.contains("invisible")) {
+			continue;
+		}
+
+		let symbol = n.id;
+		if (n.classList.contains("menu") && !n.dataset.hasSymbol) {
+			symbol = "";
+		}
+
+		let prompt = n.querySelector(".prompt");
+		let formula = input.value.replace(/&/g, "&&").replace(/[|]/g, "||");
+		formula = formula.replace(/\w*/g, (match) => {
+			if (match.length == 0) {
+				// XXX: This regexp pattern matches zero length string.
+				// I don't know why match it, ignore anyway.
+				return "";
+			}
+			const text = prompt.textContent.replace(/"/g, '\\"');
+			return `_test("${text}", '${symbol}', '${match}')`;
+		});
+
+		try {
+			if (eval(formula)) {
+				results.appendChild(createResultItem(n, prompt));
+				nfound = true;
+			}
+		} catch(error) {
+			break;
 		}
 	}
+	document.getElementById("search-results").dataset.show = nfound;
 }
 
 function generateConfigFileContent() {
@@ -1038,10 +1276,12 @@ function generateConfigFileContent() {
 
 		if (opt instanceof StringWidget) {
 			config = `CONFIG_${opt.name}="${opt.value}"`;
-		} else if (opt instanceof BoolWidget || opt instanceof ChoiceOption) {
+		} else if (opt instanceof BoolWidget || opt instanceof ChoiceOption || opt instanceof TristateWidget) {
 			if (opt.value === "y" || opt.value === "2") {
 				config = `CONFIG_${opt.name}=y`;
-			} else {
+			} else if (opt.value === "m" || opt.value === "1") {
+				config = `CONFIG_${opt.name}=m`;
+			} else if (opt.value === "n" || opt.value === "0") {
 				config = `# CONFIG_${opt.name} is not set`;
 			}
 		} else {
@@ -1111,6 +1351,16 @@ function loadConfig(buf) {
 	}
 }
 
+function changeVisibility() {
+	const old = inactive;
+	inactive = inactive === "invisible" ? "inactive" : "invisible";
+	const configs = document.querySelectorAll("." + old);
+
+	for (let n of configs) {
+		n.classList.replace(old, inactive);
+	}
+}
+
 function main() {
 
 	if (document.body.dataset.mode === "Kernel") {
@@ -1118,9 +1368,34 @@ function main() {
 	} else {
 		inactive = "inactive";
 	}
+	if (document.body.dataset.mode === undefined) { // SDK2.0
+		inactive = "invisible";
+	}
+
+	// Apply inactive type to visibility icon
+	if (inactive === "invisible") {
+		document.getElementById("visibility-icon").classList.add("off");
+	}
 
 	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
 	document.getElementById("search-box").addEventListener("search", filterConfigs);
+	document.getElementById("search-icon").addEventListener("click", event => {
+		let search = document.getElementById("search");
+		search.classList.toggle("show");
+		if (search.classList.contains("show")) {
+			document.getElementById("search-box").focus();
+		}
+	});
+
+	document.getElementById("visibility-icon").addEventListener("click", event => {
+		document.getElementById("visibility-icon").classList.toggle("off");
+		changeVisibility();
+
+		// Clear search box for prevent search result is affected by
+		// config visibility.
+		document.getElementById("search-box").value = "";
+		filterConfigs();
+	});
 
 	document.getElementById("new").addEventListener("click", event => {
 		vscode.postMessage({command: "get-defconfigs"});
