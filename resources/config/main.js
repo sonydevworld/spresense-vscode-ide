@@ -853,6 +853,7 @@ class ChoiceOption extends BaseWidget {
 
 		// Replace element
 		this._element = document.createElement("option");
+		this._element.classList.add("choice-opt", "config");
 		this._element.id = node.name;
 		this._element.innerHTML = node.prompt;
 
@@ -1149,8 +1150,12 @@ function expandConfig(node) {
 
 	// Menu trees are constructed with .menu-container > .menuitem > .config,
 	// and menu expand/collapse with hidden checkbox in .menu-container.
+	// so parent variable pointed must be .menu-container.
 
 	let parent = node.parentNode.parentNode;
+	if (node.tagName === "OPTION") {
+		parent = parent.parentNode.parentNode;
+	}
 	let input = parent.querySelector("input");
 	input.checked = true;
 
@@ -1175,7 +1180,14 @@ function jumpToConfig(event) {
 		} else {
 			expandConfig(opt);
 		}
-		opt.scrollIntoView();
+
+		// option tag can't use scrollIntoView() function, so we jump into
+		// parent div tag (div > select > option).
+		if (opt.tagName === "OPTION") {
+			opt.parentNode.parentNode.scrollIntoView();
+		} else {
+			opt.scrollIntoView();
+		}
 	} else {
 		console.log("No symbols for " + event.target.textContent);
 	}
@@ -1184,8 +1196,12 @@ function jumpToConfig(event) {
 function createResultItem(config, prompt) {
 	let item = document.createElement("div");
 
+	const p = document.createElement("div");
+	p.className = "prompt";
+	p.innerText = prompt.innerText;
+
 	item.className = "item";
-	item.appendChild(prompt.cloneNode(true));
+	item.appendChild(p);
 	item.addEventListener("click", jumpToConfig);
 	item.dataset.symbol = config.id;
 
@@ -1230,8 +1246,11 @@ function filterConfigs() {
 
 	let nfound = false;
 	for (let n of configs) {
-		// Ignore invisible menu
+		// Ignore invisible menu and invisible choice options
 		if (n.tagName === "LABEL" && n.parentNode.classList.contains("invisible")) {
+			continue;
+		}
+		if (n.tagName === "OPTION" && n.parentNode.parentNode.classList.contains("invisible")) {
 			continue;
 		}
 
@@ -1241,6 +1260,9 @@ function filterConfigs() {
 		}
 
 		let prompt = n.querySelector(".prompt");
+		if (n.tagName == "OPTION") {
+			prompt = n;
+		}
 		let formula = input.value.replace(/&/g, "&&").replace(/[|]/g, "||");
 		formula = formula.replace(/\w*/g, (match) => {
 			if (match.length == 0) {
