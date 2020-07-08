@@ -525,14 +525,15 @@ class BoolWidget extends BaseWidget {
 		let symbol = document.createElement("div");
 		input.type = "checkbox";
 		input.id = id;
-		label.classList.add("menu", "config");
-		label.setAttribute("for", id);
 
 		prompt.innerHTML = this._node.prompt;
 		prompt.className = "prompt";
 		symbol.innerHTML = this._node.name;
 		symbol.className = "symbol";
+		label.classList.add("menu", "config");
+		label.setAttribute("for", id);
 		label.id = this._node.name;
+		label.dataset.hasSymbol = "1";
 		label.append(prompt, symbol);
 		// Switch control box to label
 		this._body = label;
@@ -1205,7 +1206,7 @@ function createResultItem(config, prompt) {
 	item.addEventListener("click", jumpToConfig);
 	item.dataset.symbol = config.id;
 
-	if (!config.id.match(/^choice-\d+/) && config.tagName !== "LABEL") {
+	if (!config.id.match(/^choice-\d+/) && !config.id.match(/menu-\d+-label/)) {
 		const sym = document.createElement("div");
 		sym.innerHTML = config.id;
 		sym.className = "symbol";
