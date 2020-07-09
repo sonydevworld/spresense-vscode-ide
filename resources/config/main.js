@@ -292,7 +292,7 @@ class BaseWidget {
 
 		if (this._active) {
 			// Use current value if already active
-			val = self.value;
+			val = this.value;
 		} else {
 			// Use user configured value if no selected and no implied.
 			// If user_value is undefined, then fall into default value.
@@ -769,7 +769,7 @@ class ChoiceWidget extends BaseWidget {
 			for (let opt of this._options) {
 				opt.select(opt.name === event.target.selectedOptions[0].id ? "y" : "n");
 			}
-			this.user_value = event.target.selectedOptions[0].id;
+			this.value = this.user_value = event.target.selectedOptions[0].id;
 		});
 
 		this.setInitialState();
@@ -782,7 +782,7 @@ class ChoiceWidget extends BaseWidget {
 			this._options.push(opt);
 			this._input.add(opt.element);
 			if (n.value === "y") {
-				selected = opt.name;
+				this.value = selected = opt.name;
 			}
 
 			// Add choice option to database
