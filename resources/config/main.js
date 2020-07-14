@@ -85,8 +85,10 @@ class OptionDatabase {
 		if (!this.db[symbol]) {
 			this.db[symbol] = obj;
 		} else if (this.db[symbol] instanceof Array) {
+			obj.duplicated = true;
 			this.db[symbol].push(obj);
 		} else {
+			obj.duplicated = true;
 			let first = this.db[symbol];
 			this.db[symbol] = [first, obj];
 		}
@@ -1291,6 +1293,10 @@ function generateConfigFileContent() {
 	var buf = [];
 
 	for (let opt of optiondb) {
+		if (opt.duplicated) {
+			// Ignore duplicated options
+			continue;
+		}
 		if (!opt.active) {
 			continue;
 		}
