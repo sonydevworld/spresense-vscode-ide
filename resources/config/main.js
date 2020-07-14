@@ -1320,7 +1320,7 @@ function generateConfigFileContent() {
 		buf.push(config);
 	}
 
-	return buf.join("\n");
+	return buf.join("\n") + "\n";
 }
 
 /**
