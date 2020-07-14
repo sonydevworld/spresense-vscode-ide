@@ -127,7 +127,7 @@ class BaseWidget {
 		this._referenced = []; // Holds symbol list to refer
 		this._referrers = []; // Holds object list to referrers
 		this._selects = []; // Holds select element list
-		this.classDefault = ""; // Class default value
+		this.classDefault = undefined; // Class default value
 
 		// Flag for prevent multiple entering to depend(). This member
 		// is only useful for ChoiceWidget;
@@ -551,7 +551,6 @@ class BoolWidget extends BaseWidget {
 class HexWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
-		this.classDefault = "0x0";
 
 		this._element.classList.add("hex");
 		this._input = document.createElement("input");
@@ -582,7 +581,6 @@ class HexWidget extends BaseWidget {
 class IntWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
-		this.classDefault = "0";
 
 		this._element.classList.add("int");
 		this._input = document.createElement("input");
