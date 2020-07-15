@@ -127,7 +127,6 @@ class BaseWidget {
 		this._referenced = []; // Holds symbol list to refer
 		this._referrers = []; // Holds object list to referrers
 		this._selects = []; // Holds select element list
-		this.classDefault = undefined; // Class default value
 
 		// Flag for prevent multiple entering to depend(). This member
 		// is only useful for ChoiceWidget;
@@ -290,16 +289,9 @@ class BaseWidget {
 	}
 
 	handle_active() {
-		let val;
-
-		if (this._active) {
-			// Use current value if already active
-			val = this.value;
-		} else {
-			// Use user configured value if no selected and no implied.
-			// If user_value is undefined, then fall into default value.
-			val = this.user_value;
-		}
+		// Restore user value
+		// If user_value is undefined, evaluate default keyword later. 
+		let val = this.user_value;
 
 		if (this.isSelected()) {
 			// 'select'ed symbol is boolean option, so we set "y" constantly.
@@ -341,10 +333,7 @@ class BaseWidget {
 
 	/**
 	 * Get default value from defaults list.
-	 * If option node does not have defaults list, return classDefault
-	 * property.
-	 * classDefault is empty string, but some subclasses overwrites it by
-	 * specific default value.
+	 * If option node does not have defaults list, return undefined.
 	 */
 
 	getDefault() {
@@ -355,7 +344,7 @@ class BaseWidget {
 				}
 			}
 		}
-		return this.classDefault;
+		return undefined;
 	}
 
 	/**
@@ -369,8 +358,6 @@ class BaseWidget {
 			x = this.getDefault();
 		}
 
-		this.user_value = x;
-
 		if (this.value !== x) {
 			this.value = this._input.value = x;
 			this.propagate();
@@ -378,10 +365,6 @@ class BaseWidget {
 		}
 
 		return false;
-	}
-
-	unset_value() {
-		this.user_value = undefined;
 	}
 
 	propagate() {
@@ -445,7 +428,6 @@ class BoolWidget extends BaseWidget {
 		super(node);
 
 		this.user_value = YMN[node.user_value];
-		this.classDefault = "n";
 		this.modules = node["modules"] != null ? true : false;
 
 		this._body = this._element;
@@ -502,7 +484,6 @@ class BoolWidget extends BaseWidget {
 			x = "y";
 		}
 
-		this.user_value = x;
 		if (this.value !== x) {
 			this.value = x;
 			this._input.checked = x === "y";
@@ -643,7 +624,6 @@ class TristateWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
 
-		this.classDefault = "n";
 		this.user_value = YMN[node.user_value];
 
 		this._tristate = document.createElement("div");
@@ -680,7 +660,6 @@ class TristateWidget extends BaseWidget {
 			x = this.getDefault();
 		}
 
-		this.user_value = x;
 		if (this.value !== x) {
 			this.value = x;
 			this._tristate.dataset.value = this.value;
@@ -763,8 +742,6 @@ class ChoiceWidget extends BaseWidget {
 		this.createSelectInputField();
 		this._element.appendChild(this._input);
 
-		this.classDefault = this._input.options[0].id;
-
 		this._input.addEventListener("change", (event) => {
 			for (let opt of this._options) {
 				opt.select(opt.name === event.target.selectedOptions[0].id ? "y" : "n");
@@ -782,7 +759,7 @@ class ChoiceWidget extends BaseWidget {
 			this._options.push(opt);
 			this._input.add(opt.element);
 			if (n.value === "y") {
-				this.value = selected = opt.name;
+				this.value = this.user_value = selected = opt.name;
 			}
 
 			// Add choice option to database
@@ -807,7 +784,7 @@ class ChoiceWidget extends BaseWidget {
 				}
 			}
 		}
-		return this.classDefault;
+		return this._input.options[0].id;;
 	}
 
 	/**
@@ -818,14 +795,14 @@ class ChoiceWidget extends BaseWidget {
 	 */
 
 	set_value(val) {
-		if (!val) {
+		if (this.user_value === undefined && val === undefined) {
 			val = this.getDefault();
 		}
 
 		for (let opt of this._options) {
 			opt.select(opt.name === val ? "y" : "n");
 		}
-		this.user_value = val;
+		this.value = val;
 	}
 
 	activated() {
@@ -870,6 +847,7 @@ class ChoiceOption extends BaseWidget {
 
 	set_value(val) {
 		if (val === "y") {
+			this._parent.user_value = this.name;
 			this._parent.set_value(this.name);
 		}
 	}
@@ -911,7 +889,6 @@ class ChoiceOption extends BaseWidget {
 	select(val) {
 		this._element.selected = val === "y";
 
-		this.user_value = val;
 		if (this.value !== val) {
 			this.value = val;
 			this.propagate();
@@ -1299,6 +1276,9 @@ function generateConfigFileContent() {
 			continue;
 		}
 
+		if (opt.value === undefined) {
+			continue;
+		}
 		let config;
 
 		if (opt instanceof StringWidget) {
@@ -1312,7 +1292,7 @@ function generateConfigFileContent() {
 				config = `# CONFIG_${opt.name} is not set`;
 			}
 		} else {
-			// boolean, int and hex values
+			// int and hex values
 			config = `CONFIG_${opt.name}=${opt.value}`
 		}
 
@@ -1351,7 +1331,7 @@ function parseConfig(line) {
 function loadConfig(buf) {
 	// Reset user specified values
 	for (let opt of optiondb) {
-		opt.unset_value();
+		opt.user_value = undefined;
 	}
 
 	let enablement = {};
@@ -1364,15 +1344,18 @@ function loadConfig(buf) {
 
 	for (let opt of optiondb) {
 		let val = enablement[opt.name];
-		if (val && opt instanceof StringWidget) {
-			// Peek string value and check it is welformed.
-			let m = val.match(/"((?:[^"]|.)*)"/);
-			if (!m) {
-				console.warn(`Found malformed string value. Ignored. ${m[0]}`);
-				continue;
+		if (val) {
+			if (opt instanceof StringWidget) {
+				// Peek string value and check it is welformed.
+				let m = val.match(/"((?:[^"]|.)*)"/);
+				if (!m) {
+					console.warn(`Found malformed string value. Ignored. ${m[0]}`);
+					continue;
+				}
+				// Unescape
+				val = m[1].replace(/\\(.)/g, "$1");
 			}
-			// Unescape
-			val = m[1].replace(/\\(.)/g, "$1");
+			opt.user_value = val;
 		}
 		opt.set_value(val);
 	}
