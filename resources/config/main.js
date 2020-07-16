@@ -126,7 +126,6 @@ class BaseWidget {
 		this._active = true;
 		this._referenced = []; // Holds symbol list to refer
 		this._referrers = []; // Holds object list to referrers
-		this._selects = []; // Holds select element list
 
 		// Flag for prevent multiple entering to depend(). This member
 		// is only useful for ChoiceWidget;
@@ -214,29 +213,35 @@ class BaseWidget {
 			}
 		}
 
+		// Register 'select' and 'imply' keyword's dependency
+		// We need to inform the value changes from depended options
+		// in 'if <expr>'.
+
 		if (this._node.selects) {
 			for (var s of this._node.selects) {
-				var opt = optiondb.get(s.symbol);
-				if (opt) {
-					this._selects.push(opt);
-				}
+				this._register_select_deps(s);
 			}
 		}
 
-		// Add weak reverse refereces (imply) into select list.
-		// The operation for implies are the same with selects ones,
-		// send "evaluate" command, so set into the same list.
-
 		if (this._node.implies) {
 			for (var i of this._node.implies) {
-				var opt = optiondb.get(s.symbol);
-				if (opt) {
-					this._selects.push(opt);
-				}
+				this._register_select_deps(i);
 			}
 		}
 
 		this._dependDone = true;
+	}
+
+	_register_select_deps(sym) {
+		const syms = sym.cond.matchAll(/\w+/g);
+		for (let s of syms) {
+			if (s !== "y") {
+				let target = optiondb.get(s);
+				if (target) {
+					target.registerAdd(this);
+				}
+			}
+		}
 	}
 
 	_condIntoList(cond) {
@@ -298,7 +303,7 @@ class BaseWidget {
 			val = "y";
 		}
 
-		// Evaluate 'imply' keyword dependency
+		// Evaluate 'imply'ed keyword dependency
 		if (this._node.weak_rev_dep) {
 			val = evaluateStr(this._node.weak_rev_dep) ? "y" : "n";
 		}
@@ -308,6 +313,11 @@ class BaseWidget {
 
 		if (!this.set_value(val) && !this._active) {
 			this.propagate();
+		} else {
+			// We need to evaluate dependencies for 'select' and 'imply' except
+			// this option value is changed. Because there is possible to
+			// the dependent options has been changed.
+			this.eval_selects();
 		}
 
 		this.setViewActive(true);
@@ -351,6 +361,7 @@ class BaseWidget {
 	 * Set specified value to option
 	 *
 	 * @param {string} x The value will be set. If undefeind, leave it to default.
+	 * @returns true when the value is changed, false is not changed.
 	 */
 
 	set_value(x) {
@@ -376,8 +387,28 @@ class BaseWidget {
 		for (var node of this._referrers) {
 			node.evaluate();
 		}
-		for (var node of this._selects) {
-			node.evaluate();
+
+		this.eval_selects();
+	}
+
+	/**
+	 * Evaluate 'select' and 'imply' options.
+	 */
+
+	eval_selects() {
+		if (this._node.selects) {
+			for (let s of this._node.selects) {
+				if (evaluateStr(s.cond)) {
+					optiondb.get(s.symbol).evaluate();
+				}
+			}
+		}
+		if (this._node.implies) {
+			for (let i of this._node.implies) {
+				if (evaluateStr(i.cond)) {
+					optiondb.get(i.symbol).evaluate();
+				}
+			}
 		}
 	}
 
