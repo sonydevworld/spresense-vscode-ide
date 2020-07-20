@@ -324,6 +324,15 @@ class BaseWidget {
 	}
 
 	handle_deactive() {
+		// Set undefined temporary, it would be evaluated as 'n' on
+		// the other dependent options.
+		// The value will be set user_value at activation.
+		this.value = undefined;
+		if (this._active) {
+			this.propagate();
+		} else {
+			this.eval_selects();
+		}
 		this.setViewActive(false);
 	}
 
