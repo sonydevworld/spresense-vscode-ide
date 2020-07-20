@@ -84,36 +84,19 @@ class OptionDatabase {
 	set(symbol, obj){
 		if (!this.db[symbol]) {
 			this.db[symbol] = obj;
-		} else if (this.db[symbol] instanceof Array) {
-			obj.duplicated = true;
-			this.db[symbol].push(obj);
-		} else {
-			obj.duplicated = true;
-			let first = this.db[symbol];
-			this.db[symbol] = [first, obj];
 		}
 	}
 
 	get(symbol) {
         if (this.db[symbol]) {
-            if (this.db[symbol] instanceof Array) {
-                return this.db[symbol][0];
-            } else {
-                return this.db[symbol];
-            }
+			return this.db[symbol];
         }
         return null;
 	}
 
     *[Symbol.iterator]() {
         for (let obj of Object.values(this.db)) {
-            if (obj instanceof Array) {
-                for (let co of obj) {
-                    yield co;
-                }
-            } else {
-                yield obj;
-            }
+            yield obj;
         }
     }
 }
@@ -124,8 +107,8 @@ class BaseWidget {
 
 		this._node = node;
 		this._active = true;
-		this._referenced = []; // Holds symbol list to refer
-		this._referrers = []; // Holds object list to referrers
+		this._referenced = new Set(); // Holds symbol list to refer
+		this._referrers = new Set(); // Holds object list to referrers
 
 		// Flag for prevent multiple entering to depend(). This member
 		// is only useful for ChoiceWidget;
@@ -254,14 +237,12 @@ class BaseWidget {
 				 return;
 			}
 
-			if (!this._referenced.includes(value)) {
-				this._referenced.push(value);
-			}
+			this._referenced.add(value);
 		});
 	}
 
 	registerAdd(obj) {
-		this._referrers.push(obj);
+		this._referrers.add(obj);
 	}
 
 	isSelected() {
@@ -407,15 +388,17 @@ class BaseWidget {
 	eval_selects() {
 		if (this._node.selects) {
 			for (let s of this._node.selects) {
-				if (evaluateStr(s.cond)) {
-					optiondb.get(s.symbol).evaluate();
+				let opt = optiondb.get(s.symbol);
+				if (opt) {
+					opt.evaluate();
 				}
 			}
 		}
 		if (this._node.implies) {
 			for (let i of this._node.implies) {
-				if (evaluateStr(i.cond)) {
-					optiondb.get(i.symbol).evaluate();
+				let opt = optiondb.get(i.symbol);
+				if (opt) {
+					opt.evaluate();
 				}
 			}
 		}
@@ -1308,10 +1291,6 @@ function generateConfigFileContent() {
 	var buf = [];
 
 	for (let opt of optiondb) {
-		if (opt.duplicated) {
-			// Ignore duplicated options
-			continue;
-		}
 		if (!opt.active) {
 			continue;
 		}
