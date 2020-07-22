@@ -435,7 +435,7 @@ class BaseWidget {
 	}
 
 	get name() {
-		return this._node.name;
+		return this._node.name ? this._node.name : this._element.id;
 	}
 
 	get active() {
@@ -807,25 +807,50 @@ class ChoiceWidget extends BaseWidget {
 				}
 			}
 		}
-		return this._input.options[0].id;;
+		return this._input.options[0].id;
+	}
+
+	reset() {
+		// Prevent perform multiple reset process
+		if (this.user_value) {
+			this.user_value = undefined;
+			this.value = this.getDefault();
+
+			for (let opt of this._options) {
+				opt.select(opt.name === this.value ? "y" : "n");
+			}
+		}
 	}
 
 	/**
-	 * Common interface but not called from other widgets,
-	 * it called from children and internal.
+	 * This method called from 1) ChoiceOption set_value and
+	 * 2) propagation from other dependent options.
+	 * If val is undefined, it is called from other options.
 	 *
 	 * @param {string} val Option symbol name
 	 */
 
 	set_value(val) {
-		if (this.user_value === undefined && val === undefined) {
-			val = this.getDefault();
+		if (val == undefined) {
+			val = this.user_value;
+			if (val == undefined) {
+				val = this.getDefault();
+			}
 		}
-
 		for (let opt of this._options) {
 			opt.select(opt.name === val ? "y" : "n");
 		}
 		this.value = val;
+	}
+
+	evaluate() {
+		super.evaluate();
+		for (let opt of this._options) {
+			if (opt.value === "y") {
+				opt.eval_selects();
+				break;
+			}
+		}
 	}
 
 	activated() {
@@ -859,7 +884,6 @@ class ChoiceOption extends BaseWidget {
 		this._element.innerHTML = node.prompt;
 
 		this.value = node.value;
-		this.user_value = YMN[node.user_value];
 	}
 
 	/**
@@ -1351,6 +1375,9 @@ function loadConfig(buf) {
 	// Reset user specified values
 	for (let opt of optiondb) {
 		opt.user_value = undefined;
+		if (opt instanceof ChoiceOption) {
+			opt._parent.reset();
+		}
 	}
 
 	let enablement = {};
