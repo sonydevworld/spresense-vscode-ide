@@ -84,34 +84,19 @@ class OptionDatabase {
 	set(symbol, obj){
 		if (!this.db[symbol]) {
 			this.db[symbol] = obj;
-		} else if (this.db[symbol] instanceof Array) {
-			this.db[symbol].push(obj);
-		} else {
-			let first = this.db[symbol];
-			this.db[symbol] = [first, obj];
 		}
 	}
 
 	get(symbol) {
         if (this.db[symbol]) {
-            if (this.db[symbol] instanceof Array) {
-                return this.db[symbol][0];
-            } else {
-                return this.db[symbol];
-            }
+			return this.db[symbol];
         }
         return null;
 	}
 
     *[Symbol.iterator]() {
         for (let obj of Object.values(this.db)) {
-            if (obj instanceof Array) {
-                for (let co of obj) {
-                    yield co;
-                }
-            } else {
-                yield obj;
-            }
+            yield obj;
         }
     }
 }
@@ -122,10 +107,8 @@ class BaseWidget {
 
 		this._node = node;
 		this._active = true;
-		this._referenced = []; // Holds symbol list to refer
-		this._referrers = []; // Holds object list to referrers
-		this._selects = []; // Holds select element list
-		this.classDefault = ""; // Class default value
+		this._referenced = new Set(); // Holds symbol list to refer
+		this._referrers = new Set(); // Holds object list to referrers
 
 		// Flag for prevent multiple entering to depend(). This member
 		// is only useful for ChoiceWidget;
@@ -213,29 +196,35 @@ class BaseWidget {
 			}
 		}
 
+		// Register 'select' and 'imply' keyword's dependency
+		// We need to inform the value changes from depended options
+		// in 'if <expr>'.
+
 		if (this._node.selects) {
 			for (var s of this._node.selects) {
-				var opt = optiondb.get(s.symbol);
-				if (opt) {
-					this._selects.push(opt);
-				}
+				this._register_select_deps(s);
 			}
 		}
 
-		// Add weak reverse refereces (imply) into select list.
-		// The operation for implies are the same with selects ones,
-		// send "evaluate" command, so set into the same list.
-
 		if (this._node.implies) {
 			for (var i of this._node.implies) {
-				var opt = optiondb.get(s.symbol);
-				if (opt) {
-					this._selects.push(opt);
-				}
+				this._register_select_deps(i);
 			}
 		}
 
 		this._dependDone = true;
+	}
+
+	_register_select_deps(sym) {
+		const syms = sym.cond.matchAll(/\w+/g);
+		for (let s of syms) {
+			if (s !== "y") {
+				let target = optiondb.get(s);
+				if (target) {
+					target.registerAdd(this);
+				}
+			}
+		}
 	}
 
 	_condIntoList(cond) {
@@ -248,14 +237,12 @@ class BaseWidget {
 				 return;
 			}
 
-			if (!this._referenced.includes(value)) {
-				this._referenced.push(value);
-			}
+			this._referenced.add(value);
 		});
 	}
 
 	registerAdd(obj) {
-		this._referrers.push(obj);
+		this._referrers.add(obj);
 	}
 
 	isSelected() {
@@ -288,23 +275,16 @@ class BaseWidget {
 	}
 
 	handle_active() {
-		let val;
-
-		if (this._active) {
-			// Use current value if already active
-			val = self.value;
-		} else {
-			// Use user configured value if no selected and no implied.
-			// If user_value is undefined, then fall into default value.
-			val = this.user_value;
-		}
+		// Restore user value
+		// If user_value is undefined, evaluate default keyword later. 
+		let val = this.user_value;
 
 		if (this.isSelected()) {
 			// 'select'ed symbol is boolean option, so we set "y" constantly.
 			val = "y";
 		}
 
-		// Evaluate 'imply' keyword dependency
+		// Evaluate 'imply'ed keyword dependency
 		if (this._node.weak_rev_dep) {
 			val = evaluateStr(this._node.weak_rev_dep) ? "y" : "n";
 		}
@@ -314,12 +294,26 @@ class BaseWidget {
 
 		if (!this.set_value(val) && !this._active) {
 			this.propagate();
+		} else {
+			// We need to evaluate dependencies for 'select' and 'imply' except
+			// this option value is changed. Because there is possible to
+			// the dependent options has been changed.
+			this.eval_selects();
 		}
 
 		this.setViewActive(true);
 	}
 
 	handle_deactive() {
+		// Set undefined temporary, it would be evaluated as 'n' on
+		// the other dependent options.
+		// The value will be set user_value at activation.
+		this.value = undefined;
+		if (this._active) {
+			this.propagate();
+		} else {
+			this.eval_selects();
+		}
 		this.setViewActive(false);
 	}
 
@@ -339,10 +333,7 @@ class BaseWidget {
 
 	/**
 	 * Get default value from defaults list.
-	 * If option node does not have defaults list, return classDefault
-	 * property.
-	 * classDefault is empty string, but some subclasses overwrites it by
-	 * specific default value.
+	 * If option node does not have defaults list, return undefined.
 	 */
 
 	getDefault() {
@@ -353,21 +344,20 @@ class BaseWidget {
 				}
 			}
 		}
-		return this.classDefault;
+		return undefined;
 	}
 
 	/**
 	 * Set specified value to option
 	 *
 	 * @param {string} x The value will be set. If undefeind, leave it to default.
+	 * @returns true when the value is changed, false is not changed.
 	 */
 
 	set_value(x) {
 		if (x === undefined) {
 			x = this.getDefault();
 		}
-
-		this.user_value = x;
 
 		if (this.value !== x) {
 			this.value = this._input.value = x;
@@ -376,10 +366,6 @@ class BaseWidget {
 		}
 
 		return false;
-	}
-
-	unset_value() {
-		this.user_value = undefined;
 	}
 
 	propagate() {
@@ -391,8 +377,30 @@ class BaseWidget {
 		for (var node of this._referrers) {
 			node.evaluate();
 		}
-		for (var node of this._selects) {
-			node.evaluate();
+
+		this.eval_selects();
+	}
+
+	/**
+	 * Evaluate 'select' and 'imply' options.
+	 */
+
+	eval_selects() {
+		if (this._node.selects) {
+			for (let s of this._node.selects) {
+				let opt = optiondb.get(s.symbol);
+				if (opt) {
+					opt.evaluate();
+				}
+			}
+		}
+		if (this._node.implies) {
+			for (let i of this._node.implies) {
+				let opt = optiondb.get(i.symbol);
+				if (opt) {
+					opt.evaluate();
+				}
+			}
 		}
 	}
 
@@ -427,7 +435,7 @@ class BaseWidget {
 	}
 
 	get name() {
-		return this._node.name;
+		return this._node.name ? this._node.name : this._element.id;
 	}
 
 	get active() {
@@ -443,7 +451,6 @@ class BoolWidget extends BaseWidget {
 		super(node);
 
 		this.user_value = YMN[node.user_value];
-		this.classDefault = "n";
 		this.modules = node["modules"] != null ? true : false;
 
 		this._body = this._element;
@@ -500,7 +507,6 @@ class BoolWidget extends BaseWidget {
 			x = "y";
 		}
 
-		this.user_value = x;
 		if (this.value !== x) {
 			this.value = x;
 			this._input.checked = x === "y";
@@ -525,14 +531,15 @@ class BoolWidget extends BaseWidget {
 		let symbol = document.createElement("div");
 		input.type = "checkbox";
 		input.id = id;
-		label.classList.add("menu", "config");
-		label.setAttribute("for", id);
 
 		prompt.innerHTML = this._node.prompt;
 		prompt.className = "prompt";
 		symbol.innerHTML = this._node.name;
 		symbol.className = "symbol";
+		label.classList.add("menu", "config");
+		label.setAttribute("for", id);
 		label.id = this._node.name;
+		label.dataset.hasSymbol = "1";
 		label.append(prompt, symbol);
 		// Switch control box to label
 		this._body = label;
@@ -548,7 +555,6 @@ class BoolWidget extends BaseWidget {
 class HexWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
-		this.classDefault = "0x0";
 
 		this._element.classList.add("hex");
 		this._input = document.createElement("input");
@@ -579,7 +585,6 @@ class HexWidget extends BaseWidget {
 class IntWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
-		this.classDefault = "0";
 
 		this._element.classList.add("int");
 		this._input = document.createElement("input");
@@ -642,7 +647,6 @@ class TristateWidget extends BaseWidget {
 	constructor(node) {
 		super(node);
 
-		this.classDefault = "n";
 		this.user_value = YMN[node.user_value];
 
 		this._tristate = document.createElement("div");
@@ -679,7 +683,6 @@ class TristateWidget extends BaseWidget {
 			x = this.getDefault();
 		}
 
-		this.user_value = x;
 		if (this.value !== x) {
 			this.value = x;
 			this._tristate.dataset.value = this.value;
@@ -762,13 +765,11 @@ class ChoiceWidget extends BaseWidget {
 		this.createSelectInputField();
 		this._element.appendChild(this._input);
 
-		this.classDefault = this._input.options[0].id;
-
 		this._input.addEventListener("change", (event) => {
 			for (let opt of this._options) {
 				opt.select(opt.name === event.target.selectedOptions[0].id ? "y" : "n");
 			}
-			this.user_value = event.target.selectedOptions[0].id;
+			this.value = this.user_value = event.target.selectedOptions[0].id;
 		});
 
 		this.setInitialState();
@@ -781,7 +782,7 @@ class ChoiceWidget extends BaseWidget {
 			this._options.push(opt);
 			this._input.add(opt.element);
 			if (n.value === "y") {
-				selected = opt.name;
+				this.value = this.user_value = selected = opt.name;
 			}
 
 			// Add choice option to database
@@ -806,25 +807,50 @@ class ChoiceWidget extends BaseWidget {
 				}
 			}
 		}
-		return this.classDefault;
+		return this._input.options[0].id;
+	}
+
+	reset() {
+		// Prevent perform multiple reset process
+		if (this.user_value) {
+			this.user_value = undefined;
+			this.value = this.getDefault();
+
+			for (let opt of this._options) {
+				opt.select(opt.name === this.value ? "y" : "n");
+			}
+		}
 	}
 
 	/**
-	 * Common interface but not called from other widgets,
-	 * it called from children and internal.
+	 * This method called from 1) ChoiceOption set_value and
+	 * 2) propagation from other dependent options.
+	 * If val is undefined, it is called from other options.
 	 *
 	 * @param {string} val Option symbol name
 	 */
 
 	set_value(val) {
-		if (!val) {
-			val = this.getDefault();
+		if (val == undefined) {
+			val = this.user_value;
+			if (val == undefined) {
+				val = this.getDefault();
+			}
 		}
-
 		for (let opt of this._options) {
 			opt.select(opt.name === val ? "y" : "n");
 		}
-		this.user_value = val;
+		this.value = val;
+	}
+
+	evaluate() {
+		super.evaluate();
+		for (let opt of this._options) {
+			if (opt.value === "y") {
+				opt.eval_selects();
+				break;
+			}
+		}
 	}
 
 	activated() {
@@ -853,11 +879,11 @@ class ChoiceOption extends BaseWidget {
 
 		// Replace element
 		this._element = document.createElement("option");
+		this._element.classList.add("choice-opt", "config");
 		this._element.id = node.name;
 		this._element.innerHTML = node.prompt;
 
 		this.value = node.value;
-		this.user_value = YMN[node.user_value];
 	}
 
 	/**
@@ -868,6 +894,7 @@ class ChoiceOption extends BaseWidget {
 
 	set_value(val) {
 		if (val === "y") {
+			this._parent.user_value = this.name;
 			this._parent.set_value(this.name);
 		}
 	}
@@ -909,7 +936,6 @@ class ChoiceOption extends BaseWidget {
 	select(val) {
 		this._element.selected = val === "y";
 
-		this.user_value = val;
 		if (this.value !== val) {
 			this.value = val;
 			this.propagate();
@@ -1149,8 +1175,12 @@ function expandConfig(node) {
 
 	// Menu trees are constructed with .menu-container > .menuitem > .config,
 	// and menu expand/collapse with hidden checkbox in .menu-container.
+	// so parent variable pointed must be .menu-container.
 
 	let parent = node.parentNode.parentNode;
+	if (node.tagName === "OPTION") {
+		parent = parent.parentNode.parentNode;
+	}
 	let input = parent.querySelector("input");
 	input.checked = true;
 
@@ -1175,7 +1205,14 @@ function jumpToConfig(event) {
 		} else {
 			expandConfig(opt);
 		}
-		opt.scrollIntoView();
+
+		// option tag can't use scrollIntoView() function, so we jump into
+		// parent div tag (div > select > option).
+		if (opt.tagName === "OPTION") {
+			opt.parentNode.parentNode.scrollIntoView();
+		} else {
+			opt.scrollIntoView();
+		}
 	} else {
 		console.log("No symbols for " + event.target.textContent);
 	}
@@ -1184,12 +1221,16 @@ function jumpToConfig(event) {
 function createResultItem(config, prompt) {
 	let item = document.createElement("div");
 
+	const p = document.createElement("div");
+	p.className = "prompt";
+	p.innerText = prompt.innerText;
+
 	item.className = "item";
-	item.appendChild(prompt.cloneNode(true));
+	item.appendChild(p);
 	item.addEventListener("click", jumpToConfig);
 	item.dataset.symbol = config.id;
 
-	if (!config.id.match(/^choice-\d+/) && config.tagName !== "LABEL") {
+	if (!config.id.match(/^choice-\d+/) && !config.id.match(/menu-\d+-label/)) {
 		const sym = document.createElement("div");
 		sym.innerHTML = config.id;
 		sym.className = "symbol";
@@ -1230,8 +1271,11 @@ function filterConfigs() {
 
 	let nfound = false;
 	for (let n of configs) {
-		// Ignore invisible menu
+		// Ignore invisible menu and invisible choice options
 		if (n.tagName === "LABEL" && n.parentNode.classList.contains("invisible")) {
+			continue;
+		}
+		if (n.tagName === "OPTION" && n.parentNode.parentNode.classList.contains("invisible")) {
 			continue;
 		}
 
@@ -1241,6 +1285,9 @@ function filterConfigs() {
 		}
 
 		let prompt = n.querySelector(".prompt");
+		if (n.tagName == "OPTION") {
+			prompt = n;
+		}
 		let formula = input.value.replace(/&/g, "&&").replace(/[|]/g, "||");
 		formula = formula.replace(/\w*/g, (match) => {
 			if (match.length == 0) {
@@ -1272,6 +1319,9 @@ function generateConfigFileContent() {
 			continue;
 		}
 
+		if (opt.value === undefined) {
+			continue;
+		}
 		let config;
 
 		if (opt instanceof StringWidget) {
@@ -1285,7 +1335,7 @@ function generateConfigFileContent() {
 				config = `# CONFIG_${opt.name} is not set`;
 			}
 		} else {
-			// boolean, int and hex values
+			// int and hex values
 			config = `CONFIG_${opt.name}=${opt.value}`
 		}
 
@@ -1293,7 +1343,7 @@ function generateConfigFileContent() {
 		buf.push(config);
 	}
 
-	return buf.join("\n");
+	return buf.join("\n") + "\n";
 }
 
 /**
@@ -1324,7 +1374,10 @@ function parseConfig(line) {
 function loadConfig(buf) {
 	// Reset user specified values
 	for (let opt of optiondb) {
-		opt.unset_value();
+		opt.user_value = undefined;
+		if (opt instanceof ChoiceOption) {
+			opt._parent.reset();
+		}
 	}
 
 	let enablement = {};
@@ -1337,15 +1390,18 @@ function loadConfig(buf) {
 
 	for (let opt of optiondb) {
 		let val = enablement[opt.name];
-		if (val && opt instanceof StringWidget) {
-			// Peek string value and check it is welformed.
-			let m = val.match(/"((?:[^"]|.)*)"/);
-			if (!m) {
-				console.warn(`Found malformed string value. Ignored. ${m[0]}`);
-				continue;
+		if (val) {
+			if (opt instanceof StringWidget) {
+				// Peek string value and check it is welformed.
+				let m = val.match(/"((?:[^"]|.)*)"/);
+				if (!m) {
+					console.warn(`Found malformed string value. Ignored. ${m[0]}`);
+					continue;
+				}
+				// Unescape
+				val = m[1].replace(/\\(.)/g, "$1");
 			}
-			// Unescape
-			val = m[1].replace(/\\(.)/g, "$1");
+			opt.user_value = val;
 		}
 		opt.set_value(val);
 	}
