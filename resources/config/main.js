@@ -698,6 +698,13 @@ class TristateWidget extends BaseWidget {
 			return;
 		}
 
+		if (this.value == undefined) {
+			this.value = this.getDefault();
+			if (this.value == undefined) {
+				this.value = 'n';
+			}
+		}
+
 		switch (this.value) {
 			case "n":
 				if (MODULES.value == "y") {
