@@ -1,5 +1,37 @@
 # Change Log
 
+# v1.2.1
+
+(日本語の説明文は英語の後に記載しています。)
+
+## Summary
+
+* Feature enhancements are available.
+
+* This release has a new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader) before use.
+
+## Improved features
+
+* [Configuration] Fixed an issue in the configuration function using the "SDK Config".
+
+* [Build System] Fixed build failure for older SDK versions (v1.x series) on macOS.
+
+------------------------
+
+(Below is in Japanese)
+
+## 概要
+
+* 機能拡張および機能改善を行いました。
+
+* 今回のリリースにより [ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール) が必要になります。
+
+## 改善された機能
+
+* [Configuration] 「SDKコンフィグ」を利用したコンフィグレーション機能の不具合を改善しました。
+
+* [Build System] macOS環境で古いSDK バージョン（v1.x系）のビルドが失敗する事象を改善しました。
+
 ## v1.2.0
 
 (日本語の説明文は英語の後に記載しています。)
