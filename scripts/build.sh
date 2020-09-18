@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # SDK Version check
-SDK_VERSION_STR=`grep -oP "(?<=^SDK_VERSION=\"SDK).*(?=\")" ${SDK_PATH}/sdk/tools/mkversion.sh`
+SDK_VERSION_STR=`grep "^SDK_VERSION=" ${SDK_PATH}/sdk/tools/mkversion.sh | cut -d "\"" -f 2 | sed s/SDK//g`
 SDK_VERSION_MAJ=`echo ${SDK_VERSION_STR} | cut -d "." -f 1`
 
 # Location of .config
