@@ -9,4 +9,4 @@ ASRCS =
 # C compiler flags
 CELFFLAGS =
 
-include $(APPDIR)/.vscode/worker.mk
+include $(SPRESENSE_HOME)/.vscode/worker.mk
