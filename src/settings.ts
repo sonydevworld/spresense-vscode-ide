@@ -306,7 +306,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	/* Flash worker Task */
 	flashWrokerTask['label'] = taskWorkerFlashLabel;
 	flashWrokerTask['type'] = 'shell';
-	flashWrokerTask['command'] = 'cd \"${workspaceFolder}\";if [ \"`echo out/worker/*`\" != \"out/worker/*\" ]; then ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*; fi;';
+	flashWrokerTask['command'] = 'cd \"${workspaceFolder}\";if [ -d out/worker -a \"`ls out/worker/`\" != \"\" ]; then ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*; fi;';
 	flashWrokerTask['group'] = 'test';
 	flashWrokerTask['problemMatcher'] = ['$gcc'];
 
