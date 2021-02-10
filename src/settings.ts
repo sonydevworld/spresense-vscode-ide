@@ -33,7 +33,7 @@ import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_V
 import * as launch from './launch';
 
 
-const spresenseExtInterfaceVersion: number = 1002;
+const spresenseExtInterfaceVersion: number = 1003;
 
 const configSdkPathKey = 'spresense.sdk.path';
 const configSdkToolsPathKey = 'spresense.sdk.tools.path';
