@@ -33,22 +33,27 @@ export function getEnv () {
 	}
 
 	const config = vscode.workspace.getConfiguration('terminal.integrated');
-	const osNames = {
-		'win32': 'windows',
-		'linux': 'linux',
-		'darwin': 'osx',
-		'aix': undefined,
-		'freebsd': undefined,
-		'openbsd': undefined,
-		'sunos': undefined,
-		'android': undefined,
-		'cygwin': undefined
-	};
+	let os;
+	switch (process.platform) {
+		case 'win32':
+			os = 'windows';
+			break;
+		case 'linux':
+			os = 'linux';
+			break;
+		case 'darwin':
+			os = 'osx';
+			break;
+		default:
+			os = '';
+			break;
+	}
+
 	const defaultShell = '/bin/bash';
 	const defaultPath = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
 
-	const osEnv: EnvInterface = config.get(`env.${osNames[process.platform]}`) || {};
-	const osShell = config.get(`shell.${osNames[process.platform]}`);
+	const osEnv: EnvInterface = config.get(`env.${os}`) || {};
+	const osShell = config.get(`shell.${os}`);
 
 	return {
 		SHELL: osShell ? osShell : defaultShell,

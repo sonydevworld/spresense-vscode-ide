@@ -510,27 +510,6 @@ function getBootloaderDownloadUrl(requestPath: string, suggestPath: string): str
 }
 
 /**
- * Extract zip file synchronously
- *
- * This function extract zip file synchronously.
- *
- * @param srcFile Path to zip file
- * @param destDir Path to extract directory
- */
-
-function unzipSync(srcFile: string, destDir: string) {
-	return new Promise((resolve) => {
-		unzip(srcFile, {dir: destDir}, (err) => {
-			if (err) {
-				vscode.window.showErrorMessage(nls.localize("spresense.src.bootloader.error.unzip", "Can not extract selected zip file."));
-			}
-			/* Done unzip */
-			resolve();
-		});
-	});
-}
-
-/**
  * Install downloaded boootloader files into firmware directory
  *
  * This function install all bootloader espk files into firmware directory
@@ -550,7 +529,7 @@ async function installBootloader(context: vscode.ExtensionContext, firmwarePath:
 	fs.mkdirSync(tempPath);
 
 	/* Extract downloaded bootloader zip file */
-	await unzipSync(zipFilePath, tempPath);
+	await unzip(zipFilePath, { dir: tempPath });
 
 	/* Check correct bootloader zip file contents */
 	if (!fs.existsSync(storeJson) || !fs.statSync(storeJson).isFile()) {
@@ -765,17 +744,21 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 async function updateSettings(progress: vscode.Progress<{ message?: string; increment?: number;}>) {
 	let termConf = vscode.workspace.getConfiguration('terminal.integrated');
 
-	const osName = {
-		'win32': 'windows',
-		'linux': 'linux',
-		'darwin': 'osx',
-		'aix': undefined,
-		'freebsd': undefined,
-		'openbsd': undefined,
-		'sunos': undefined,
-		'android': undefined,
-		'cygwin': undefined
-	};
+	let osName;
+	switch (process.platform) {
+		case 'win32':
+			osName = 'windows';
+			break;
+		case 'linux':
+			osName = 'linux';
+			break;
+		case 'darwin':
+			osName = 'osx';
+			break;
+		default:
+			osName = '';
+			break;
+	}
 
 	if (process.platform === 'win32') {
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
@@ -802,7 +785,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.check", "Checking operating system done.")});
 
 	/* Get shell path */
-	let shpath = termConf.get(`shell.${osName[process.platform]}`) || '/bin/bash';
+	let shpath = termConf.get(`shell.${osName}`) || '/bin/bash';
 
 	try {
 		/* && control character for bash */
@@ -831,7 +814,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
 		/* Set PATH */
-		termConf.update(`env.${osName[process.platform]}`,{
+		termConf.update(`env.${osName}`,{
 			'PATH': envPath
 		}, vscode.ConfigurationTarget.Workspace);
 
@@ -925,7 +908,7 @@ function spresenseSdkSetup() {
 		/* Update settings.json */
 		await updateSettings(progress);
 
-		return new Promise((resolve) => {
+		return new Promise<void>((resolve) => {
 			setTimeout(() => {
 				resolve();
 			}, 5000);

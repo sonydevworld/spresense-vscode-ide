@@ -151,7 +151,7 @@ export class SDKConfigView2 {
 							return;
 						}
 						Promise.resolve().then(() => {
-							return new Promise((resolve) => {
+							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
 								this._updateHeaderFiles();
 								resolve();
@@ -226,7 +226,7 @@ export class SDKConfigView2 {
 				this._initKernelKconfig(false);
 			}, 1);
 
-			return new Promise(resolve => {
+			return new Promise<void>(resolve => {
 				this._progress.on("update", (_message, _increment) => {
 
 					// FIXME: We want to show the percentage but current status of webview
@@ -524,7 +524,7 @@ export class SDKConfigView2 {
 					return Promise.reject(e);
 				}
 
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("olddefconfig");
 					this._currentProcess = cp.exec("make olddefconfig", options, (error, stdout, stderr) => {
 						this._currentProcess = undefined;
@@ -569,7 +569,7 @@ export class SDKConfigView2 {
 			nls.localize("sdkconfig.src.progress.parse", "Parsing Kconfig"), 20);
 
 		Promise.resolve().then(() => {
-			return new Promise((resolve, reject) => {
+			return new Promise<void>((resolve, reject) => {
 				console.log("make dirlinks");
 				this._currentProcess = cp.exec("make dirlinks apps_preconfig", options, (error, stdout, stderr) => {
 					this._currentProcess = undefined;
@@ -588,7 +588,7 @@ export class SDKConfigView2 {
 			if (this._isUserConfig && !fs.existsSync(this._configFile)) {
 				// If project folder kernel config file is specified but it's not exists,
 				// create it from current kernel ".config" file.
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("copying project config");
 					fs.copyFile(path.join(this._kernelDir, '.config'), this._configFile, (err) => {
 						if (err) {

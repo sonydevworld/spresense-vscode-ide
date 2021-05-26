@@ -169,7 +169,7 @@ export class SDKConfigView {
 							return;
 						}
 						Promise.resolve().then(() => {
-							return new Promise((resolve) => {
+							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
 								this._updateHeaderFiles();
 								resolve();
@@ -248,7 +248,7 @@ export class SDKConfigView {
 				}
 			}, 1);
 
-			return new Promise(resolve => {
+			return new Promise<void>(resolve => {
 				this._progress.on("update", (_message, _increment) => {
 
 					// FIXME: We want to show the percentage but current status of webview
@@ -425,7 +425,7 @@ export class SDKConfigView {
 
 		Promise.resolve().then(() => {
 			if (force || !fs.existsSync(tmpKconfig)) {
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					this._currentProcess = cp.execFile("make", [ this._sdkTmpKconfig ], options, (err, stdout, stderr) => {
 						this._currentProcess = undefined;
 						if (err) {
@@ -499,7 +499,7 @@ export class SDKConfigView {
 					return Promise.reject(e);
 				}
 
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("olddefconfig");
 					this._currentProcess = cp.exec("make olddefconfig", options, (error, stdout, stderr) => {
 						this._currentProcess = undefined;
@@ -545,7 +545,7 @@ export class SDKConfigView {
 
 		Promise.resolve().then(() => {
 			if (!fs.existsSync(path.join(this._kernelDir, "configs", "dummy", "Kconfig"))) {
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("make dirlinks");
 					this._currentProcess = cp.exec("make dirlinks", options, (error, stdout, stderr) => {
 						this._currentProcess = undefined;
@@ -565,7 +565,7 @@ export class SDKConfigView {
 			if (this._isUserConfig && !fs.existsSync(this._configFile)) {
 				// If project folder kernel config file is specified but it's not exists,
 				// create it from current kernel ".config" file.
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("copying project config");
 					fs.copyFile(path.join(this._kernelDir, '.config'), this._configFile, (err) => {
 						if (err) {

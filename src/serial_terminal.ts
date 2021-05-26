@@ -33,55 +33,36 @@ function getShell(osName: string) : string {
 	return typeof shell === 'string' ? shell : defaultShell;
 }
 
-function getEnv () {
+function getEnv (platform: string) {
 
-	return  {
-		'win32': {
-			'shell': getShell('windows'),
-			'prefix': '/dev/ttyS',
-			'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-		},
-		'linux': {
-			'shell': getShell('linux'),
-			'prefix': '/dev/ttyUSB',
-			'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-		},
-		'darwin': {
-			'shell': getShell('osx'),
-			'prefix': '/dev/cu.SLAB_USBtoUART',
-			'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-		},
-		'aix': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		},
-		'freebsd': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		},
-		'openbsd': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		},
-		'sunos': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		},
-		'android': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		},
-		'cygwin': {
-			'shell': '',
-			'prefix': '',
-			'PATH': ''
-		}
-	};
+	switch (platform) {
+		case 'win32':
+			return {
+				'shell': getShell('windows'),
+				'prefix': '/dev/ttyS',
+				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+			};
+		case 'linux':
+			return {
+				'shell': getShell('linux'),
+				'prefix': '/dev/ttyUSB',
+				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+			};
+
+		case 'darwin':
+			return {
+				'shell': getShell('osx'),
+				'prefix': '/dev/cu.SLAB_USBtoUART',
+				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+			};
+
+		default:
+			return {
+				'shell': '',
+				'prefix': '',
+				'PATH': ''
+			};
+	}
 }
 
 /**
@@ -140,7 +121,7 @@ function portToPath (port: string): string {
 
 function getAvailablePortList(): string[] {
 	try {
-		const osEnv = getEnv()[process.platform];
+		const osEnv = getEnv(process.platform);
 		const result = cp.execSync(`${osEnv.shell} -c \'ls ${osEnv.prefix}*\'`, {env: osEnv}).toString().trim();
 		const portPaths = result.split('\n');
 		let ports : string[] = [];
@@ -196,7 +177,7 @@ function isSerialAvailable(portPath: string): boolean {
 		return false;
 	} else {
 		try {
-			const osEnv = getEnv()[process.platform];
+			const osEnv = getEnv(process.platform);
 
 			/* Check exist */
 			cp.execSync(`${osEnv.shell} -c \'\ls ${portPath}\'`, {env: osEnv});
@@ -239,7 +220,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.serial.open', async () => {
 		if (serialTerminal === undefined) {
-			const osEnv = getEnv()[process.platform];
+			const osEnv = getEnv(process.platform);
 
 			/* Take configuration from preference */
 			let portPath = await tryGetSerialPort();
