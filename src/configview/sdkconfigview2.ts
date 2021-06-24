@@ -558,7 +558,11 @@ export class SDKConfigView2 {
 		const options = {
 			cwd: this._kernelDir,
 			env: {
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"APPSDIR": appsDir,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				"EXTERNALDIR": "dummy",
+				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"KCONFIG_CONFIG": this._configFile
 			},
 			maxBuffer: 10 * 1024 * 1024
