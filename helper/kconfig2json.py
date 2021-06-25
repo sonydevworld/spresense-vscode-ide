@@ -1,7 +1,7 @@
 ############################################################################
 # helper/kconfig2json.py
 #
-#   Copyright 2019 Sony Semiconductor Solutions Corporation
+#   Copyright 2019, 2021 Sony Semiconductor Solutions Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,17 +37,21 @@ import sys
 import os
 import argparse
 import json
+import logging
+import re
 
 from kconfiglib import * # pylint: disable=unused-wildcard-import
 
 def _expr_str(sc):
-    return expr_str(sc).replace("<choice>", "y")
+    # Replace choice reference to 'y'. Because they are reference from child to parent choice config.
+    return re.sub(r'<choice.*?>', 'y', expr_str(sc))
 
 def make_default_list(defaults):
     ret = []
     for default, cond in defaults:
         if type(default) is tuple:
-            ret.append({"name": "", "default": expr_str(default), "cond": _expr_str(cond)})
+            logging.debug('Default is reference {}'.format(default))
+            ret.append({"name": None, "default": expr_str(default), "cond": _expr_str(cond)})
         else:
             ret.append({"name": default.name, "default": default.str_value, "cond": _expr_str(cond)})
     return ret
@@ -71,6 +75,15 @@ def lazydecode(string):
     else:
         return string.encode('utf-8', errors='replace').decode('utf-8')
 
+def is_skip_node(node):
+    if node.filename.startswith('arch'):
+        if not (node.filename == 'arch/Kconfig') and not ('arm' in node.filename):
+            return True
+    if node.filename.startswith('boards'):
+        if not (node.filename == 'boards/Kconfig') and not ('cxd56' in node.filename):
+            return True
+    return False
+
 def build_nodetree(node, nodelist):
     while node:
         d = {}
@@ -81,6 +94,19 @@ def build_nodetree(node, nodelist):
         elif isinstance(node.item, Symbol):
             # Skip environment variable node
             if node.item.env_var is not None:
+                node = node.next
+                continue
+
+            # XXX: Ignore Kconfig files other than Arm architecture.
+            # This logic needs to avoid multiple option definitions (e.g. ARCH_BOARD),
+            # especially architecture Kconfig files.
+            # In Spresense VS Code extension, it causes that the failure of lost some configuration.
+            #
+            # The multiple definitions may works fine in kconfig-conf tools, but we can't because of
+            # optimized processing in the extension.
+
+            if is_skip_node(node):
+                logging.info(' {}: {} has been skipped'.format(node.filename, node.item.name))
                 node = node.next
                 continue
 
@@ -119,12 +145,16 @@ def build_nodetree(node, nodelist):
         else:
             raise RuntimeError('Unknown or unsupported node {}'.format(node))
 
+        # Save dependency, skip if no dependency (only 'y')
+        dep = _expr_str(node.dep)
+        if dep != 'y':
+            d['dep'] = _expr_str(node.dep)
+
         # Preevaluate dependency status
-        d['dep'] = TRI_TO_STR[expr_value(node.dep)]
+        d['visible'] = TRI_TO_STR[expr_value(node.dep)]
 
         if node.prompt:
             d['prompt'] = node.prompt[0] # prompt text
-            d['cond'] = _expr_str(node.prompt[1])  # visible condition
 
         if len(node.defaults) > 0:
             d['defaults'] = make_default_list(node.defaults)
@@ -143,6 +173,15 @@ def build_nodetree(node, nodelist):
         if node.list is not None:
             d['children'] = []
             build_nodetree(node.list, d['children'])
+
+        # Check choice node has some child nodes after choice option.
+        # No child node will happens when choice options ignored by architecture exclusion logic
+        # in above.
+        # If choice has no children, it can not be use, so remove from output json.
+
+        if d['type'] == 4 and len(d['children']) == 0:
+            logging.info('Choice "{}" ({}) is no children, optimize remove.'.format(d['prompt'], node.filename))
+            nodelist.remove(d)
 
         node = node.next
 
@@ -167,6 +206,11 @@ if __name__ == '__main__':
           "cond": expr_str(node.prompt[1]),
           "children": []
     }
+
+    if opts.verbose:
+        logging.basicConfig(level=logging.INFO)
+    if opts.debug:
+        logging.basicConfig(level=logging.DEBUG)
 
     if node.list is not None:
         build_nodetree(node.list, d['children'])
