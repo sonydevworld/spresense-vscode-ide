@@ -1,40 +1,23 @@
 <!DOCTYPE html>
-
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<style>
-			.button {
-				padding: 4px 4px;
-				margin: 4px 4px;
-				background: #dbdbdb;
-			}
-			.button:hover {
-				cursor: pointer;
-			}
-		</style>
-	</head>
-	<body>
-		<h1>Webview debug with Chrome</h1>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+      font-family: "Ubuntu Mono","Liberation Mono","DejaVu Sans Mono","Courier New",monospace;
+      font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Debug and Test sandbox for VSCode Webview content with Chrome</h1>
 
-		<div style="display: flex;">
-			<div class="button" onclick="loadsdkmenu()">Load SDK</div>
-			<div class="button" onclick="loadnuttxmenu()">Load NuttX</div>
-		</div>
+    <script src="test.js"></script>
+    
+    <iframe id="debug-target" frameborder="0" width="100%" height="800px" src=".index.html"></iframe>
 
-		<iframe id="debug-target" frameborder="0" width="100%" height="800px" src="index.html"></iframe>
-
-		<script async src="sdkmenu.js"></script>
-		<script async src="nuttxmenu.js"></script>
-
-		<!-- Import data, they needed to be a valid javascript. -->
-		<script src="configs/defconfig.list.js"></script>
-		<script src="configs/kernel-defconfig.list.js"></script>
-		<script src="configs/examples/adc-defconfig.js"></script>
-		<script src="configs/examples/audio_player-defconfig.js"></script>
-		<script src="configs/kernel/release-defconfig.js"></script>
-
-		<script src="test.js"></script>
-	</body>
+    <!-- This tag is for detect ready to page loaded from selenium, do not delete. -->
+    <div id="ready">Ready</div>
+  </body>
 </html>

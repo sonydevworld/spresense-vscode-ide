@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import os, sys
+import time
+from string import Template
+import re
+import subprocess as sp
+import argparse
+from datetime import datetime
+
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+import driver_helper
+
+import suite.evaluate_test as evaluate_test
+import suite.defconfig_test as defconfig_test
+
+# Setup chromedriver for installed chrome browser
+
+_here = os.path.dirname(os.path.abspath(__file__))
+TEST_HARNESS = os.path.join(_here, '.harness')
+REPODIR = os.path.join(TEST_HARNESS, 'spresense')
+SDKDIR = os.path.join(REPODIR, 'sdk')
+TOPDIR = os.path.join(REPODIR, 'nuttx')
+
+#
+def _to_uri(path):
+    return 'file://' + path
+
+def setup_test_harness():
+    # This script clone Spresense SDK source tree from private repository.
+    # Please register your key to the SSH key chain support program (e.g. ssh-agent).
+
+    os.makedirs(TEST_HARNESS, exist_ok=True)
+    if not os.path.exists(REPODIR):
+        cmd = ['git', '-C', TEST_HARNESS, 'clone', '--recursive',
+               'git@github.com:SonySemiconductorSolutions/spresense.git']
+        proc = sp.run(cmd)
+        proc.check_returncode()
+
+def create_index_html():
+    # XXX: index.html.template is the same with sdkconfigview2.ts, I want to be share it,
+    # but it is not for now.
+    template = os.path.join(_here, 'index.html.template')
+    resourcedir = os.path.normpath(os.path.join(_here, '..', 'resources', 'config'))
+    css_uri = _to_uri(os.path.join(resourcedir, 'style.css'))
+    progress_uri = _to_uri(os.path.join(resourcedir, 'progress.js'))
+    main_uri = _to_uri(os.path.join(resourcedir, 'main.js'))
+    defconfig_uri = _to_uri(os.path.join(resourcedir, 'defconfig.js'))
+
+    # index.html template replacement dictionary. see index.html.template.
+
+    tempdict = {
+        'cssUri': css_uri,
+        'newStr': 'New',
+        'saveStr': 'Save',
+        'loadStr': 'Load',
+        'saveasStr': 'Save as...',
+        'visibilityHelp': 'Show/Hide all options',
+        'nonce': '__NONCE__',
+        'progressUri': progress_uri,
+        'mainUri': main_uri,
+        'defconfigUri': defconfig_uri,
+    }
+
+    with open(template) as fh:
+        _temp = fh.read()
+
+    # Customize index.html to be able to running test
+    content = Template(_temp).substitute(tempdict)
+
+    # Remove access restriction meta data and insert "acquireVsCodeApi()" emulation API
+    patch = ['<script src="acquire_vscode_api.js"></script>']
+    patch += ['<link rel="stylesheet" type="text/css" href="test-style.css">']
+    content = re.sub(r'<meta http-equiv.*/>', '\n'.join(patch), content)
+
+    # Output file extension should be .html
+    index_html = os.path.join(_here, '.index.html')
+    with open(index_html, 'w') as fh:
+        fh.write(content)
+
+def create_kconfig_menudata():
+    # We must NuttX configured before create Kconfig menu structure
+
+    cmd = ['./tools/config.py', 'default']
+    proc = sp.run(cmd, cwd=SDKDIR)
+    proc.check_returncode()
+
+    # Output Kconfig tree structure data because subprocess popen buffer
+    # can not takes all of outputs, so it read from file instead.
+    cmd = ['python3', '../helper/kconfig2json.py', '-o', 'menudata.json']
+    proc = sp.run(cmd, env={
+        'srctree': TOPDIR,
+        'APPSDIR': '../sdk/apps',
+        'EXTERNALDIR': 'dummy'
+    })
+    proc.check_returncode()
+
+    with open('menudata.json') as fh:
+        menudata = fh.read()
+    return menudata
+
+def cleanup_driver_process():
+    os.system('pkill chromedriver')
+    os.system('pkill -f chromium-browser')
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--debug', action="store_true")
+    parser.add_argument('-nc', action='store_true')
+    args = parser.parse_args()
+
+    path = driver_helper.download_chromedriver()
+    cleanup_driver_process()
+    setup_test_harness()
+    create_index_html()
+    menudata = create_kconfig_menudata()
+
+    # Open chrome with developer tools (if needed)
+    options = Options()
+    if args.debug:
+        options.add_argument('--auto-open-devtools-for-tabs')
+    else:
+        options.headless = True
+    if args.nc:
+        options.headless = False
+
+    dc = DesiredCapabilities.CHROME
+    dc['goog:loggingPrefs'] = { 'browser': 'ALL' }
+    driver = webdriver.Chrome(path, options=options, desired_capabilities=dc)
+    driver.set_window_position(0, 0)
+    driver.set_window_size(1600, 1024)
+
+    url = _to_uri(os.path.join(_here, 'test.html'))
+    driver.get(url)
+    wait = WebDriverWait(driver, 5)
+    # Wait for the test page is successfully loaded
+    wait.until(EC.presence_of_element_located((By.ID, 'ready')))
+
+    # Build Kconfig cofniguration UI in main.js
+    driver.execute_script('loadMenu(%s)' % (menudata))
+    wait.until(EC.invisibility_of_element((By.ID, 'progress')))
+    print('menu loaded')
+
+    if not args.debug:
+        # Test start
+
+        print('== Evaluate conditionals test ==')
+        evaluate_test.run(driver)
+        print('== Evaluate conditionals test done ==')
+
+        print('== Defconfig test ==')
+        defconfig_test.run(driver, SDKDIR)
+        print('== Defconfig test done ==')
+
+        logfile = open('console.log', 'w')
+
+        for e in driver.get_log('browser'):
+            # snip long URL
+            _h = _to_uri(os.path.dirname(_here))
+            msg = e['message'].replace(_h, '..')
+            ts = datetime.fromtimestamp(e['timestamp']/1000).isoformat(timespec='milliseconds').split('T')[1]
+            
+            print('[%s][%s] %s' % (ts, e['level'], msg), file=logfile)
+
+        logfile.close()
+
+        if not args.nc:
+            driver.close()
