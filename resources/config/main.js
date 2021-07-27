@@ -809,7 +809,9 @@ class ChoiceWidget extends BaseWidget {
 		// Finally, actually select, make sure that 'selected' is exists but
 		// it always chosen. If it is not, the helper script mistakes.
 
-		this.setValue(selected);
+		if (selected) {
+			this.setValue(selected);
+		}
 	}
 
 	evaluate() {
@@ -931,6 +933,7 @@ class ChoiceOption extends BaseWidget {
 
 	updateCondition() {
 		this._active = this._node.dep ? evaluateCond(this._node.dep) : true;
+		this._setVisibility(this._active);
 	}
 
 	/**
