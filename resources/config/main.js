@@ -760,6 +760,14 @@ class ChoiceWidget extends BaseWidget {
 		super(node);
 		this._element.classList.add("choice");
 		this._element.id = "choice-" + choiceId++;
+
+		// Add symbol space because choice option has no name, so BaseWidget
+		// constructor had not added.
+		this.symbolelem = document.createElement("div");
+		this.symbolelem.className = "symbol";
+		this.symbolelem.innerHTML = "";
+		this._element.appendChild(this.symbolelem);
+
 		this._options = [];
 		this._input = document.createElement("select");
 		this.user_value = undefined;
@@ -774,6 +782,7 @@ class ChoiceWidget extends BaseWidget {
 				opt.select(opt.name === this.user_value);
 			}
 			propagateCallstack.pop();
+			this.symbolelem.innerHTML = this.user_value;
 		});
 
 		this.setInitialState();
@@ -826,6 +835,7 @@ class ChoiceWidget extends BaseWidget {
 		}
 
 		this._setVisibility(active);
+		this.symbolelem.innerHTML = val || "";
 	}
 
 	getDefault() {
@@ -883,6 +893,7 @@ class ChoiceWidget extends BaseWidget {
 				opt.select(opt.name === val);
 			}
 			this._value = this.user_value = val;
+			this.symbolelem.innerHTML = this.user_value || "";
 			// No propagate from here because choice type has no values.
 		}
 	}
