@@ -11,6 +11,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from defconfig import Defconfig
 
+title = 'New (defconfig) test'
+
 def create_defconfig_list(sdkdir):
     ''' Create defconfig dialog data
     This function emulates SDKConfigView2._getDefconfigs().
@@ -99,8 +101,10 @@ def save_config(driver, filepath):
     with open(filepath, 'w') as fh:
         fh.write(content)
 
-def run(driver, sdkdir):
+def run(driver):
     from compare_config import prepare, compare_config
+
+    sdkdir = '.harness/spresense/sdk'
 
     prepare(sdkdir)
 

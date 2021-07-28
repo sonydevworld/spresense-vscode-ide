@@ -8,6 +8,8 @@ import re
 import subprocess as sp
 import argparse
 from datetime import datetime
+import importlib.util
+import glob
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,13 +17,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-import driver_helper
-
-import suite.evaluate_test as evaluate_test
-import suite.defconfig_test as defconfig_test
-
-# Setup chromedriver for installed chrome browser
 
 _here = os.path.dirname(os.path.abspath(__file__))
 TEST_HARNESS = os.path.join(_here, '.harness')
@@ -110,14 +105,29 @@ def cleanup_driver_process():
     os.system('pkill chromedriver')
     os.system('pkill -f chromium-browser')
 
+def load_test_suite(suite):
+    name = suite + '_test'
+    spec = importlib.util.spec_from_file_location(name, 'suite/%s_test.py' % suite)
+    assert spec, 'test suite "%s" not found' % suite
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
 if __name__ == '__main__':
 
+    testsuitefiles = glob.glob('suite/*_test.py')
+    testsuites = list(map(lambda fn: os.path.basename(fn).replace('_test.py', ''),
+                          testsuitefiles))
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action="store_true")
-    parser.add_argument('-nc', action='store_true')
+    parser.add_argument('-d', '--debug', action="store_true", help='debug mode, test is not run')
+    parser.add_argument('-nc', action='store_true', help='show window and not close when test finished')
+    parser.add_argument('TESTSUITE', nargs='*', help='test suite name(s) {}'.format(testsuites))
     args = parser.parse_args()
 
-    path = driver_helper.download_chromedriver()
+    if len(args.TESTSUITE) > 0:
+        testsuites = args.TESTSUITE
+
     cleanup_driver_process()
     setup_test_harness()
     create_index_html()
@@ -126,7 +136,13 @@ if __name__ == '__main__':
     # Open chrome with developer tools (if needed)
     options = Options()
     if args.debug:
-        options.add_argument('--auto-open-devtools-for-tabs')
+        # chrome devtools is very slow when the page has
+        # large number of elements.
+        # So, SDK configuration opens very slow with devtools.
+        # I recommend open devtools after menu loaded.
+
+        # options.add_argument('--auto-open-devtools-for-tabs')
+        pass
     else:
         options.headless = True
     if args.nc:
@@ -134,7 +150,7 @@ if __name__ == '__main__':
 
     dc = DesiredCapabilities.CHROME
     dc['goog:loggingPrefs'] = { 'browser': 'ALL' }
-    driver = webdriver.Chrome(path, options=options, desired_capabilities=dc)
+    driver = webdriver.Chrome(options=options, desired_capabilities=dc)
     driver.set_window_position(0, 0)
     driver.set_window_size(1600, 1024)
 
@@ -147,18 +163,18 @@ if __name__ == '__main__':
     # Build Kconfig cofniguration UI in main.js
     driver.execute_script('loadMenu(%s)' % (menudata))
     wait.until(EC.invisibility_of_element((By.ID, 'progress')))
-    print('menu loaded')
+
+    os.makedirs('screenshots', exist_ok=True)
+    driver.save_screenshot('screenshots/initial.png')
 
     if not args.debug:
         # Test start
 
-        print('== Evaluate conditionals test ==')
-        evaluate_test.run(driver)
-        print('== Evaluate conditionals test done ==')
-
-        print('== Defconfig test ==')
-        defconfig_test.run(driver, SDKDIR)
-        print('== Defconfig test done ==')
+        for suite in testsuites:
+            mod = load_test_suite(suite)
+            print('== {} =='.format(mod.title))
+            mod.run(driver)
+            print('== {} done =='.format(mod.title))
 
         logfile = open('console.log', 'w')
 

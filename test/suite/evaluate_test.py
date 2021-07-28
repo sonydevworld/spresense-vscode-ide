@@ -9,6 +9,8 @@ The expression is defined by Kconfig language (https://www.kernel.org/doc/Docume
 The purpose of this test is evaluateCond() correctly performed according to Kconfig language.
 '''
 
+title = 'Evaluate function test'
+
 import inspect
 
 # Complex expressions, they bring from actual configuraion conditions
