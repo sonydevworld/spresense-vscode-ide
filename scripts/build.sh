@@ -4,6 +4,10 @@
 SDK_VERSION_STR=`grep "^SDK_VERSION=" ${SDK_PATH}/sdk/tools/mkversion.sh | cut -d "\"" -f 2 | sed s/SDK//g`
 SDK_VERSION_MAJ=`echo ${SDK_VERSION_STR} | cut -d "." -f 1`
 
+# NuttX Version check
+NTX_VERSION_STR=`grep "^NUTTX_VERSION=" ${SDK_PATH}/sdk/tools/mkversion.sh | cut -d "\"" -f 2`
+NTX_VERSION_MAJ=`echo ${NTX_VERSION_STR} | cut -d "." -f 1`
+
 # Location of .config
 LOCAL_NUTTX_CONFIG=${SDK_PATH}/nuttx/.config
 if [ "${SDK_VERSION_MAJ}" == 1 ]; then
