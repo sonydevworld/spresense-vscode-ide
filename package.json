@@ -8,7 +8,7 @@
 	"author": {
 		"name": "Sony Semiconductor Solutions"
 	},
-	"icon": "https://github.com/sonydevworld/spresense-vscode-ide/raw/master/icons/Spresense.png",
+	"icon": "icons/Spresense.png",
 	"repository": "https://github.com/sonydevworld/spresense-vscode-ide",
 	"engines": {
 		"vscode": "^1.56.0"
