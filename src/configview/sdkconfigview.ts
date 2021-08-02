@@ -528,7 +528,6 @@ export class SDKConfigView {
 
 	private _genKernelConfigMenuData() {
 		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
-		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
 		const options = {
 			cwd: this._kernelDir,
@@ -579,7 +578,13 @@ export class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
+			// Workaround: The latest python3 (3.9.6) in MSYS can not take the script in windows path.
+			// So we need to windows path to MSYS path (e.g. c:\User -> /c/User/).
+			// MSYS path can be used in 3.9.6 or older minor versions (I tested in 3.7.4).
+			// This replace logic would be affected only when this._extensionPath is windows path, Linux and macOS
+			// would not be changed.
+			const args = [path.join(this._extensionPath, "helper", "kconfig2json.py").replace(/\\/g, '/').replace(/^(\w):/, '/$1')];
+			cp.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
 					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
 					this.dispose();
