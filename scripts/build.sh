@@ -94,6 +94,8 @@ function build_sdk (){
         rm -f ${SDK_PATH}/sdk/system/builtin/registry/.updated
     else
         rm -f ${SDK_PATH}/sdk/apps/builtin/registry/.updated
+        rm -f ${SDK_PATH}/sdk/apps/builtin/registry/*.bdat
+        rm -f ${SDK_PATH}/sdk/apps/builtin/registry/*.pdat
     fi
 
     # Check SDK config
