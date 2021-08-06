@@ -51,6 +51,9 @@ var buttonText = {
 };
 
 function main() {
+    /* Disable enter key for input form */
+    disableEnterKey();
+
     /* Event listner for communicate with vscode */
     addVscodeEventListner();
 
@@ -358,6 +361,15 @@ function isReadyToCreate() {
         return isAppCommandReadyToCreate();
     } else {
         return isAsmpWorkerReadyToCreate();
+    }
+}
+
+function disableEnterKey() {
+    /* Disable 'Enter' key for all input form */
+    document.onkeydown = function(event) {
+        if (event.key === 'Enter') {
+            return false;
+        }
     }
 }
 
