@@ -453,7 +453,7 @@ export class SDKConfigView {
 		 * python /path/to/helper/kconfig2json.py -o /path/to/menu.js
 		 */
 
-		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
+		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py").replace(/\\/g, '/').replace(/^(\w):/, '/$1')];
 		args.push(this._sdkTmpKconfig);
 
 		this._progress.emit("update",
