@@ -1,78 +1,37 @@
 
-var currentMode;
-
 function postMessage(data) {
-    document.getElementById("debug-target").contentWindow
-        .postMessage(data, "*");
+  document.getElementById("debug-target").contentWindow
+    .postMessage(data, "*");
 }
 
-function loadsdkmenu() {
-    if (currentMode) {
-        alert("Reload first.");
-        return;
-    }
-
-    postMessage({
-        command: "init",
-        content: JSON.stringify(sdkmenudata)
-    });
-    currentMode = "SDK";
+function loadMenu(content) {
+  postMessage({
+    command: "init",
+    content: JSON.stringify(content),
+  });
 }
 
-function loadnuttxmenu() {
-    if (currentMode) {
-        alert("Reload first.");
-        return;
-    }
-
-    postMessage({
-        command: "init",
-        content: JSON.stringify(nuttxmenudata)
-    });
-    currentMode = "Kernel";
+function sendDefconfigList(content) {
+  postMessage({
+    command: "get-defconfigs",
+    content: content
+  });
 }
+
+function loadDefconfigs(content) {
+  postMessage({
+    command: "load-defconfigs",
+    content: content
+  });
+}
+
+var messageContent;
 
 window.addEventListener("message", function (event) {
-    const message = event.data;
+  // Set window title as command, and save content internal variable.
+  // The actual code is in selenium app.
 
-    console.log(message);
-
-    switch (message.command) {
-        case "get-defconfigs":
-            postMessage({
-                command: "get-defconfigs",
-                content: currentMode === "SDK" ? defconfigList : kernelDefconfigList
-            });
-            break;
-
-        case "load-defconfigs":
-            let data = {
-                command: "load-defconfigs"
-            };
-
-            switch (message.content) {
-                case "examples/adc":
-                    data.content = adcDefconfig;
-                    break;
-                case "examples/audio_player":
-                    data.content = audio_playerDefconfig;
-                    break;
-                case "kernel/release":
-                    data.content = releaseDefconfig;
-                    break;
-                default:
-                    return;
-            }
-            postMessage(data);
-            break;
-
-        case "save":
-            break;
-
-        case "saveas":
-            break;
-
-        case "load":
-            break;
-    }
+  const message = event.data;
+  document.title = message.command;
+  messageContent = message.content;
 });

@@ -169,7 +169,7 @@ export class SDKConfigView {
 							return;
 						}
 						Promise.resolve().then(() => {
-							return new Promise((resolve) => {
+							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
 								this._updateHeaderFiles();
 								resolve();
@@ -248,7 +248,7 @@ export class SDKConfigView {
 				}
 			}, 1);
 
-			return new Promise(resolve => {
+			return new Promise<void>(resolve => {
 				this._progress.on("update", (_message, _increment) => {
 
 					// FIXME: We want to show the percentage but current status of webview
@@ -425,7 +425,7 @@ export class SDKConfigView {
 
 		Promise.resolve().then(() => {
 			if (force || !fs.existsSync(tmpKconfig)) {
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					this._currentProcess = cp.execFile("make", [ this._sdkTmpKconfig ], options, (err, stdout, stderr) => {
 						this._currentProcess = undefined;
 						if (err) {
@@ -453,7 +453,7 @@ export class SDKConfigView {
 		 * python /path/to/helper/kconfig2json.py -o /path/to/menu.js
 		 */
 
-		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
+		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py").replace(/\\/g, '/').replace(/^(\w):/, '/$1')];
 		args.push(this._sdkTmpKconfig);
 
 		this._progress.emit("update",
@@ -499,7 +499,7 @@ export class SDKConfigView {
 					return Promise.reject(e);
 				}
 
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("olddefconfig");
 					this._currentProcess = cp.exec("make olddefconfig", options, (error, stdout, stderr) => {
 						this._currentProcess = undefined;
@@ -528,7 +528,6 @@ export class SDKConfigView {
 
 	private _genKernelConfigMenuData() {
 		const appsDir = path.join("..", "sdk", "tools", "empty_apps");
-		const args = [path.join(this._extensionPath, "helper", "kconfig2json.py")];
 		// Tentative: KCONFIG_CONFIG will be remove
 		const options = {
 			cwd: this._kernelDir,
@@ -545,7 +544,7 @@ export class SDKConfigView {
 
 		Promise.resolve().then(() => {
 			if (!fs.existsSync(path.join(this._kernelDir, "configs", "dummy", "Kconfig"))) {
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("make dirlinks");
 					this._currentProcess = cp.exec("make dirlinks", options, (error, stdout, stderr) => {
 						this._currentProcess = undefined;
@@ -565,7 +564,7 @@ export class SDKConfigView {
 			if (this._isUserConfig && !fs.existsSync(this._configFile)) {
 				// If project folder kernel config file is specified but it's not exists,
 				// create it from current kernel ".config" file.
-				return new Promise((resolve, reject) => {
+				return new Promise<void>((resolve, reject) => {
 					console.log("copying project config");
 					fs.copyFile(path.join(this._kernelDir, '.config'), this._configFile, (err) => {
 						if (err) {
@@ -579,7 +578,13 @@ export class SDKConfigView {
 		})
 		.then(() => {
 			console.log("parse config");
-			child_process.execFile(this._python, args, options, (err, stdout, stderr) => {
+			// Workaround: The latest python3 (3.9.6) in MSYS can not take the script in windows path.
+			// So we need to windows path to MSYS path (e.g. c:\User -> /c/User/).
+			// MSYS path can be used in 3.9.6 or older minor versions (I tested in 3.7.4).
+			// This replace logic would be affected only when this._extensionPath is windows path, Linux and macOS
+			// would not be changed.
+			const args = [path.join(this._extensionPath, "helper", "kconfig2json.py").replace(/\\/g, '/').replace(/^(\w):/, '/$1')];
+			cp.execFile(this._python, args, options, (err, stdout, stderr) => {
 				if (err) {
 					vscode.window.showErrorMessage(nls.localize("sdkconfig.src.progress.error.parse", "Kconfig parse error"));
 					this.dispose();

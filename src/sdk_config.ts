@@ -109,7 +109,7 @@ function getSpresenseRepositoryPath(): string | undefined {
 			const sdk = fs.statSync(path.join(wf[0].uri.fsPath, 'sdk'));
 			const nuttx = fs.statSync(path.join(wf[0].uri.fsPath, 'nuttx'));
 
-			if (sdk.isDirectory && nuttx.isDirectory) {
+			if (sdk.isDirectory() && nuttx.isDirectory()) {
 				return wf[0].uri.fsPath;
 			}
 		} catch (e) {

@@ -387,7 +387,6 @@ class DefconfigDialogContent {
 			e.addEventListener("click", this.defconfig_clicked);
 			e.addEventListener("mouseover", this.show_description);
 			defconfiglist.appendChild(e);
-			console.debug(c);
 		});
 		this.list.appendChild(defconfiglist);
 	}

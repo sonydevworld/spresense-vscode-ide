@@ -14,14 +14,6 @@
 /* Worker ELF path */
 #define WORKER_FILE "/mnt/spif/__worker_name__"
 
-/* Check configuration.  This is not all of the configuration settings that
- * are required -- only the more obvious.
- */
-
-#if CONFIG_NFILE_DESCRIPTORS < 1
-#  error "You must provide file descriptors via CONFIG_NFILE_DESCRIPTORS in your configuration file"
-#endif
-
 #define message(format, ...)    printf(format, ##__VA_ARGS__)
 #define err(format, ...)        fprintf(stderr, format, ##__VA_ARGS__)
 

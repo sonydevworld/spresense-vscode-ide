@@ -1,0 +1,8 @@
+.index.html
+drivers
+__pycache__
+menudata.json
+.harness
+console*.log
+results
+screenshots

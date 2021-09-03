@@ -41,13 +41,22 @@
 ############################################################################
 
 ifeq ($(SDK_VERSION_MAJ),1)
+# SDK 1.x.x series
 -include $(TOPDIR)/Make.defs
 -include $(SDKDIR)/Make.defs
 -include $(SDKDIR)/.config
 include $(APPDIR)/Make.defs
 else
+# SDK 2.x.x series
+ifeq ($(NTX_VERSION_MAJ),8)
+# NuttX version 8 series
 include $(TOPDIR)/Make.defs
 include $(SDKDIR)/Make.defs
+else
+# NuttX version 10 series
+include $(APPDIR)/Make.defs
+include $(SDKDIR)/Make.defs
+endif
 endif
 
 # Take application name
