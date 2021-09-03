@@ -1,5 +1,53 @@
 # Change Log
 
+# v1.3.100
+
+(日本語の説明文は英語の後に記載しています。)
+
+## Summary
+
+* Support for Spresense SDK version 2.3.0 or later.
+
+* This release has a new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader) before use.
+  * Applications will not be able to start without the update. Please make sure to update it.
+
+## Feature enhancements
+
+* Support for Spresense SDK v2.3.0. If you are using Spresense SDK v2.3.0 or later, please upgrade to this version.
+
+* Support for Windows environment installed Python 3.9.5 or later.
+
+* Support for macOS Big Sur.
+
+## Improved features
+
+* Fix a problem that cannot re-build the application that has `worker` if it is cleaned.
+
+------------------------
+
+(Below is in Japanese)
+
+## 概要
+
+* Version 2.3.0以降のSpresense SDKに対応しました。
+
+* 機能拡張および機能改善を行いました。
+
+* 今回のリリースにより [ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール) が必要になります。
+  * アップデートを行わないとアプリケーションが起動できなくなります。必ず更新を行ってください。
+
+## 新規機能追加および機能拡張
+
+* Spresense SDK v2.3.0に対応しました。これ以降のSpresense SDKをお使いの場合はこのバージョンにバージョンアップしてください。
+
+* Python 3.9.5以降がインストールされたWindows環境に対応しました。
+
+* macOS Big Surに対応しました。
+
+## 改善された機能
+
+* ワーカーを追加している状態でアプリケーションのクリーンを行うと再度ビルドが出来なくなる問題を修正しました。
+
 # v1.2.1
 
 (日本語の説明文は英語の後に記載しています。)
