@@ -1,4 +1,12 @@
+############################################################################
+#              THIS FILE IS AUTO GENERATED. DO NOT MODIFY                  #
+############################################################################
+
 # SPRESENSE_IDE_VERSION := 1.1.0
+
+# Local flags
+LOCAL_CELFFLAGS := $(CELFFLAGS)
+
 -include $(TOPDIR)/Make.defs
 -include $(SDKDIR)/Make.defs
 
@@ -17,6 +25,7 @@ DBG = $(APPDIR)/$(WORKER_FOLDER_NAME)/$(WORKER_NAME).debug
 CELFFLAGS += -Og
 CELFFLAGS += -I$(APPDIR)
 CELFFLAGS += -I$(WORKER_DIR)
+CELFFLAGS += $(LOCAL_CELFFLAGS)
 
 CSRCS += $(wildcard *.c) $(wildcard */*.c)
 
