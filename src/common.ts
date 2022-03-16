@@ -162,6 +162,26 @@ export function createFileByTemplate (srcFile: string, destFile: string, custom:
 }
 
 /**
+ * Get template file root directory with SDK version
+ *
+ * This function get a root directory that contain a template files.
+ *
+ * @param resourcePath Path to resource directory
+ * @param folderPath Path to workspace folder
+ */
+
+export function getTemplateRootPathWithVersion (resourcePath: string, folderPath: string): string {
+	let version: Version = getSdkVersionFromSpresenseConf(folderPath);
+	let subdir: string = "ver2";
+
+	if (version.major == 1) {
+		subdir = "ver1";
+	}
+
+	return path.join(resourcePath, subdir);
+}
+
+/**
  * Create new worker files with template
  *
  * This function create new files for adding worker initial setup.
@@ -177,7 +197,7 @@ export function createFileByTemplate (srcFile: string, destFile: string, custom:
  */
 
 export function createWorkerFiles (name: string, appname: string| undefined, folder: string, resourcePath: string) {
-	const tempPath = path.join(resourcePath, 'workerfiles', 'worker');
+	const tempPath = path.join(getTemplateRootPathWithVersion(resourcePath, folder), 'workerfiles', 'worker');
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(folder, `${name}_worker`);
 	const replaceRules = {
@@ -235,7 +255,7 @@ export function createWorkerFiles (name: string, appname: string| undefined, fol
  */
 
 export function createWorkerApplicationFiles (name: string, worker_name: string, folder: string, resourcePath: string) {
-	const tempPath = path.join(resourcePath, 'workerfiles', 'app');
+	const tempPath = path.join(getTemplateRootPathWithVersion(resourcePath, folder), 'workerfiles', 'app');
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(folder, name);
 	const replaceRules = {
@@ -291,7 +311,7 @@ export function createWorkerApplicationFiles (name: string, worker_name: string,
  */
 
 export function createApplicationFiles (name: string, folder: string, resourcePath: string) {
-	const tempPath = path.join(resourcePath, 'appfiles');
+	const tempPath = path.join(getTemplateRootPathWithVersion(resourcePath, folder), 'appfiles');
 	const fileList = fs.readdirSync(tempPath);
 	const destDir = path.join(folder, name);
 	const replaceRules = {
@@ -451,6 +471,34 @@ export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} 
 }
 
 /**
+ * Get Spresense SDK version from spresense_prj.json
+ * 
+ * @param folderPath Path to project folder
+ * 
+ * @returns Version information
+ */
+
+ export function getSdkVersionFromSpresenseConf(folderPath: string): Version {
+	const jsonItem = loadSpresenseConfFile(folderPath);
+	let ver : Version = {
+		major: 0,
+		minor: 0,
+		patch: 0,
+		str: UNKNOWN_SDK_VERSION
+	};
+
+	if (jsonItem) {
+		let pjVer = jsonItem['SdkVersion'].match(/SDK(\d+).(\d+).(\d+)/);
+		ver.major = parseInt(pjVer[1]);
+		ver.minor = parseInt(pjVer[2]);
+		ver.patch = parseInt(pjVer[3]);
+		ver.str = jsonItem['SdkVersion'];
+	}
+
+	return ver;
+}
+
+/**
  * Check project folder compatibility.
  * 
  * @param sdkVersion Includes Spresense SDK version
@@ -461,22 +509,15 @@ export function loadSpresenseConfFile(folderPath: string): {[key: string]: any} 
 
 export function checkSdkCompatibility(sdkVersion: Version, uri: vscode.Uri): boolean {
 	let wsFolder = vscode.workspace.getWorkspaceFolder(uri);
-	let jsonItem: {[key: string]: any} | null;
-	let pjVer: any;
+	let verInPrj : Version;
 
 	if (!wsFolder) {
 		return false;
 	}
 
-	jsonItem = loadSpresenseConfFile(wsFolder.uri.fsPath);
+	verInPrj = getSdkVersionFromSpresenseConf(wsFolder.uri.fsPath);
 
-	if (!jsonItem) {
-		return false;
-	}
-
-	pjVer = jsonItem['SdkVersion'].match(/SDK(\d+).(\d+).(\d+)/);
-
-	if (sdkVersion.major === parseInt(pjVer[1])) {
+	if (sdkVersion.major === verInPrj.major) {
 		return true;
 	} else {
 		return false;
