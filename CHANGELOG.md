@@ -1,5 +1,37 @@
 # Change Log
 
+# v1.3.200
+
+(日本語の説明文は英語の後に記載しています。)
+
+## Summary
+
+* Feature improvements are available
+
+## Improved features
+
+* The following minor problems have been corrected.
+
+  * Fix a problem in which some parameters were not reflected when Makefile was edited manually.
+
+  * Fix an unintentional ".vscode/include not found" warning.
+
+------------------------
+
+(Below is in Japanese)
+
+## 概要
+
+* 機能改善を行いました。
+
+## 改善された機能
+
+* 下記の軽微な不具合を修正しました。
+
+  * Makefileを手動で編集した際に一部パラメータが反映されない問題を修正しました。
+
+  * ".vscode/includeが見つかりません" という意図しない警告が表示されないように修正しました。
+
 # v1.3.100
 
 (日本語の説明文は英語の後に記載しています。)
