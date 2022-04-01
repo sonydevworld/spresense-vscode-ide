@@ -80,10 +80,16 @@ function win32ToPosixPath(win32Path: string): string {
 
 function createVscode(newFolderPath: string) {
 	let vscodePath = path.join(newFolderPath, '.vscode');
+	let includePath = path.join(vscodePath, 'include');
 
 	if (!fs.existsSync(vscodePath) || !fs.statSync(vscodePath).isDirectory()) {
 		/* If .vscode does not exist, create it */
 		fs.mkdirSync(vscodePath);
+	}
+
+	if (!fs.existsSync(includePath) || !fs.statSync(includePath).isDirectory()) {
+		/* If .vscode/include does not exist, create it */
+		fs.mkdirSync(includePath);
 	}
 }
 

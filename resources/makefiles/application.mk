@@ -40,6 +40,10 @@
 #              THIS FILE IS AUTO GENERATED. DO NOT MODIFY                  #
 ############################################################################
 
+# Local flags
+LOCAL_CFLAGS   := $(CFLAGS)
+LOCAL_CXXFLAGS := $(CXXFLAGS)
+
 ifeq ($(SDK_VERSION_MAJ),1)
 # SDK 1.x.x series
 -include $(TOPDIR)/Make.defs
@@ -83,7 +87,9 @@ CSRCS += $(filter-out $(MAINSRC),$(wildcard *.c) $(wildcard */*.c))
 CXXSRCS += $(wildcard *.cpp) $(wildcard */*.cpp) $(wildcard *.cxx) $(wildcard */*.cxx)
 
 CFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
+CFLAGS += $(LOCAL_CFLAGS)
 CXXFLAGS += $(foreach inc,$(wildcard ../*/include),-I$(inc))
+CXXFLAGS += $(LOCAL_CXXFLAGS)
 
 PROGNAME = $(APPNAME)$(EXEEXT)
 
