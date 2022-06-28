@@ -280,7 +280,7 @@ export class SDKConfigView2 {
 
 		try {
 			cp.execFileSync("make", args, options);
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 
@@ -296,7 +296,7 @@ export class SDKConfigView2 {
 				fs.mkdirSync(headerPath);
 			}
 			fs.copyFileSync(headerFile, path.join(headerPath, 'config.h'));
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 			return;
 		}
@@ -314,7 +314,7 @@ export class SDKConfigView2 {
 				}
 			}
 			vscode.window.showInformationMessage(nls.localize("sdkconfig.src.save.done", "Configuration has been saved. {0}", filePath));
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 	}
