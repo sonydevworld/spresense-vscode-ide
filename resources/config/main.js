@@ -1366,9 +1366,13 @@ function filterConfigs() {
 	results.innerHTML = ""; // Clear all of child nodes
 
 	if (input.value === "") {
-		document.getElementById("search-results").dataset.show = false;
+		results.dataset.show = false;
 		return;
 	}
+	if (input.value.length < 2) {
+		return;
+	}
+	results.dataset.show = false;
 
 	const configs = document.getElementById("configs").querySelectorAll(".config:not(.no-prompt):not(.invisible):not(.comment)");
 
@@ -1411,7 +1415,7 @@ function filterConfigs() {
 			break;
 		}
 	}
-	document.getElementById("search-results").dataset.show = nfound;
+	results.dataset.show = nfound;
 }
 
 function generateConfigFileContent() {
@@ -1545,8 +1549,8 @@ function main() {
 		document.getElementById("visibility-icon").classList.add("off");
 	}
 
-	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
-	document.getElementById("search-box").addEventListener("search", filterConfigs);
+	document.getElementById("search-box").addEventListener("input", filterConfigs);
+
 	document.getElementById("search-icon").addEventListener("click", event => {
 		let search = document.getElementById("search");
 		search.classList.toggle("show");
