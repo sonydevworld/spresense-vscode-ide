@@ -639,6 +639,9 @@ export class SDKConfigView2 {
 		const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
 			scheme: 'vscode-resource'
 		});
+		const spinnerUri = vscode.Uri.file(path.join(this._resourcePath, 'spinner.css')).with({
+			scheme: 'vscode-resource'
+		});
 		const defconfigUri = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js")).with({
 			scheme: 'vscode-resource'
 		});
@@ -650,83 +653,23 @@ export class SDKConfigView2 {
 		const saveasStr = nls.localize("sdkconfig.src.menu.saveas", "Save as...");
 		const visibilityHelp = nls.localize("sdkconfig.src.menu.visible", "Show all options");
 
-		return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy"
-	  content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}' 'unsafe-eval'; style-src vscode-resource:;"
-/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		let buf = fs.readFileSync(path.join(this._resourcePath, 'index.html.template')).toString();
 
-<link rel="stylesheet" type="text/css" href="${cssUri}">
-<title>Configuration</title>
-</head>
-
-<body>
-	<div class="container">
-		<div class="topmenu">
-			<div class="button" id="new">${newStr}</div>
-			<div class="button" id="save">${saveStr}</div>
-			<div class="button" id="load">${loadStr}</div>
-			<div class="button" id="saveas">${saveasStr}</div>
-			<div class="button" id="search-icon">
-				<div class="icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-				</div>
-			</div>
-			<div class="button" id="visibility-icon">
-				<div class="icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-				</div>
-				<div class="tooltip">${visibilityHelp}</div>
-			</div>
-		</div>
-		<div id="search">
-			<div id="search-menu">
-				<input type="search" id="search-box" placeholder="Search...">
-			</div>
-			<div id="search-results">
-
-			</div>
-		</div>
-
-		<div class="contents" id="configs">
-		</div>
-
-		<div id="help"></div>
-	</div>
-
-	<div id="defconfig" class="modal">
-		<div class="modal-content defconfig">
-			<div id="defconfig-header">
-				<h1>New Configuration</h1>
-			</div>
-			<div id="defconfig-body">
-				<div id="defconfig-selector">
-					<div id="defconfig-category">
-					</div>
-					<div id="defconfig-list"></div>
-				</div>
-				<div id="defconfig-selected">
-					<p>selected defconfigs</p>
-					<div id="selected-defconfig-list"></div>
-				</div>
-			</div>
-			<div id="defconfig-footer">
-				<div id="defconfig-ok">OK</div>
-				<div id="defconfig-cancel">Cancel</div>
-			</div>
-		</div>
-	</div>
-
-	<div id="progress" class="modal">
-	</div>
-
-	<script nonce="${nonce}" src="${progressUri}"></script>
-	<script nonce="${nonce}" src="${mainUri}"></script>
-	<script nonce="${nonce}" src="${defconfigUri}"></script>
-</body>
-</html>`;
+		const replacements: any = {
+			mainUri: mainUri,
+			progressUri: progressUri,
+			cssUri: cssUri,
+			spinnerUri: spinnerUri,
+			defconfigUri: defconfigUri,
+			nonce: nonce,
+			newStr: newStr,
+			saveStr: saveStr,
+			loadStr: loadStr,
+			saveasStr: saveasStr,
+			visibilityHelp: visibilityHelp
+		};
+		return buf.replace(/\${(.*?)}/g, (match, p1) => {
+			return replacements[p1] || match;
+		});
 	}
 }

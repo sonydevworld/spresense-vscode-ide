@@ -1576,16 +1576,27 @@ function main() {
 	document.getElementById("save").addEventListener("click", event => {
 		// Send message with generated .config content to extension main,
 		// and save it because webview javascript can't save it directly.
-
-		vscode.postMessage({command: "save", content: generateConfigFileContent()});
+		showProgress();
+		setTimeout(() => {
+			vscode.postMessage({command: "save", content: generateConfigFileContent()});
+			hideProgress();
+		}, 1);
 	});
 
 	document.getElementById("saveas").addEventListener("click", event => {
-		vscode.postMessage({command: "saveas", content: generateConfigFileContent()});
+		showProgress();
+		setTimeout(() => {
+			vscode.postMessage({command: "saveas", content: generateConfigFileContent()});
+			hideProgress();
+		}, 1);
 	});
 
 	document.getElementById("load").addEventListener("click", event => {
-		vscode.postMessage({command: "load"});
+		showProgress();
+		setTimeout(() => {
+			vscode.postMessage({command: "load"});
+			hideProgress();
+		}, 1);
 	});
 
 	// Message handling from extension.ts
