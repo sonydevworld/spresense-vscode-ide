@@ -1197,6 +1197,8 @@ function evaluateExpr(s) {
 	_s = _s.replace(/[!<>]?=/g, (x) => {
 		return x === "=" ? "===" : x;
 	});
+	// Replace '!SYMBOL' ('not' pattern) to invert tristate value
+	_s = _s.replace(/!(\d)/g, '(2-$1)');
 
 	//console.debug(`${s} => ${_s}`);
 	let ret;
