@@ -40,11 +40,10 @@ def setup_test_harness():
         proc.check_returncode()
 
 def create_index_html():
-    # XXX: index.html.template is the same with sdkconfigview2.ts, I want to be share it,
-    # but it is not for now.
-    template = os.path.join(_here, 'index.html.template')
+    template = os.path.join(_here, '..', 'resources', 'config', 'index.html.template')
     resourcedir = os.path.normpath(os.path.join(_here, '..', 'resources', 'config'))
     css_uri = _to_uri(os.path.join(resourcedir, 'style.css'))
+    spinner_uri = _to_uri(os.path.join(resourcedir, 'spinner.css'))
     progress_uri = _to_uri(os.path.join(resourcedir, 'progress.js'))
     main_uri = _to_uri(os.path.join(resourcedir, 'main.js'))
     defconfig_uri = _to_uri(os.path.join(resourcedir, 'defconfig.js'))
@@ -53,6 +52,7 @@ def create_index_html():
 
     tempdict = {
         'cssUri': css_uri,
+        'spinnerUri': spinner_uri,
         'newStr': 'New',
         'saveStr': 'Save',
         'loadStr': 'Load',
@@ -107,7 +107,7 @@ def cleanup_driver_process():
 
 def load_test_suite(suite):
     name = suite + '_test'
-    spec = importlib.util.spec_from_file_location(name, 'suite/%s_test.py' % suite)
+    spec = importlib.util.spec_from_file_location(name, f'suite/{suite}_test.py')
     assert spec, 'test suite "%s" not found' % suite
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--debug', action="store_true", help='debug mode, test is not run')
     parser.add_argument('-nc', action='store_true', help='show window and not close when test finished')
-    parser.add_argument('TESTSUITE', nargs='*', help='test suite name(s) {}'.format(testsuites))
+    parser.add_argument('TESTSUITE', nargs='*', help=f'test suite name(s) {testsuites}')
     args = parser.parse_args()
 
     if len(args.TESTSUITE) > 0:
@@ -183,8 +183,8 @@ if __name__ == '__main__':
             _h = _to_uri(os.path.dirname(_here))
             msg = e['message'].replace(_h, '..')
             ts = datetime.fromtimestamp(e['timestamp']/1000).isoformat(timespec='milliseconds').split('T')[1]
-            
-            print('[%s][%s] %s' % (ts, e['level'], msg), file=logfile)
+
+            print(f'[{ts}][{e["level"]}] {msg}', file=logfile)
 
         logfile.close()
 

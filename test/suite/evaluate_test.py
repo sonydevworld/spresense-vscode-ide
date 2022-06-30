@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+
+import inspect
+
 ''' evaluateCond() function test
 
 This test is function test of evaluateCond() defined in resource/config/main.js.
@@ -11,8 +16,6 @@ The purpose of this test is evaluateCond() correctly performed according to Kcon
 
 title = 'Evaluate function test'
 
-import inspect
-
 # Complex expressions, they bring from actual configuraion conditions
 
 CONFIG_BCH_cond = '(LC823450_IPL2 && ARCH_CHIP_LC823450 && ARCH_ARM) || (Z20X_W25_CHARDEV && y) || (EXAMPLES_MTDPART && MTD_PARTITION && BUILD_FLAT) || (EXAMPLES_MTDRWB && (MTD_WRBUFFER || MTD_READAHEAD) && BUILD_FLAT) || (FSUTILS_MKFATFS && FS_FAT && !DISABLE_PSEUDOFS_OPERATIONS) || (FSUTILS_MKSMARTFS && FS_SMARTFS && !DISABLE_PSEUDOFS_OPERATIONS)'
@@ -21,21 +24,32 @@ CONFIG_ARCH_HAVE_SDIO_cond = "(ARCH_CHIP_CXD56XX && MMCSD && y) || (IMXRT_USDHC1
 
 def evaluateCond(driver, expr):
     fn = inspect.currentframe().f_code.co_name
-    print('  - test %s("%s")' % (fn, expr))
-    return driver.execute_script('return %s("%s");' % (fn, expr))
+    print(f'  - test {fn}("{expr}")')
+    return driver.execute_script(f'return {fn}("{expr}");')
 
-def run(driver):
+def evaluateExpr(driver, expr):
+    ''' evaluateExpr will returns 0 = "n", 1 = "m", 2 = "y".
+    Other values are error, such as bool.
+    '''
+    fn = inspect.currentframe().f_code.co_name
+    print(f'  - test {fn}("{expr}")')
+    return driver.execute_script(f'return {fn}("{expr}");')
+
+def run(driver: webdriver):
 
     # Move frame to webview content
-    driver.switch_to.frame(driver.find_element_by_id('debug-target'))
+    driver.switch_to.frame(driver.find_element(By.ID, 'debug-target'))
 
     print(' - Evaluate single boolean value')
     # DEFAULT_SMALL (bool) = n
     # SYSTEM_NSH (bool) = y
     # EXAMPLES_CAMERA (tristate) = n
     assert evaluateCond(driver, 'DEFAULT_SMALL') == False, 'It should be false'
+    assert evaluateExpr(driver, 'DEFAULT_SMALL') == 0, 'It should be "n"'
     assert evaluateCond(driver, 'SYSTEM_NSH'), 'It should be true'
+    assert evaluateExpr(driver, 'SYSTEM_NSH') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'EXAMPLES_CAMERA') == False, 'It should be false'
+    assert evaluateExpr(driver, 'EXAMPLES_CAMERA') == 0, 'It should be "n"'
 
     print(' - Evaluate expression with int type')
     # DEV_PIPE_SIZE (int) = 1024
@@ -68,31 +82,45 @@ def run(driver):
     assert evaluateCond(driver, 'RAM_START >= 0x0cffffff'), 'It should be true'
 
     print(' - Evaluate not (!) syntax')
-    assert evaluateCond(driver, '!DEFAULT_SMALL'), '!DEFAULT_SMALL should be "y"'
+    assert evaluateCond(driver, '!DEFAULT_SMALL'), '!DEFAULT_SMALL should be true'
+    assert evaluateExpr(driver, '!DEFAULT_SMALL') == 2, '!DEFAULT_SMALL should be "y"'
 
     print(' - Evaluate and (&&) syntax')
     # SYSTEM_CLE (bool) = y
     # VIDEO (bool) = n
     assert evaluateCond(driver, 'SYSTEM_NSH && SYSTEM_CLE'), 'It should be true'
+    assert evaluateExpr(driver, 'SYSTEM_NSH && SYSTEM_CLE') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'DEFAULT_SMALL && SYSTEM_NSH') == False, 'It should be false'
+    assert evaluateExpr(driver, 'DEFAULT_SMALL && SYSTEM_NSH') == 0, 'It should be "n"'
     assert evaluateCond(driver, 'SYSTEM_NSH && DEFAULT_SMALL') == False, 'It should be false'
+    assert evaluateExpr(driver, 'SYSTEM_NSH && DEFAULT_SMALL') == 0, 'It should be "n"'
     assert evaluateCond(driver, 'DEFAULT_SMALL && VIDEO') == False, 'It should be false'
+    assert evaluateExpr(driver, 'DEFAULT_SMALL && VIDEO') == 0, 'It should be "n"'
 
     print(' - Evaluate or (||) syntax')
     assert evaluateCond(driver, 'SYSTEM_NSH || SYSTEM_CLE'), 'It should be true'
+    assert evaluateExpr(driver, 'SYSTEM_NSH || SYSTEM_CLE') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'DEFAULT_SMALL || SYSTEM_NSH'), 'It should be true'
+    assert evaluateExpr(driver, 'DEFAULT_SMALL || SYSTEM_NSH') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'SYSTEM_NSH || DEFAULT_SMALL'), 'It should be true'
+    assert evaluateExpr(driver, 'SYSTEM_NSH || DEFAULT_SMALL') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'DEFAULT_SMALL || VIDEO') == False, 'It should be false'
+    assert evaluateExpr(driver, 'DEFAULT_SMALL || VIDEO') == 0, 'It should be "n"'
 
     print(' - Evaluate brackets')
     assert evaluateCond(driver, '(DEFAULT_SMALL && SYSTEM_NSH) || SYSTEM_CLE'), 'It should be true'
+    assert evaluateExpr(driver, '(DEFAULT_SMALL && SYSTEM_NSH) || SYSTEM_CLE') == 2, 'It should be "y"'
     assert evaluateCond(driver, 'SYSTEM_CLE || (DEFAULT_SMALL && SYSTEM_NSH)'), 'It should be true'
+    assert evaluateExpr(driver, 'SYSTEM_CLE || (DEFAULT_SMALL && SYSTEM_NSH)') == 2, 'It should be "y"'
 
     print(' - Evaluate complex expressions')
     assert evaluateCond(driver, 'SYSTEM_NSH && (SYSTEM_CLE || VIDEO) && DEV_PIPE_SIZE = 1024'), 'It should be true'
     assert evaluateCond(driver, '(DEFAULT_SMALL || !BOARD_POWEROFF || !BOARD_RESET) && (BOARDCTL_POWEROFF || BOARDCTL_RESET) && NSH_LIBRARY'), 'It should be true'
+    assert evaluateExpr(driver, '(DEFAULT_SMALL || !BOARD_POWEROFF || !BOARD_RESET) && (BOARDCTL_POWEROFF || BOARDCTL_RESET) && NSH_LIBRARY') == 2, 'It should be "y"'
 
     assert evaluateCond(driver, CONFIG_BCH_cond), 'It should be true'
+    assert evaluateExpr(driver, CONFIG_BCH_cond) == 2, 'It should be "y"'
     assert evaluateCond(driver, CONFIG_ARCH_HAVE_SDIO_cond), 'It should be true'
+    assert evaluateExpr(driver, CONFIG_ARCH_HAVE_SDIO_cond) == 2, 'It should be "y"'
 
     driver.switch_to.parent_frame()

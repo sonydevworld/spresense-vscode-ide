@@ -12,7 +12,7 @@ def create_cuidotconfig(sdkdir, name):
     if os.path.exists(dest):
         return
 
-    print('Create config from %s' % name)
+    print(f'Create config from {name}')
     cmd = ['./tools/config.py', name]
     proc = sp.run(cmd, cwd=sdkdir)
     proc.check_returncode()
@@ -62,24 +62,24 @@ def read_config(path):
     return ret
 
 def compare_config(a, b):
-    print('  - Comparing config %s' % os.path.dirname(a))
+    print(f'  - Comparing config {os.path.dirname(a)}')
     aconfig = read_config(a)
     bconfig = read_config(b)
 
     result = True
     for c in aconfig:
         if not (c in bconfig):
-            print('    X < %s is only in CUI' % c, flush=True)
+            print(f'    X < {c} is only in CUI', flush=True)
             result = False
     for c in bconfig:
         if not (c in aconfig):
-            print('    X > %s is only in extension' % c, flush=True)
+            print(f'    X > {c} is only in extension', flush=True)
             result = False
 
-    
     return result
 
 if __name__ == '__main__':
     prepare('.harness/spresense/sdk')
     result = compare_configs('results')
-    print('Comparing config files %s.' % ('passed' if result else 'failed'))
+    s = 'passed' if result else 'failed'
+    print(f'Comparing config files {s}.')
