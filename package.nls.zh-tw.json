@@ -15,6 +15,7 @@
 	"spresense.command.clean.kernel": "Spresense: 清潔內核",
 	"spresense.command.clean.sdk": "Spresense: 清潔應用",
 	"spresense.command.flash": "Spresense: 建立並燒入",
+	"spresense.command.onlyflash": "Spresense: Application flash",
 	"spresense.command.msys.path": "Spresense: 設置MSYS2路徑（僅Windows）",
 	"spresense.command.create.app": "Spresense: 創建應用程序命令",
 	"spresense.command.create.worker": "Spresense: 創建一個ASMP工作程序",

@@ -45,6 +45,7 @@ const taskBuildLabel = 'Build application';
 const taskSdkCleanLabel = 'Clean application';
 const taskkernelCleanLabel = 'Clean kernel';
 const taskFlashLabel = 'Build and flash';
+const taskOnlyFlashLabel = 'Flash application';
 const taskWorkerFlashLabel = 'Flash worker';
 const taskCleanFlashLabel = 'Clean flash';
 const taskBootFlashLabel = 'Burn bootloader';
@@ -235,6 +236,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	let sdkCleanTask: ConfigInterface = {};
 	let kernelCleanTask: ConfigInterface = {};
 	let flashTask: ConfigInterface = {};
+	let onlyFlashTask: ConfigInterface = {};
 	let flashWrokerTask: ConfigInterface = {};
 	let flashCleanTask: ConfigInterface = {};
 	let flashBootTask: ConfigInterface = {};
@@ -309,6 +311,20 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	flashTask['group'] = 'test';
 	flashTask['problemMatcher'] = ['$gcc'];
 
+	/* Only flash Task */
+	onlyFlashTask['label'] = taskOnlyFlashLabel;
+	onlyFlashTask['type'] = 'shell';
+	onlyFlashTask['dependsOrder'] = 'sequence',
+		onlyFlashTask['dependsOn'] = [taskWorkerFlashLabel];
+	onlyFlashTask['command'] = 'cd \"${workspaceFolder}\";${config:spresense.sdk.path}/sdk/tools/flash.sh -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed}';
+	if (isAppfolder) {
+		onlyFlashTask['command'] += ` out/*.nuttx.spk`;
+	} else {
+		onlyFlashTask['command'] += ' sdk/nuttx.spk';
+	}
+	onlyFlashTask['group'] = 'test';
+	onlyFlashTask['problemMatcher'] = ['$gcc'];
+
 	/* Flash worker Task */
 	flashWrokerTask['label'] = taskWorkerFlashLabel;
 	flashWrokerTask['type'] = 'shell';
@@ -336,6 +352,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 		kernelCleanTask,
 		sdkCleanTask,
 		flashTask,
+		onlyFlashTask,
 		flashWrokerTask,
 		flashCleanTask,
 		flashBootTask
@@ -727,6 +744,12 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.flash', (selectedUri) => {
 		/* Do the flash */
 		triggerSpresenseTask(selectedUri, taskFlashLabel);
+	}));
+
+	/* Register only flash command */
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.onlyflash', (selectedUri) => {
+		/* Do the flash */
+		triggerSpresenseTask(selectedUri, taskOnlyFlashLabel);
 	}));
 
 	/* Register burn bootloader command */

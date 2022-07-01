@@ -15,6 +15,7 @@
 	"spresense.command.clean.kernel": "Spresense: カーネルのクリーン",
 	"spresense.command.clean.sdk": "Spresense: アプリケーションのクリーン",
 	"spresense.command.flash": "Spresense: ビルドと書き込み",
+	"spresense.command.onlyflash": "Spresense: Application flash",
 	"spresense.command.msys.path": "Spresense: MSYS2パスの設定 (Windowsのみ)",
 	"spresense.command.create.app": "Spresense: アプリケーションコマンドの作成",
 	"spresense.command.create.worker": "Spresense: ASMPワーカープログラムの作成",
