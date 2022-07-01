@@ -83,6 +83,7 @@ function getEnv (platform: string) {
 function isFlashTask(taskExec: vscode.TaskExecution): boolean {
 	const flashTasks = [
 		tasks.flashTask.label,
+		tasks.onlyFlashTask.label,
 		tasks.flashWorkerTask.label,
 		tasks.flashCleanTask.label,
 		tasks.flashBootTask.label

@@ -112,6 +112,23 @@ export const flashTask = {
     problemMatcher: ['$gcc']
 };
 
+
+export const onlyFlashTask = {
+    label: 'Flash application',
+    type: 'shell',
+    dependsOrder: 'sequence',
+    dependsOn: [
+        flashWorkerTask.label
+    ],
+    command: '${config:spresense.sdk.path}/sdk/tools/flash.sh',
+    args: [
+        '-c', '${config:spresense.serial.port}',
+        '-b', '${config:spresense.flashing.speed}'
+    ],
+    group: 'test',
+    problemMatcher: ['$gcc']
+};
+
 export const flashCleanTask = {
     label: 'Clean flash',
     type: 'shell',

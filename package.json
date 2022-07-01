@@ -133,6 +133,11 @@
 				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
+				"command": "spresense.onlyflash",
+				"title": "%spresense.command.onlyflash%",
+				"enablement": "spresenseSdkVersionMajor"
+			},
+			{
 				"command": "spresense.msys.path",
 				"title": "%spresense.command.msys.path%",
 				"enablement": "isWindows"
@@ -345,27 +350,32 @@
 				{
 					"when": "spresenseSdkVersionMajor == '1'",
 					"command": "spresense.build.kernel",
-					"group": "12_SpresenseBuild@4"
-				},
-				{
-					"when": "spresenseSdkVersionMajor",
-					"command": "spresense.build",
-					"group": "12_SpresenseBuild@2"
-				},
-				{
-					"when": "spresenseSdkVersionMajor == '1'",
-					"command": "spresense.clean.kernel",
 					"group": "12_SpresenseBuild@5"
 				},
 				{
 					"when": "spresenseSdkVersionMajor",
-					"command": "spresense.clean.sdk",
+					"command": "spresense.build",
 					"group": "12_SpresenseBuild@3"
+				},
+				{
+					"when": "spresenseSdkVersionMajor == '1'",
+					"command": "spresense.clean.kernel",
+					"group": "12_SpresenseBuild@6"
+				},
+				{
+					"when": "spresenseSdkVersionMajor",
+					"command": "spresense.clean.sdk",
+					"group": "12_SpresenseBuild@4"
 				},
 				{
 					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.flash",
 					"group": "12_SpresenseBuild@1"
+				},
+				{
+					"when": "spresenseSdkVersionMajor",
+					"command": "spresense.onlyflash",
+					"group": "12_SpresenseBuild@2"
 				},
 				{
 					"when": "spresenseSdkVersionMajor",

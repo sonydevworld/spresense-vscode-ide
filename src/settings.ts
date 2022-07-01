@@ -210,6 +210,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	let sdkCleanTask = lodash.cloneDeep(tasks.sdkCleanTask);
 	let kernelCleanTask = lodash.cloneDeep(tasks.kernelCleanTask);
 	let flashTask = lodash.cloneDeep(tasks.flashTask);
+	let onlyFlashTask = lodash.cloneDeep(tasks.onlyFlashTask);
 	let cleanFlashTask = lodash.cloneDeep(tasks.flashCleanTask);
 
 	// Tweak each tasks for user environment
@@ -220,6 +221,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	kernelCleanTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
 
 	flashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
+	onlyFlashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
 
 	// prepare_debug.sh takes 2nd argument for platform, it changes tools directory
 	// in the SDK.
@@ -241,6 +243,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 		kernelCleanTask,
 		sdkCleanTask,
 		flashTask,
+		onlyFlashTask,
 		tasks.flashWorkerTask,
 		cleanFlashTask,
 		tasks.flashBootTask
@@ -631,6 +634,12 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.flash', (selectedUri) => {
 		/* Do the flash */
 		triggerSpresenseTask(selectedUri, tasks.flashTask.label);
+	}));
+
+	/* Register only flash command */
+	context.subscriptions.push(vscode.commands.registerCommand('spresense.onlyflash', (selectedUri) => {
+		/* Do the flash */
+		triggerSpresenseTask(selectedUri, tasks.onlyFlashTask.label);
 	}));
 
 	/* Register burn bootloader command */
