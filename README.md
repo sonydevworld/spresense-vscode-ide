@@ -11,6 +11,7 @@
 ## Limitation
 
 * **Can not be used in a host PC user name that contains ' ' (Space) or multi-byte characters(e.g. Japanese).**
+* **Can not be used in a host PC with welcome messages in the .bashrc.**
 
 ## How to use
 
