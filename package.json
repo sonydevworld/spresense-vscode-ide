@@ -30,7 +30,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"*"
+		"onStartupFinished"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -421,6 +421,7 @@
 		"marus25.cortex-debug"
 	],
 	"devDependencies": {
+		"@types/chai": "^4.3.1",
 		"@types/glob": "^7.1.3",
 		"@types/md5": "^2.3.0",
 		"@types/mocha": "^8.0.4",
@@ -428,9 +429,11 @@
 		"@types/vscode": "^1.56.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
+		"chai": "^4.3.6",
 		"eslint": "^7.19.0",
 		"mocha": "^10.1.0",
 		"typescript": "^4.1.3",
+		"vscode-extension-tester": "^4.3.0",
 		"vscode-test": "^1.5.0"
 	},
 	"dependencies": {
