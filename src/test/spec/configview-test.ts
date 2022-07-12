@@ -5,6 +5,8 @@ import { MenuConfig } from './menuconfig';
 import { scrollIntoView } from './helper';
 
 describe('SDK Configuration', async () => {
+    let view: WebView;
+
     before(async () => {
         const title = await new Workbench().getTitleBar().getTitle();
         if (title.indexOf('spresnese') >= 0) {
@@ -22,6 +24,10 @@ describe('SDK Configuration', async () => {
         }, 5000);
     });
 
+    after(async () => {
+        await view?.switchBack();
+    });
+
     describe('Open Configuration', async () => {
         before(async () => {
             await new EditorView().closeAllEditors();
@@ -32,7 +38,7 @@ describe('SDK Configuration', async () => {
             const driver = VSBrowser.instance.driver;
             await bench.executeCommand('spresensesdkconfig');
             driver.sleep(1000);
-            const view = new WebView();
+            view = new WebView();
             expect(await view.getTitle()).has.string('SDK Config');
 
             await view.switchToFrame();
@@ -53,9 +59,8 @@ describe('SDK Configuration', async () => {
             let menu = await new MenuConfig('Build Setup').build();
             expect(menu).to.exist;
             await menu?.open();
-            const driver = VSBrowser.instance.driver;
             await new Promise(res => setTimeout(res, 1000));
-            let config = await driver.findElement(By.id('EXPERIMENTAL'));
+            let config = await view.findWebElement(By.id('EXPERIMENTAL'));
             expect(await config.isDisplayed()).to.be.true;
             await menu?.close();
             expect(await config.isDisplayed()).to.be.false;
@@ -64,7 +69,6 @@ describe('SDK Configuration', async () => {
 
     describe('Bool type config test', async () => {
         let menu: MenuConfig;
-        let driver: WebDriver;
         const relatedConfigs = [
             // nuttx/Kconfig (related by if .. endif section)
             'DEBUG_ERROR',
@@ -93,7 +97,6 @@ describe('SDK Configuration', async () => {
         ];
 
         before(async () => {
-            driver = VSBrowser.instance.driver;
             menu = await new MenuConfig('Build Setup').build();
             await menu?.open();
             let submenu = await new MenuConfig('Debug Options').build();
@@ -105,9 +108,9 @@ describe('SDK Configuration', async () => {
         });
 
         it('Bool click (N -> Y)', async () => {
-            const label = await driver.findElement(By.css('#DEBUG_FEATURES > label'));
-            const span = await driver.findElement(By.css('#DEBUG_FEATURES > label > span'));
-            const input = await driver.findElement(By.css('#DEBUG_FEATURES > label > input'));
+            const label = await view.findWebElement(By.css('#DEBUG_FEATURES > label'));
+            const span = await view.findWebElement(By.css('#DEBUG_FEATURES > label > span'));
+            const input = await view.findWebElement(By.css('#DEBUG_FEATURES > label > input'));
             await scrollIntoView(label);
             await span.click();
             expect(await input.getAttribute('checked')).to.equal('true');
@@ -120,7 +123,7 @@ describe('SDK Configuration', async () => {
             // Do not use isDisplay() method because the part of the options are not visible
             // by parent menu shrunken.
             for (let id of relatedConfigs) {
-                const config = await driver.findElement(By.id(id));
+                const config = await view.findWebElement(By.id(id));
                 const cn = await config.getAttribute('class');
                 expect(cn).to.not.contains('visible');
             }
@@ -130,9 +133,9 @@ describe('SDK Configuration', async () => {
         it('Bool click (Y -> N)', async () => {
             // This function code is the same as above because bool option operation is just click
             // the button.
-            const label = await driver.findElement(By.css('#DEBUG_FEATURES > label'));
-            const span = await driver.findElement(By.css('#DEBUG_FEATURES > label > span'));
-            const input = await driver.findElement(By.css('#DEBUG_FEATURES > label > input'));
+            const label = await view.findWebElement(By.css('#DEBUG_FEATURES > label'));
+            const span = await view.findWebElement(By.css('#DEBUG_FEATURES > label > span'));
+            const input = await view.findWebElement(By.css('#DEBUG_FEATURES > label > input'));
             await scrollIntoView(label);
             await span.click();
             expect(await input.getAttribute('checked')).to.not.exist;
@@ -140,11 +143,48 @@ describe('SDK Configuration', async () => {
 
         it('Related options should be invisible if N', async () => {
             for (let id of relatedConfigs) {
-                const config = await driver.findElement(By.id(id));
+                const config = await view.findWebElement(By.id(id));
                 const cn = await config.getAttribute('class');
                 expect(cn).to.contains('invisible');
             }
             await new Promise(res => setTimeout(res, 500));
+        });
+    });
+
+    describe('Choice type config test', async () => {
+        let menu: MenuConfig;
+        let sel: WebElement;
+
+        before(async () => {
+            menu = await new MenuConfig('Build Setup').build();
+            sel = await view.findWebElement(By.css('#choice-0 > select'));
+            await menu?.open();
+            await new Promise(res => setTimeout(res, 1000)); // make sure want to be menu opened
+            await (await view.findWebElement(By.id('HOST_LINUX')))?.click();
+        });
+
+        after(async () => {
+            await menu?.close();
+        });
+
+        it('should be windows', async () => {
+            await (await view.findWebElement(By.id('HOST_WINDOWS')))?.click();
+            expect(await sel.getAttribute('value')).to.equal('Windows');
+        });
+        it('should windows related options has been displayed', async () => {
+            let opt = await view.findWebElement(By.id('choice-1'));
+            await scrollIntoView(opt);
+            expect(await opt.isDisplayed()).to.be.true;
+            let s  = await opt.findElement(By.css('select'));
+            expect(await s?.getAttribute('value')).to.equal('Cygwin');
+        });
+        it('should be linux', async () => {
+            await (await view.findWebElement({id: 'HOST_LINUX'}))?.click();
+            expect(await sel.getAttribute('value')).to.equal('Linux');
+        });
+        it('should be windows related options has been hidden', async () => {
+            let opt = await view.findWebElement(By.id('choice-1'));
+            expect(await opt.isDisplayed()).to.be.false;
         });
     });
 });
