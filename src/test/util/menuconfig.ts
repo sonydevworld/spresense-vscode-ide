@@ -1,5 +1,4 @@
 import { WebDriver, WebElement, VSBrowser, By } from "vscode-extension-tester";
-import { scrollIntoView } from "./helper";
 import assert = require("assert");
 
 export class MenuConfig {
@@ -43,4 +42,12 @@ export class MenuConfig {
             this.label?.click();
         }
     }
+}
+
+async function scrollIntoView(element?: WebElement) {
+    if (!element) {
+        return;
+    }
+    await VSBrowser.instance.driver.executeScript('arguments[0].scrollIntoView()', element);
+    await new Promise(res => setTimeout(res, 1000));
 }
