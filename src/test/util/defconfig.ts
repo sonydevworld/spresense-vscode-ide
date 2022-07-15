@@ -57,6 +57,13 @@ export class DefconfigUtil {
         const b = this.getConfigs(path.resolve(this.resultDir, name, 'config.result'));
 
         for (let c of a) {
+            if (c === 'CONFIG_NSH_MMCSDMINOR=0') {
+                // WORKAROUND: This configuration is out from kconfig-frontend but
+                // it is duplicated in apps/nshlib/Kconfig, so it should not to output
+                // when MMCSD is 'n'.
+                // We just ignore at here.
+                continue;
+            }
             if (!b.includes(c)) {
                 console.log(`${c} is missing`);
                 return false;
