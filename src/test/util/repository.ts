@@ -19,3 +19,14 @@ export function setupRepository(dest?: string, repositoryUrl?: string) {
 }
 
 //setupRepository();
+
+export function cleanupRepository(dest?: string) {
+    dest = dest || testenv.spresensePath;
+
+    const nuttx = path.resolve(dest, 'nuttx');
+    const apps = path.resolve(dest, 'sdk', 'apps');
+
+    child_process.execSync(`git -C ${dest} clean -xdf`);
+    child_process.execSync(`git -C ${nuttx} clean -xdf`);
+    child_process.execSync(`git -C ${apps} clean -xdf`);
+}

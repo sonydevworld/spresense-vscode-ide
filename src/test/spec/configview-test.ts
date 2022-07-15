@@ -4,10 +4,12 @@ import { Workbench, VSBrowser, WebView, By, EditorView, WebDriver, WebElement, u
 import * as testenv from '../util/testenv';
 import { MenuConfig } from '../util/menuconfig';
 import { DefconfigUtil } from '../util/defconfig';
+import { cleanupRepository } from '../util/repository';
 
 before(async () => {
     const util = new DefconfigUtil();
     util.makeBaseDotConfigs();
+    cleanupRepository();
 });
 
 describe('SDK Configuration', async () => {
@@ -46,13 +48,15 @@ describe('SDK Configuration', async () => {
             view = new WebView();
             expect(await view.getTitle()).has.string('SDK Config');
 
-            await view.switchToFrame();
-
-            // Wait for configuration setup is done.
+            // Wait for progress notification is dismissed (as ready to use).
             // If taking a long time to open configuration editor, it is fail.
-            const driver = VSBrowser.instance.driver;
-            let progress = await driver.wait(until.elementLocated(By.id('progress')), 1000);
-            await driver.wait(until.elementIsNotVisible(progress), 300000, undefined, 1000);
+
+            await VSBrowser.instance.driver.wait(async () => {
+                const notifications = await new Workbench().getNotifications();
+                return notifications.length === 0;
+            }, 180000);
+
+            await view.switchToFrame();
         });
     });
 
