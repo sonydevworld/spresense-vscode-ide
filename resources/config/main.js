@@ -210,12 +210,13 @@ class BaseWidget {
 		let refs = new Set();
 
 		// Shorthands for collecting symbols from expressions into refs
-		const _collect = (expr) => expr && expr.match(/[\w]+/g).forEach((value) => {
+		const _collect = (expr) => expr?.match(/[\w]+/g)?.forEach((value) => {
 			if (!/(^[ymn]$|^[\d]+$)/.test(value)) {
 				refs.add(value);
 			}
 		});
-		const _collectlist = (list) => list && list.forEach((val) => {
+		const _collectlist = (list) => list?.forEach((val) => {
+			_collect(val.default);
 			_collect(val.cond);
 		});
 
@@ -1582,7 +1583,7 @@ function main() {
 		setTimeout(() => {
 			vscode.postMessage({command: "save", content: generateConfigFileContent()});
 			hideProgress();
-		}, 1);
+		});
 	});
 
 	document.getElementById("saveas").addEventListener("click", event => {
@@ -1590,15 +1591,11 @@ function main() {
 		setTimeout(() => {
 			vscode.postMessage({command: "saveas", content: generateConfigFileContent()});
 			hideProgress();
-		}, 1);
+		});
 	});
 
 	document.getElementById("load").addEventListener("click", event => {
-		showProgress();
-		setTimeout(() => {
-			vscode.postMessage({command: "load"});
-			hideProgress();
-		}, 1);
+		vscode.postMessage({command: "load"});
 	});
 
 	// Message handling from extension.ts
@@ -1625,6 +1622,7 @@ function main() {
 				if (message.content) {
 					showDefconfigSelection(message.content, (status, data) => {
 						if (status === "ok") {
+							showProgress();
 							vscode.postMessage({command: "load-defconfigs", content: data});
 						}
 					});
@@ -1633,6 +1631,7 @@ function main() {
 
 			case "load-defconfigs":
 				loadConfig(message.content);
+				hideProgress();
 				break;
 		}
 	});
