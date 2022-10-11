@@ -3,7 +3,7 @@ import { Workbench, VSBrowser, WebView, EditorView } from 'vscode-extension-test
 
 import * as testenv from './util/testenv';
 import { DefconfigUtil } from './util/defconfig';
-import { cleanupRepository } from './util/repository';
+import { cleanupRepository, setupRepository } from './util/repository';
 
 import { evaluationTests } from './spec/configview/evaltest';
 import { boolTests } from './spec/configview/booltest';
@@ -15,6 +15,7 @@ let view: WebView;
 before(async () => {
     const util = new DefconfigUtil();
     util.makeBaseDotConfigs();
+    setupRepository();
     cleanupRepository();
 
     const title = await new Workbench().getTitleBar().getTitle();
@@ -54,6 +55,6 @@ before(async () => {
 describe('SDK Configuration', async () => {
     describe('Internal core function', evaluationTests);
     describe('Bool type config test', boolTests);
-    describe('Syntax relatec config test', syntaxTests);
-    describe.skip('New button test', defconfigTests);
+    describe('Syntax related config test', syntaxTests);
+    describe('New button test', defconfigTests);
 });
