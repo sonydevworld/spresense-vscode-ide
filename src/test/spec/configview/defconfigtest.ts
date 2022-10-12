@@ -4,12 +4,13 @@ import { Workbench, VSBrowser, WebView, until, By } from 'vscode-extension-teste
 import { DefconfigUtil } from '../../util/defconfig';
 import { scrollIntoView, waitForProgress } from '../../util/viewctrl';
 
+import { webView } from '../../configview.test';
+
 export async function defconfigTests() {
     it('should be created a new configuration from defconfigs', async () => {
         const driver = VSBrowser.instance.driver;
         const util = new DefconfigUtil();
         const defconfigs = util.getDefconfigNames();
-        const view = new WebView();
         //const defconfigs = ['feature/subcore', 'examples/lowpower'];
 
         for (let name of defconfigs) {
@@ -33,7 +34,7 @@ export async function defconfigTests() {
 
             let save = await driver.findElement(By.id('save'));
             await save?.click();
-            await view.switchBack();
+            await webView.switchBack();
             await driver.wait(async () => {
                 const notifications = await new Workbench().getNotifications();
                 for (const notification of notifications) {
@@ -44,7 +45,7 @@ export async function defconfigTests() {
                     }
                 }
             }, 10000);
-            await view.switchToFrame();
+            await webView.switchToFrame();
 
             util.saveResultConfig(name);
             expect(util.compare(name)).to.be.true;

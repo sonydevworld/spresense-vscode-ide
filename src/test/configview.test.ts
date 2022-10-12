@@ -10,7 +10,9 @@ import { boolTests } from './spec/configview/booltest';
 import { syntaxTests } from './spec/configview/syntaxtest';
 import { defconfigTests } from './spec/configview/defconfigtest';
 
-let view: WebView;
+// XXX: WebView object may create once in the test sequence.
+// Do NOT create other WebView instance in each describes, it may cause a assert.
+export let webView: WebView;
 
 before(async () => {
     const util = new DefconfigUtil();
@@ -38,8 +40,8 @@ before(async () => {
     const bench = new Workbench();
     await bench.executeCommand('spresensesdkconfig');
     await new Promise(res => setTimeout(res, 2000));
-    view = new WebView();
-    expect(await view.getTitle()).has.string('SDK Config');
+    webView = new WebView();
+    expect(await webView.getTitle()).has.string('SDK Config');
 
     // Wait for progress notification is dismissed (as ready to use).
     // If taking a long time to open configuration editor, it is fail.
@@ -49,7 +51,7 @@ before(async () => {
         return notifications.length === 0;
     }, 180000);
 
-    await view.switchToFrame();
+    await webView.switchToFrame();
 });
 
 describe('SDK Configuration', async () => {
