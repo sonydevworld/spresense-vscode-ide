@@ -33,7 +33,7 @@ before(async () => {
             const message = await notification.getMessage();
             return message.indexOf('Spresense') >= 0;
         }
-    }, 5000);
+    }, 10000);
 
     await new EditorView().closeAllEditors();
 
