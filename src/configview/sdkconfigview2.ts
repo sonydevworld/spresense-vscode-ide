@@ -20,7 +20,6 @@
  */
 
 import * as vscode from 'vscode';
-import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as glob from 'glob';
@@ -28,7 +27,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from '../shell_exec';
 import * as nls from '../localize';
-import { getNonce, isSameContents } from '../common';
+import { getNonce, isSameContents, getNuttXVersion, Version } from '../common';
 import * as util from './util';
 
 export class SDKConfigView2 {
@@ -49,12 +48,13 @@ export class SDKConfigView2 {
 	private _python: string;
 	private _progress: EventEmitter;
 	private _currentProcess: cp.ChildProcess | undefined = undefined;
+	private kernelVer?: Version;
 
 	public static createOrShow(extensionPath: string, targetConfig: string | undefined) {
 		const column = vscode.window.activeTextEditor ?
 			vscode.window.activeTextEditor.viewColumn : undefined;
 
-		if (util.BuildTaskIsRunning()) {
+		if (util.buildTaskIsRunning()) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.task",
 				"Can not open configuration while in the build task is running"));
 			return;
@@ -145,7 +145,7 @@ export class SDKConfigView2 {
 						return;
 
 					case "save":
-						if (util.BuildTaskIsRunning()) {
+						if (util.buildTaskIsRunning()) {
 							vscode.window.showErrorMessage(nls.localize("sdkconfig.src.save.error.task",
 								"Save configuration failed because of the build task is running."));
 							return;
@@ -153,7 +153,6 @@ export class SDKConfigView2 {
 						Promise.resolve().then(() => {
 							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
-								this._updateHeaderFiles();
 								resolve();
 							});
 						});
@@ -208,6 +207,13 @@ export class SDKConfigView2 {
 			undefined,
 			this._disposables
 		);
+
+		const watcher = vscode.workspace.createFileSystemWatcher('**/nuttx/.config');
+		watcher.onDidChange((e) => {
+			console.log(`${e.fsPath} is updated.`);
+			this._updateHeaderFiles();
+			console.log('Header file has been updated.');
+		});
 	}
 
 	private _generateMenu() {
@@ -251,32 +257,28 @@ export class SDKConfigView2 {
 	 */
 
 	private _updateHeaderFiles() {
-		let workspaceFolder: vscode.WorkspaceFolder | undefined;
-		let options: object | undefined;
-		let args: Array<string> | undefined;
-		let includePath: string | undefined;
-		let headerPath: string | undefined;
-		let headerFile: string | undefined;
-
-		workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this._configFile));
-
+		const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this._configFile));
 		if (!workspaceFolder) {
 			return;
 		}
 
-		includePath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'include');
-		headerFile = path.join(this._kernelDir, "include/nuttx/config.h");
-		headerPath = path.join(includePath, 'nuttx');
+		const srcDir = path.resolve(this._kernelDir, "include", "nuttx");
+		const destDir = path.resolve(workspaceFolder.uri.fsPath, '.vscode', 'include', 'nuttx');
+		const options = { cwd: this._kernelDir };
 
-		options = { cwd: this._kernelDir };
-		args = [
-			"include/nuttx/config.h",
-			"include/nuttx/version.h",
-			"include/math.h",
-			"include/float.h",
-			"include/stdarg.h",
-			"dirlinks"
-		];
+		let args;
+		if (this.kernelVer && this.kernelVer.major >= 11) {
+			args = ['context'];
+		} else {
+			args = [
+				"include/nuttx/config.h",
+				"include/nuttx/version.h",
+				"include/math.h",
+				"include/float.h",
+				"include/stdarg.h",
+				"dirlinks"
+			];
+		}
 
 		try {
 			cp.execFileSync("make", args, options);
@@ -289,13 +291,10 @@ export class SDKConfigView2 {
 			 * config.h may be changed by other projects sharing with Spresense repository.
 			 * So we need to save generated config.h for prevent unexpected code completion.
 			 */
-			if (!fs.existsSync(includePath)) {
-				fs.mkdirSync(includePath);
+			if (!fs.existsSync(destDir)) {
+				fs.mkdirSync(destDir, { recursive: true });
 			}
-			if (!fs.existsSync(headerPath)) {
-				fs.mkdirSync(headerPath);
-			}
-			fs.copyFileSync(headerFile, path.join(headerPath, 'config.h'));
+			fs.copyFileSync(path.resolve(srcDir, 'config.h'), path.resolve(destDir, 'config.h'));
 		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 			return;
@@ -571,10 +570,13 @@ export class SDKConfigView2 {
 		this._progress.emit("update",
 			nls.localize("sdkconfig.src.progress.parse", "Parsing Kconfig"), 20);
 
+		this.kernelVer = getNuttXVersion(this._kernelDir);
+
 		Promise.resolve().then(() => {
 			return new Promise<void>((resolve, reject) => {
-				console.log("make dirlinks");
-				this._currentProcess = cp.exec("make dirlinks apps_preconfig", options, (error, stdout, stderr) => {
+				console.log("make preconfig");
+				const cmd = this.kernelVer && this.kernelVer.major >= 11 ? 'make apps_preconfig' : 'make dirlinks apps_preconfig';
+				this._currentProcess = cp.exec(cmd, options, (error, stdout, stderr) => {
 					this._currentProcess = undefined;
 					if (error) {
 						if (!error.killed) {

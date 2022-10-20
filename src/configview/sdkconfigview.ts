@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* --------------------------------------------------------------------------------------------
  * Copyright 2019, 2020 Sony Semiconductor Solutions Corporation
  *
@@ -59,7 +60,7 @@ export class SDKConfigView {
 		const column = vscode.window.activeTextEditor ?
 			vscode.window.activeTextEditor.viewColumn : undefined;
 
-		if (util.BuildTaskIsRunning()) {
+		if (util.buildTaskIsRunning()) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.task",
 				"Can not open configuration while in the build task is running"));
 			return;
@@ -163,7 +164,7 @@ export class SDKConfigView {
 						return;
 
 					case "save":
-						if (util.BuildTaskIsRunning()) {
+						if (util.buildTaskIsRunning()) {
 							vscode.window.showErrorMessage(nls.localize("sdkconfig.src.save.error.task",
 								"Save configuration failed because of the build task is running."));
 							return;
@@ -320,7 +321,7 @@ export class SDKConfigView {
 
 		try {
 			cp.execFileSync("make", args, options);
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 
@@ -336,7 +337,7 @@ export class SDKConfigView {
 				fs.mkdirSync(headerPath);
 			}
 			fs.copyFileSync(headerFile, path.join(headerPath, 'config.h'));
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 			return;
 		}
@@ -346,7 +347,7 @@ export class SDKConfigView {
 		try {
 			fs.writeFileSync(filePath, content, { mode: 0o644 });
 			vscode.window.showInformationMessage(nls.localize("sdkconfig.src.save.done", "Configuration has been saved. {0}", filePath));
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 	}

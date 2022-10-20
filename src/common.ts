@@ -19,6 +19,8 @@
  * --------------------------------------------------------------------------------------------
  */
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -174,7 +176,7 @@ export function getTemplateRootPathWithVersion (resourcePath: string, folderPath
 	let version: Version = getSdkVersionFromSpresenseConf(folderPath);
 	let subdir: string = "ver2";
 
-	if (version.major == 1) {
+	if (version.major === 1) {
 		subdir = "ver1";
 	}
 
@@ -404,6 +406,50 @@ export function getSDKVersion(sdkFolder: string) : Version {
 	}
 	console.log(ver);
 	return ver;
+}
+
+/**
+ * Get NuttX version information
+ *
+ * This function MUST be called after run any make targets (e.g. olddefconfig).
+ *
+ * @return {Version} version information. If failed, each number memebers are zero.
+ */
+
+export function getNuttXVersion(rootDir: string): Version {
+    let ver: Version = {
+        str: '0.0.0',
+        major: 0,
+        minor: 0,
+        patch: 0
+    };
+
+    let p = path.resolve(rootDir, '.version');
+    if (fs.existsSync(p)) {
+        let lines = fs.readFileSync(p).toString().split('\n');
+        for (let line of lines) {
+            const m =line.match('CONFIG_VERSION_(STRING|MAJOR|MINOR|PATCH|BUILD)=(.*)');
+            if (m) {
+                switch (m[1]) {
+                    case 'STRING':
+                        ver.str = m[2].replace(/"(.*)"/, '$1');
+                        break;
+                    case 'MAJOR':
+                        ver.major = parseInt(m[2]);
+                        break;
+                    case 'MINOR':
+                        ver.minor = parseInt(m[2]);
+                        break;
+                    case 'PATCH':
+                        ver.patch = parseInt(m[2]);
+                        break;
+                    case 'BUILD':
+                        break;
+                }
+            }
+        }
+    }
+    return ver;
 }
 
 /**

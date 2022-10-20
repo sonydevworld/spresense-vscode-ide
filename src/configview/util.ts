@@ -102,7 +102,7 @@ export function tweakPlatform(configfile: string) {
  * @return {boolean} true when found build task.
  */
 
-export function BuildTaskIsRunning() : boolean {
+export function buildTaskIsRunning() : boolean {
 	for (let ex of vscode.tasks.taskExecutions) {
 		if (ex.task.group === vscode.TaskGroup.Build) {
 			return true;
