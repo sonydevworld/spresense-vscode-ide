@@ -1205,6 +1205,11 @@ function evaluateExpr(s) {
 	let ret;
 	try {
 		ret = eval(_s);
+		if (ret === true) {
+			ret = 2;
+		} else if (ret === false) {
+			ret = 0;
+		}
 	} catch {
 		console.warn(`Caught unexpected exception! "${s}" => "${_s}"`);
 		ret = 0;
