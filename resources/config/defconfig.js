@@ -28,7 +28,7 @@
  */
 
 function showSdkDefconfigSelection(deflist, callback) {
-	var modal = document.getElementById("defconfig")
+	var modal = document.getElementById("defconfig");
 	var list = document.getElementById("defconfig-list");
 	let slist = document.getElementById("selected-defconfig-list");
 
@@ -62,7 +62,7 @@ function showSdkDefconfigSelection(deflist, callback) {
 			slist.appendChild(e);
 			event.target.classList.add("active");
 		}
-	}
+	};
 
 	for (let c of deflist) {
 		var e = document.createElement("div");
@@ -88,20 +88,20 @@ function showSdkDefconfigSelection(deflist, callback) {
 		}
 	}
 
-	var device_button = document.getElementById("category-device");
-	var feature_button = document.getElementById("category-feature");
-	var examples_button = document.getElementById("category-examples");
+	var deviceBtn = document.getElementById("category-device");
+	var featureBtn = document.getElementById("category-feature");
+	var examplesBtn = document.getElementById("category-examples");
 
 	// Select device tab as default.
-	device_button.classList.add("active");
-	feature_button.classList.remove("active");
-	examples_button.classList.remove("active");
+	deviceBtn.classList.add("active");
+	featureBtn.classList.remove("active");
+	examplesBtn.classList.remove("active");
 
-	let handle_tab = (event) => {
+	let handleTab = (event) => {
 		let tabs = [
-			{ button: device_button, content: device },
-			{ button: feature_button, content: feature },
-			{ button: examples_button, content: examples },
+			{ button: deviceBtn, content: device },
+			{ button: featureBtn, content: feature },
+			{ button: examplesBtn, content: examples },
 		];
 
 		for (let t of tabs) {
@@ -115,19 +115,19 @@ function showSdkDefconfigSelection(deflist, callback) {
 		}
 	};
 
-	device_button.addEventListener("click", handle_tab);
-	feature_button.addEventListener("click", handle_tab);
-	examples_button.addEventListener("click", handle_tab);
+	deviceBtn.addEventListener("click", handleTab);
+	featureBtn.addEventListener("click", handleTab);
+	examplesBtn.addEventListener("click", handleTab);
 
-	let ok_button = document.getElementById("defconfig-ok");
-	let cancel_button = document.getElementById("defconfig-cancel");
+	let okBtn = document.getElementById("defconfig-ok");
+	let cancelBtn = document.getElementById("defconfig-cancel");
 
 	let removeEventListeners = () => {
-		ok_button.removeEventListener("click", handle_ok);
-		cancel_button.removeEventListener("click", handle_cancel);
-		device_button.removeEventListener("click", handle_tab);
-		feature_button.removeEventListener("click", handle_tab);
-		examples_button.removeEventListener("click", handle_tab);
+		okBtn.removeEventListener("click", handleOk);
+		cancelBtn.removeEventListener("click", handleCancel);
+		deviceBtn.removeEventListener("click", handleTab);
+		featureBtn.removeEventListener("click", handleTab);
+		examplesBtn.removeEventListener("click", handleTab);
 	};
 
 	let clearLists = () => {
@@ -139,7 +139,7 @@ function showSdkDefconfigSelection(deflist, callback) {
 		}
 	};
 
-	let handle_ok = (event) => {
+	let handleOk = (event) => {
 		modal.style.display = "none";
 
 		let selected = [];
@@ -154,7 +154,7 @@ function showSdkDefconfigSelection(deflist, callback) {
 		callback("ok", selected.join('\n'));
 	};
 
-	let handle_cancel = (event) => {
+	let handleCancel = (event) => {
 		modal.style.display = "none";
 
 		removeEventListeners();
@@ -163,8 +163,8 @@ function showSdkDefconfigSelection(deflist, callback) {
 		callback("cancel", undefined);
 	};
 
-	ok_button.addEventListener("click", handle_ok);
-	cancel_button.addEventListener("click", handle_cancel);
+	okBtn.addEventListener("click", handleOk);
+	cancelBtn.addEventListener("click", handleCancel);
 
 	document.getElementById("defconfig-kernel").style.display = "none";
 	modal.style.display = "block";
@@ -180,7 +180,7 @@ function showSdkDefconfigSelection(deflist, callback) {
  */
 
 function showKernelDefconfigSelection(deflist, callback) {
-	var modal = document.getElementById("defconfig")
+	var modal = document.getElementById("defconfig");
 	var list = document.getElementById("defconfig-kernel");
 
 	let onselected = (event) => {
@@ -191,11 +191,11 @@ function showKernelDefconfigSelection(deflist, callback) {
 				e.classList.remove("active");
 			}
 		}
-	}
+	};
 
 	for (let c of deflist) {
 		var e = document.createElement("div");
-		c = c.replace("-defconfig", "")
+		c = c.replace("-defconfig", "");
 		var def = c.replace("kernel/", "");
 
 		e.dataset.exactName = c;
@@ -211,12 +211,12 @@ function showKernelDefconfigSelection(deflist, callback) {
 		list.appendChild(e);
 	}
 
-	let ok_button = document.getElementById("defconfig-ok");
-	let cancel_button = document.getElementById("defconfig-cancel");
+	let okBtn = document.getElementById("defconfig-ok");
+	let cancelBtn = document.getElementById("defconfig-cancel");
 
 	let removeEventListeners = () => {
-		ok_button.removeEventListener("click", handle_ok);
-		cancel_button.removeEventListener("click", handle_cancel);
+		okBtn.removeEventListener("click", handleOk);
+		cancelBtn.removeEventListener("click", handleCancel);
 	};
 
 	let clearLists = () => {
@@ -225,7 +225,7 @@ function showKernelDefconfigSelection(deflist, callback) {
 		}
 	};
 
-	let handle_ok = (event) => {
+	let handleOk = (event) => {
 		modal.style.display = "none";
 
 		let selected;
@@ -242,7 +242,7 @@ function showKernelDefconfigSelection(deflist, callback) {
 		callback("ok", selected);
 	};
 
-	let handle_cancel = (event) => {
+	let handleCancel = (event) => {
 		modal.style.display = "none";
 
 		removeEventListeners();
@@ -251,8 +251,8 @@ function showKernelDefconfigSelection(deflist, callback) {
 		callback("cancel", undefined);
 	};
 
-	ok_button.addEventListener("click", handle_ok);
-	cancel_button.addEventListener("click", handle_cancel);
+	okBtn.addEventListener("click", handleOk);
+	cancelBtn.addEventListener("click", handleCancel);
 
 	modal.querySelectorAll("#defconfig-selector, #defconfig-selected").forEach((v, k, p) => {
 		v.classList.add("hide");
@@ -291,7 +291,7 @@ class Modal {
 		cancel.innerHTML = "Cancel";
 
 		ok.addEventListener("click", () => {
-			this.content.handle_ok(callback);
+			this.content.handleOk(callback);
 			this.hide();
 		});
 
@@ -367,7 +367,7 @@ class DefconfigDialogContent {
 		e.className = "tabitem";
 		e.innerHTML = name;
 		e.dataset.active = active ? "true" : "false";
-		e.addEventListener("click", this.tab_clicked);
+		e.addEventListener("click", this.tabClicked);
 		return e;
 	}
 
@@ -384,8 +384,8 @@ class DefconfigDialogContent {
 			e.classList.add("defconfig-item");
 			e.innerHTML = c.defconfig.replace(prefix, "").replace("/defconfig", "");
 			e.dataset.desc = c.desc;
-			e.addEventListener("click", this.defconfig_clicked);
-			e.addEventListener("mouseover", this.show_description);
+			e.addEventListener("click", this.defconfigClicked);
+			e.addEventListener("mouseover", this.showDescription);
 			defconfiglist.appendChild(e);
 		});
 		this.list.appendChild(defconfiglist);
@@ -397,7 +397,7 @@ class DefconfigDialogContent {
 	 * Switch clicked tab to be active and deactivate other tabs.
 	 */
 
-	tab_clicked(event) {
+	tabClicked(event) {
 		document.getElementById("defconfig-category").childNodes.forEach(node => {
 			if (node === event.target) {
 				node.dataset.active = "true";
@@ -416,7 +416,7 @@ class DefconfigDialogContent {
 	 * it is selected.
 	 */
 
-	defconfig_clicked(event) {
+	defconfigClicked(event) {
 		let list = document.getElementById("selected-defconfig-list");
 		if (event.target.dataset.active === "true") {
 			list.removeChild(list.querySelector(`div[data-exact-name="${event.target.dataset.exactName}"]`));
@@ -438,7 +438,7 @@ class DefconfigDialogContent {
 	 * Show defconfig description at the bottom of dialog.
 	 */
 
-	show_description(event) {
+	showDescription(event) {
 		let frame = document.getElementById("defconfig-desc");
 		frame.innerText = event.target.dataset.desc;
 	}
@@ -452,7 +452,7 @@ class DefconfigDialogContent {
 	 * This API called from Modal OK button handler.
 	 */
 
-	handle_ok(callback) {
+	handleOk(callback) {
 		let selected = [];
 		let list = document.getElementById("selected-defconfig-list");
 
