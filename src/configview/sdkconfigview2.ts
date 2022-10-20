@@ -153,6 +153,8 @@ export class SDKConfigView2 {
 						Promise.resolve().then(() => {
 							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
+								this._updateHeaderFiles();
+								this._panel.webview.postMessage({command: "saved"});
 								resolve();
 							});
 						});
@@ -207,13 +209,6 @@ export class SDKConfigView2 {
 			undefined,
 			this._disposables
 		);
-
-		const watcher = vscode.workspace.createFileSystemWatcher('**/nuttx/.config');
-		watcher.onDidChange((e) => {
-			console.log(`${e.fsPath} is updated.`);
-			this._updateHeaderFiles();
-			console.log('Header file has been updated.');
-		});
 	}
 
 	private _generateMenu() {
@@ -268,7 +263,7 @@ export class SDKConfigView2 {
 
 		let args;
 		if (this.kernelVer && this.kernelVer.major >= 11) {
-			args = ['context'];
+			args = ['clean_context', 'context'];
 		} else {
 			args = [
 				"include/nuttx/config.h",

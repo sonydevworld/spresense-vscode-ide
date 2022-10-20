@@ -1587,7 +1587,6 @@ function main() {
 		showProgress();
 		setTimeout(() => {
 			vscode.postMessage({command: "save", content: generateConfigFileContent()});
-			hideProgress();
 		});
 	});
 
@@ -1636,6 +1635,10 @@ function main() {
 
 			case "load-defconfigs":
 				loadConfig(message.content);
+				hideProgress();
+				break;
+
+			case "saved":
 				hideProgress();
 				break;
 		}
