@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as child_process from 'child_process';
 
 import * as testenv from './testenv';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 
 export function setupRepository(dest?: string, sdkRepositoryUrl?: string, testRepositoryUrl?: string) {
     dest = dest || testenv.spresensePath;
@@ -23,18 +23,6 @@ export function setupRepository(dest?: string, sdkRepositoryUrl?: string, testRe
     child_process.execSync(`git -C ${dest} log -1`, { stdio: 'inherit' });
     console.log();
 
-    dest = path.resolve(dest, 'spresense-test');
-    if (fs.existsSync(dest)) {
-        console.log(`Found repository ${dest}. Skip clone`);
-    } else {
-        console.log(`Cloning repository ${dest}`);
-        const _dest = path.resolve(dest, '..');
-        cmd = `git -C ${_dest} clone --recursive ${testurl}`;
-        child_process.execSync(cmd);
-    }
-    console.log(`spresense-test.git latest commit information:`);
-    child_process.execSync(`git -C ${dest} log -1`, { stdio: 'inherit' });
-    console.log();
 }
 
 export function cleanupRepository(dest?: string) {
@@ -42,14 +30,22 @@ export function cleanupRepository(dest?: string) {
 
     const nuttx = path.resolve(dest, 'nuttx');
     const apps = path.resolve(dest, 'sdk', 'apps');
-    const test = path.resolve(dest, 'spresense-test');
 
     child_process.execSync(`git -C ${dest} clean -xdf`);
     child_process.execSync(`git -C ${nuttx} clean -xdf`);
     child_process.execSync(`git -C ${apps} clean -xdf`);
-    child_process.execSync(`git -C ${test} clean -xdf`);
+
+    // Copying test vector should run after sdk directory clean.
+    copyTestVector(dest);
 
     child_process.execSync('./tools/config.py default -- +ELF', {
         cwd: path.resolve(dest, 'sdk')
     });
+}
+
+function copyTestVector(dest?: string) {
+    dest = dest || testenv.spresensePath;
+    dest = path.resolve(dest, 'test');
+    console.log(`Copying test vector ${testenv.configTreePath} -> ${dest}`);
+    fs.copySync(testenv.configTreePath, dest);
 }

@@ -1,0 +1,110 @@
+menu "Choice"
+
+choice CHOICE
+	prompt "The choice"
+config CI_FOO
+	bool "FOO"
+config CI_BAR
+	bool "BAR"
+config CI_BAZ
+	bool "BAZ"
+endchoice
+
+choice CHOICE_NODEF
+	prompt "Without default"
+config CI_NODEF_FOO
+	bool "FOO"
+config CI_NODEF_BAR
+	bool "BAR"
+config CI_NODEF_BAZ
+	bool "BAZ"
+endchoice
+
+choice CHOICE_DEF
+	prompt "With default"
+	default CI_DEF_FOO
+config CI_DEF_FOO
+	bool "FOO"
+config CI_DEF_BAR
+	bool "BAR"
+config CI_DEF_BAZ
+	bool "BAZ"
+endchoice
+
+choice CHOICE_DEP
+	prompt "FOO is depended by below"
+config CI_DEP_FOO
+	bool "FOO"
+config CI_DEP_BAR
+	bool "BAR"
+config CI_DEP_BAZ
+	bool "BAZ"
+endchoice
+
+config CHOICE_DEPENDS
+	bool "This config enabled by FOO in above"
+	depends on CI_DEP_FOO
+
+choice CHOICE_SELECT
+	prompt "FOO is select below"
+config CI_SELECT_FOO
+	bool "FOO"
+	select CHOICE_SELECTED
+config CI_SELECT_BAR
+	bool "BAR"
+config CI_SELECT_BAZ
+	bool "BAZ"
+endchoice
+
+choice CHOICE_DEP_ITEM
+	prompt "FOO, BAR is depends on below"
+config CI_DEP_ITEM_FOO
+	bool "FOO"
+	depends on CHOICE_DEP_ITEM_Y
+config CI_DEP_ITEM_BAR
+	bool "BAR"
+	depends on CHOICE_DEP_ITEM_N
+config CI_DEP_ITEM_BAZ
+	bool "BAZ"
+endchoice
+
+config CHOICE_DEP_ITEM_Y
+	bool "depended by above (y)"
+	default y
+
+config CHOICE_DEP_ITEM_N
+	bool "depended by above (n)"
+	default n
+
+choice CHOICE_NOTYPE_BOOL
+	prompt "This config should be bool"
+config CI_NOTYPE_BOOL_FOO
+	bool "FOO"
+config CI_NOTYPE_BOOL_BAR
+	bool "BAR"
+config CI_NOTYPE_BOOL_BAZ
+	bool "BAZ"
+endchoice
+
+choice CHOICE_NOTYPE_TRI
+	prompt "This config should be bool"
+config CI_NOTYPE_TRI_FOO
+	tristate "FOO"
+config CI_NOTYPE_TRI_BAR
+	tristate "BAR"
+config CI_NOTYPE_TRI_BAZ
+	tristate "BAZ"
+endchoice
+
+choice CHOICE_TRI
+	prompt "tristate type"
+	tristate
+config CI_TRI_FOO
+	tristate "FOO"
+config CI_TRI_BAR
+	tristate "BAR"
+config CI_TRI_BAZ
+	tristate "BAZ"
+endchoice
+
+endmenu

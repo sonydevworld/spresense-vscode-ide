@@ -1,0 +1,137 @@
+menu "Boolean"
+
+comment "prompt option"
+
+config BOOL_POMPT
+	bool
+	prompt "The boolean config"
+
+config BOOL_PROMPT_IF_Y
+	bool
+	prompt "The boolean config" if BOOL_DEF_Y
+	default y
+
+config BOOL_PROMPT_IF_N
+	bool
+	prompt "The boolean config" if BOOL_DEF_N
+	default y
+
+config BOOL
+	bool "The boolean config"
+
+config BOOL_HIDDEN
+	bool
+	default y
+
+comment "default option"
+
+config BOOL_DEF_Y
+	bool "This config should be y"
+	default y
+
+config BOOL_DEF_N
+	bool
+	default n
+
+config BOOL_DEF_OTHERS
+	bool "This config is the same as above"
+	default BOOL_DEF_Y
+
+config BOOL_DEF_IF_Y
+	bool "This config should be y"
+	default y if BOOL_DEF_Y
+
+config BOOL_DEF_IF_N
+	bool "This config should be n"
+	default y if BOOL_DEF_N
+
+config BOOL_DEF_MULTIPLE
+	bool "This config should be y"
+	default y
+	default n
+
+config BOOL_DEF_MULTIPLE_OTHERS
+	bool "This config should be y"
+	default BOOL_DEF_Y
+	default BOOL_DEF_N
+
+config BOOL_DEF_MULTIPLE_IF_Y
+	bool "This config should be n"
+	default n if BOOL_DEF_Y
+	default y if BOOL_DEF_N
+
+config BOOL_DEF_MULTIPLE_IF_ALL_Y
+	bool "This config should be n"
+	default n if BOOL_DEF_Y
+	default y if BOOL_DEF_Y
+
+config BOOL_DEF_MULTIPLE_IF_ALL_N
+	bool "This config should be n"
+	default y if BOOL_DEF_N
+	default y if BOOL_DEF_N
+
+comment "depends on option"
+
+config BOOL_DEP_Y
+	bool "This config depends on others"
+	depends on BOOL_DEF_Y
+
+config BOOL_DEP_N
+	bool "This config is disabled"
+	depends on BOOL_DEF_N
+
+comment "select option"
+
+config BOOL_SELECT
+	bool "Select below"
+	select BOOL_SELECTED
+
+config BOOL_SELECTED
+	bool "Selected by above"
+
+config BOOL_SELECT_IF_Y
+	bool "Select below if y"
+	select BOOL_SELECTED_IF if BOOL_DEF_Y
+
+config BOOL_SELECTED_IF_Y
+	bool "Selected by above"
+
+config BOOL_SELECT_IF_N
+	bool "Select below if n"
+	select BOOL_SELECTED_IF_N if BOOL_DEF_N
+
+config BOOL_SELECTED_IF_N
+	bool "Selected by above"
+
+comment "imply option"
+
+config BOOL_IMPLY
+	bool "Imply below"
+	imply BOOL_IMPLIED
+
+config BOOL_IMPLIED
+	bool "Implied by above"
+
+config BOOL_IMPLY_IF_Y
+	bool "Imply below if"
+	imply BOOL_IMPLIED_IF if BOOL_DEF_Y
+
+config BOOL_IMPLIED_IF_Y
+	bool "Implied by above"
+
+config BOOL_IMPLY_IF_N
+	bool "Imply below if n"
+	imply BOOL_IMPLIED_IF_N if BOOL_DEF_N
+
+config BOOL_IMPLIED_IF_N
+	bool "Imply below if n"
+
+config BOOL_IMPLY_DEP
+	bool "Imply below"
+	imply BOOL_IMPLIED_DEP
+
+config BOOL_IMPLIED_DEP
+	bool "Implied by above"
+	depends on BOOL_DEF_Y
+
+endmenu
