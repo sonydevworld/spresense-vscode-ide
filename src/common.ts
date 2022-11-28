@@ -569,3 +569,16 @@ export function checkSdkCompatibility(sdkVersion: Version, uri: vscode.Uri): boo
 		return false;
 	}
 }
+
+/**
+ * Get exact platform name
+ *
+ * @returns Same values of process.platform, and extra platform value of 'wsl' for WSL environments
+ */
+export function getExactPlatform(): string {
+    let p = process.platform.toString();
+    if (p === 'linux' && process.env['WSL_INTEROP'] !== undefined) {
+      p = 'wsl';
+    }
+    return p;
+  }

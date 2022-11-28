@@ -19,11 +19,16 @@
  * --------------------------------------------------------------------------------------------
  */
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as cp from 'child_process';
+import * as iconv from 'iconv-lite';
 
 import * as nls from './localize';
+import { HelperTools } from './helper';
+
+let helper: HelperTools;
 
 function getShell(osName: string) : string {
 	const defaultShell = '/bin/bash';
@@ -88,73 +93,28 @@ function isFlashTask(taskExec: vscode.TaskExecution): boolean {
 	});
 }
 
-function pathToPort (path: string): string {
-	if (process.platform === 'win32') {
-		const prefix = '/dev/ttyS';
-
-		/* /dev/ttyS16 -> COM17 */
-		if (path.startsWith(prefix)) {
-			const portNum = Number(path.replace(prefix, '')) + 1;
-			return `COM${portNum}`;
-		} else {
-			return 'Invalid';
-		}
-	} else {
-		return path;
-	}
-}
-
-function portToPath (port: string): string {
-	if (process.platform === 'win32') {
-		const prefix = 'COM';
-
-		/* COM17 -> /dev/ttyS16 */
-		if (port.startsWith(prefix)) {
-			const portNum = Number(port.replace(prefix, '')) - 1;
-			return `/dev/ttyS${portNum}`;
-		} else {
-			return 'Invalid';
-		}
-	} else {
-		return port;
-	}
-}
-
 function getAvailablePortList(): string[] {
 	try {
-		const osEnv = getEnv(process.platform);
-		const result = cp.execSync(`${osEnv.shell} -c \'ls ${osEnv.prefix}*\'`, {env: osEnv}).toString().trim();
-		const portPaths = result.split('\n');
-		let ports : string[] = [];
+		const p = helper.getToolPath('list_ports');
+		const buf = cp.execFileSync(p);
+		let result;
+		if (p.endsWith('.exe')) {
+			// Unfortunately, windows executable outputs messages in CP932 encode for japanese.
+			// We need to transcode such messages to UTF-8.
+			result = iconv.decode(buf, 'CP932');
+		} else {
+			result = buf.toString();
+		}
 
-		portPaths.forEach(portpath => {
-			ports.push(pathToPort(portpath));
-		});
-
-		return ports;
+		return result.trim().split('\n');
 	} catch (error) {
 		return [];
 	}
 }
 
-function getSerialPortPath(): string {
-	const port = vscode.workspace.getConfiguration().get('spresense.serial.port');
-
-	if (typeof(port) === 'string') {
-		return portToPath(port);
-	} else {
-		return '';
-	}
-}
-
-async function setSerialPort(port: string) {
-	const config = vscode.workspace.getConfiguration();
-
-	await config.update('spresense.serial.port', port, vscode.ConfigurationTarget.Global);
-}
-
-async function showSerialPortSelector() {
+async function showSerialPortSelector(): Promise<string> {
 	const ports = getAvailablePortList();
+	let name = '';
 
 	if (ports.length > 0) {
 		const port = await vscode.window.showQuickPick(ports,
@@ -164,52 +124,26 @@ async function showSerialPortSelector() {
 		);
 
 		if (port !== undefined) {
-			await setSerialPort(port);
+			// Port items of list are in '<port name>: <desctiption>' (e.g. COM3: Silicon Labs CP210x).
+			// The program needs only port name.
+			name = port.split(':')[0];
+			await vscode.workspace.getConfiguration().update('spresense.serial.port', name, vscode.ConfigurationTarget.Global);
 		}
 	} else {
 		vscode.window.showErrorMessage(nls.localize("serial.src.select.error",
 			'Cannot detect serial ports. Please connect Spresense.'));
 	}
-}
-
-function isSerialAvailable(portPath: string): boolean {
-	if (portPath === '') {
-		/* If port === '', not available */
-		return false;
-	} else {
-		try {
-			const osEnv = getEnv(process.platform);
-
-			/* Check exist */
-			cp.execSync(`${osEnv.shell} -c \'\ls ${portPath}\'`, {env: osEnv});
-		} catch (error) {
-			/* If exception in ls, not available */
-			return false;
-		}
-	}
-
-	return true;
+	return name;
 }
 
 async function tryGetSerialPort(): Promise<string> {
-	let portPath: string;
-	let available: boolean;
-
-	/* Get current port setting */
-	portPath = getSerialPortPath();
-
-	/* Check available */
-	available = isSerialAvailable(portPath);
-
-	if (!available) {
+	let port: string = vscode.workspace.getConfiguration().get('spresense.serial.port') || 'not configured';
+	if (!getAvailablePortList().some(i => i.startsWith(port))) {
 		/* If not exist port device, show dialog */
-		await showSerialPortSelector();
-
-		/* Pick setting again */
-		portPath = getSerialPortPath();
+		port = await showSerialPortSelector();
 	}
 
-	return portPath;
+	return port;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -219,17 +153,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 	nls.config(context);
 
+	helper = new HelperTools(context);
+
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.serial.open', async () => {
 		if (serialTerminal === undefined) {
 			const osEnv = getEnv(process.platform);
 
 			/* Take configuration from preference */
-			let portPath = await tryGetSerialPort();
-			let baudrate = vscode.workspace.getConfiguration().get('spresense.serial.baudrate');
+			const port = await tryGetSerialPort();
+			if (port === '') {
+				console.log('cancelled');
+				return;
+			}
+			const baudrate = vscode.workspace.getConfiguration().get('spresense.serial.baudrate');
 
-			let extPath = context.extensionPath;
-			let terminalPath = path.join(extPath, 'helper', process.platform, 'serialTerminal');
-			let terminalCommand = `\'${terminalPath}\' -c ${portPath} -b ${baudrate}`;
+			const terminalPath = helper.getToolPath('miniterm');
+			const opts = '--eol LF --raw -q'; // End of line is LF, no transcoding, quiet app messages
+			const terminalCommand = `'${terminalPath}' ${opts} ${port} ${baudrate}`;
 
 			let flashTask = vscode.tasks.taskExecutions.find(taskExec => isFlashTask(taskExec));
 
