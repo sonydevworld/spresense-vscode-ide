@@ -27,6 +27,7 @@ import * as iconv from 'iconv-lite';
 
 import * as nls from './localize';
 import { HelperTools } from './helper';
+import * as tasks from './tasks';
 
 let helper: HelperTools;
 
@@ -81,11 +82,10 @@ function getEnv (platform: string) {
 
 function isFlashTask(taskExec: vscode.TaskExecution): boolean {
 	const flashTasks = [
-		'Build and flash',
-		'Flash application',
-		'Flash worker',
-		'Clean flash',
-		'Burn bootloader'
+		tasks.flashTask.label,
+		tasks.flashWorkerTask.label,
+		tasks.flashCleanTask.label,
+		tasks.flashBootTask.label
 	];
 
 	return flashTasks.some((task) => {
