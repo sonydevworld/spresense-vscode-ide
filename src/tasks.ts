@@ -82,7 +82,7 @@ export const kernelCleanTask = {
 export const flashWorkerTask = {
     label: 'Flash worker',
     type: 'shell',
-    command: 'if [ -d out/worker -a \"`ls out/worker/`\" != \"\" ]; then ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*; fi;',
+    command: '[ -z \"`ls out/worker/ 2>/dev/null`\" ] && ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*',
     options: {
         cwd: '${workspaceFolder}'
     },
