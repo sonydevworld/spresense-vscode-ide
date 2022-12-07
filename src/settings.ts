@@ -401,7 +401,7 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 
 			if (isSpresenseEnvironment()) {
 				/* Reset spresense workspace, if spresense workspace opened */
-				spresenseSdkSetup();
+				spresenseSdkSetup(context);
 			}
 		}
 	}));
@@ -669,26 +669,11 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	}));
 }
 
-async function updateSettings(progress: vscode.Progress<{ message?: string; increment?: number;}>) {
+async function updateSettings(context: vscode.ExtensionContext, progress: vscode.Progress<{ message?: string; increment?: number;}>) {
 	let termConf = vscode.workspace.getConfiguration('terminal.integrated');
+	const platform = getExactPlatform();
 
-	let osName;
-	switch (process.platform) {
-		case 'win32':
-			osName = 'windows';
-			break;
-		case 'linux':
-			osName = 'linux';
-			break;
-		case 'darwin':
-			osName = 'osx';
-			break;
-		default:
-			osName = '';
-			break;
-	}
-
-	if (process.platform === 'win32') {
+	if (platform === 'win32') {
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
 		const winShPath = termConf.get('shell.windows');
 
@@ -702,7 +687,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 				termConf = vscode.workspace.getConfiguration('terminal.integrated');
 			}
 		} else if (msysPath) {
-			/* If necessary directory missing, target direcgtory is invalid */
+			/* If necessary directory missing, target directory is invalid */
 			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.msys", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 		} else {
 			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.nomsys", "Please set Msys install path first. ('F1' -> 'Spresense: Set MSYS install location'"));
@@ -712,66 +697,50 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	/* Initial check done */
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.check", "Checking operating system done.")});
 
-	/* Get shell path */
-	let shpath = termConf.get(`shell.${osName}`) || '/bin/bash';
+	const ret = cp.execSync(path.resolve(context.extensionPath, 'helper', 'showenv.sh')).toString().trim().split('\n');
+	const envPath = ret[0];
+	const toolchainPath = ret[1].split(':')[1];
 
-	try {
-		/* && control character for bash */
-		let andCtrl = '&&';
+	/* Prepare shell environment done */
+	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
-		/* In Windows environment(cmd.exe), && need a escape character */
-		if (process.platform === 'win32') {
-			andCtrl = '^&^&';
+	const osName = {
+		win32: 'windows',
+		linux: 'linux',
+		darwin: 'osx',
+		wsl: 'linux'
+	}[platform];
+
+	/* Update terminal PATH variable to be able to call the cross toolchain. This process is the same as 'source ~/spresenseenv/setup'. */
+	termConf.update(`env.${osName}`,{
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		'PATH': envPath
+	}, vscode.ConfigurationTarget.Workspace);
+
+	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.valid", "Correct toolchain path done.")});
+
+	const debugConf = vscode.workspace.getConfiguration('cortex-debug');
+	const sprEnvConf = vscode.workspace.getConfiguration('spresense.env');
+
+	if (platform === 'win32') {
+		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
+
+		if (msysPath) {
+			sprEnvConf.update('toolchain.path', path.join(msysPath, toolchainPath), vscode.ConfigurationTarget.Workspace);
+			debugConf.update('armToolchainPath', path.join(msysPath, toolchainPath), vscode.ConfigurationTarget.Workspace);
+			debugConf.update('openocdPath', path.join(msysPath, toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
 		}
-		/* Get enviroment from bash
-		 * Line 1: PATH
-		 * Line 2: Openocd path
-		 */
-		const shellEnv = cp.execSync(
-			`${shpath} --login -c 'source ~/spresenseenv/setup ${andCtrl} echo $PATH ${andCtrl} which openocd'`
-			).toString().trim().split('\n');
-
-		/* Parse PATH */
-		const envPath     = shellEnv[0]; /* Line 1 */
-		const openocdPath = shellEnv[1]; /* Line 2 */
-
-		/* Get toolchain directory by openocd path */
-		const sprEnvPath = path.dirname(openocdPath);
-
-		/* Prepare shell environment done */
-		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
-
-		/* Set PATH */
-		termConf.update(`env.${osName}`,{
-			// eslint-disable-next-line @typescript-eslint/naming-convention
-			'PATH': envPath
-		}, vscode.ConfigurationTarget.Workspace);
-
-		/* Check spresenseenv done(If not exist, skip it) */
-		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.valid", "Correct toolchain path done.")});
-
-		const ocdConf = vscode.workspace.getConfiguration('cortex-debug');
-		const sprEnvConf = vscode.workspace.getConfiguration('spresense.env');
-
-		if (process.platform === 'win32') {
-			const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
-
-			if (msysPath) {
-				sprEnvConf.update('toolchain.path', path.join(msysPath, sprEnvPath), vscode.ConfigurationTarget.Workspace);
-				ocdConf.update('armToolchainPath', path.join(msysPath, sprEnvPath), vscode.ConfigurationTarget.Workspace);
-				ocdConf.update('openocdPath', path.join(msysPath, openocdPath), vscode.ConfigurationTarget.Workspace);
-			}
-		} else {
-			sprEnvConf.update('toolchain.path', sprEnvPath, vscode.ConfigurationTarget.Workspace);
-			ocdConf.update('armToolchainPath', sprEnvPath, vscode.ConfigurationTarget.Workspace);
-			ocdConf.update('openocdPath', openocdPath, vscode.ConfigurationTarget.Workspace);
-		}
-	} catch (error) {
-		/* nop: Use system environment */
+	} else if (platform === 'wsl') {
+		// Set windows binary path for Cortex-Debug extension can find the cross gdb and openocd.
+		const p = path.resolve(toolchainPath, '..', '..', 'windows', 'bin');
+		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('armToolchainPath', p, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('openocdPath', path.resolve(p, 'openocd'), vscode.ConfigurationTarget.Workspace);
+	} else {
+		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('armToolchainPath', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('openocdPath', path.resolve(toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
 	}
-
-	/* Inform complete */
-	progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
 }
 
 function isSpresenseEnvironment() {
@@ -806,7 +775,7 @@ function isSpresenseEnvironment() {
 	}
 }
 
-function spresenseSdkSetup() {
+function spresenseSdkSetup(context: vscode.ExtensionContext) {
 	let firstFolder = getFirstFolderPath();
 	let configuration = vscode.workspace.getConfiguration();
 
@@ -835,7 +804,8 @@ function spresenseSdkSetup() {
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.start", "Started to setup.")});
 
 		/* Update settings.json */
-		await updateSettings(progress);
+		await updateSettings(context, progress);
+		progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
 
 		return new Promise<void>((resolve) => {
 			setTimeout(() => {
@@ -1014,7 +984,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 
 		/* Setup every activate timing for open folder */
-		spresenseSdkSetup();
+		spresenseSdkSetup(context);
 
 		if (vscode.workspace.workspaceFolders) {
 			vscode.workspace.workspaceFolders.forEach((folder) => {
