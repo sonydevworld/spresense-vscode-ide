@@ -627,21 +627,17 @@ export class SDKConfigView2 {
 	}
 
 	private _getViewContent() {
-		const mainUri = vscode.Uri.file(path.join(this._resourcePath, 'main.js')).with({
-			scheme: 'vscode-resource'
-		});
-		const progressUri = vscode.Uri.file(path.join(this._resourcePath, "progress.js")).with({
-			scheme: 'vscode-resource'
-		});
-		const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
-			scheme: 'vscode-resource'
-		});
-		const spinnerUri = vscode.Uri.file(path.join(this._resourcePath, 'spinner.css')).with({
-			scheme: 'vscode-resource'
-		});
-		const defconfigUri = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js")).with({
-			scheme: 'vscode-resource'
-		});
+		const webview = this._panel.webview;
+		const mainPath = vscode.Uri.file(path.join(this._resourcePath, 'main.js'));
+		const mainSrc = webview.asWebviewUri(mainPath);
+		const progressPath = vscode.Uri.file(path.join(this._resourcePath, "progress.js"));
+		const progressSrc = webview.asWebviewUri(progressPath);
+		const cssPath = vscode.Uri.file(path.join(this._resourcePath, 'style.css'));
+		const cssSrc = webview.asWebviewUri(cssPath);
+		const spinnerPath = vscode.Uri.file(path.join(this._resourcePath, 'spinner.css'));
+		const spinnerSrc = webview.asWebviewUri(spinnerPath);
+		const defconfigPath = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js"));
+		const defconfigSrc = webview.asWebviewUri(defconfigPath);
 		const nonce = getNonce();
 
 		const newStr = nls.localize("sdkconfig.src.menu.new", "New");
@@ -653,17 +649,18 @@ export class SDKConfigView2 {
 		let buf = fs.readFileSync(path.join(this._resourcePath, 'index.html.template')).toString();
 
 		const replacements: any = {
-			mainUri: mainUri,
-			progressUri: progressUri,
-			cssUri: cssUri,
-			spinnerUri: spinnerUri,
-			defconfigUri: defconfigUri,
+			mainUri: mainSrc,
+			progressUri: progressSrc,
+			cssUri: cssSrc,
+			spinnerUri: spinnerSrc,
+			defconfigUri: defconfigSrc,
 			nonce: nonce,
 			newStr: newStr,
 			saveStr: saveStr,
 			loadStr: loadStr,
 			saveasStr: saveasStr,
-			visibilityHelp: visibilityHelp
+			visibilityHelp: visibilityHelp,
+			cspSource: webview.cspSource
 		};
 		return buf.replace(/\${(.*?)}/g, (match, p1) => {
 			return replacements[p1] || match;
