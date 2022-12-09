@@ -30,13 +30,9 @@ interface LocaleInterface {
 }
 
 export class WizardBase {
-    private static readonly VIEW_TYPE = 'WizardView';
-    private static readonly STYLE_SHEET_URI = '__WIZARD_STYLE_SHEET__';
-    private static readonly SCRIPT_URI = '__WIZARD_SCRIPT__';
-    private static readonly NONCE = '__NONCE__';
 
-    public readonly _panel: vscode.WebviewPanel | undefined;
-    public readonly _resourcePath: string | undefined;
+    public readonly _panel: vscode.WebviewPanel;
+    public readonly _resourcePath: string;
 
     private _disposables: vscode.Disposable[] = [];
 
@@ -52,7 +48,7 @@ export class WizardBase {
         const column = vscode.window.activeTextEditor ? vscode.window.activeTextEditor.viewColumn : undefined;
 
         return vscode.window.createWebviewPanel(
-            WizardBase.VIEW_TYPE,
+            'WizardView',
             title,
             column || vscode.ViewColumn.One,
             {
@@ -97,33 +93,18 @@ export class WizardBase {
      * @returns HTML contents.
      */
     private getViewContent(component: string): string {
-        if (!this._resourcePath) {
-            /* TODO: Show error message */
-            return "";
-        }
-
-        const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'style.css')).with({
-			scheme: 'vscode-resource'
-        });
-
-        const scriptUri = vscode.Uri.file(path.join(this._resourcePath, 'wizard', component, 'script.js')).with({
-			scheme: 'vscode-resource'
-        });
-
+        const webview = this._panel.webview;
+        const cssPath = vscode.Uri.file(path.join(this._resourcePath, 'wizard', 'style.css'));
+        const cssSrc = webview.asWebviewUri(cssPath).toString();
+        const scriptPath = vscode.Uri.file(path.join(this._resourcePath, 'wizard', component, 'script.js'));
+        const scriptSrc = webview.asWebviewUri(scriptPath).toString();
         const nonce = getNonce();
 
-        let content = fs.readFileSync(path.join(this._resourcePath, 'wizard', component, 'index.html')).toString();
+        const content = fs.readFileSync(path.join(this._resourcePath, 'wizard', component, 'index.html')).toString();
 
-        /* Replace style sheet Uri */
-        content = content.replace(new RegExp(WizardBase.STYLE_SHEET_URI, "g"), cssUri.toString());
-
-        /* Replace script Uri */
-        content = content.replace(new RegExp(WizardBase.SCRIPT_URI, "g"), scriptUri.toString());
-
-        /* Replace script content */
-        content = content.replace(new RegExp(WizardBase.NONCE, "g"), nonce);
-
-        return content;
+        return content.replace(new RegExp('__WIZARD_STYLE_SHEET__', "g"), cssSrc)
+            .replace(new RegExp('__WIZARD_SCRIPT__', "g"), scriptSrc)
+            .replace(new RegExp('__NONCE__', "g"), nonce);
     }
 
     /**
