@@ -115,61 +115,41 @@ function removeWorkspaceFolder(folderUri: vscode.Uri) {
 	}
 }
 
-function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
-	/* Interface for C/C++ Extension .json file */
-	interface CppInterface {
-		[key: string]: string;
-	}
-
+function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string, force?: boolean) {
 	let sdkFolder = getFirstFolderPath();
-	let extensionPath = context.extensionPath;
+	const configurationPath = path.join(newFolderPath, '.vscode', 'c_cpp_properties.json');
+	const config = loadJson(configurationPath, true);
 
-	let configurationPath = path.join(newFolderPath, '.vscode', 'c_cpp_properties.json');
-	let presetConfigPath = path.join(extensionPath, 'data', 'config.json');
-
-	const jsonObj = loadJson(configurationPath, true);
-
-	if (!sdkFolder || !jsonObj) {
+	if (!sdkFolder || !config) {
 		return;
 	}
 
-	/* Create .vscode */
-	createVscode(newFolderPath);
-
-	/* Prepare 'env' */
-	if ( !('env' in jsonObj) ) {
-		jsonObj['env'] = {};
+	// Set environemnt variable, it refered by include paths in Spresense SDK configuration at below.
+	if ('env' in config) {
+		config.env.mySpresenseSdkPath = sdkFolder;
+	} else {
+		config.env = { mySpresenseSdkPath: sdkFolder};
 	}
 
-	/* Specify Spresense SDK Path */
-	jsonObj['env']['mySpresenseSdkPath'] = sdkFolder;
-
-	/* Prepare 'configurations' */
-	if ( !('configurations' in jsonObj) ) {
-		jsonObj['configurations'] = [];
-	}
-
-	/* If already exists, remove it only */
-	const configs = jsonObj['configurations'].filter((value: CppInterface) => {
-		return value['name'] !== 'Spresense SDK';
-	});
-
-	/* Replace filtered configurations */
-	jsonObj['configurations'] = configs;
-
-	/* Load Spresense SDK configuration */
-	const sdkConfig = loadJson(presetConfigPath, false);
-
+	// Add SDK include paths configuration
+	const sdkConfig = loadJson(path.join(context.extensionPath, 'data', 'config.json'), false);
 	if(!sdkConfig) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.cpp.config.error", "Preset configuration not exist. Please re-install extension."));
 		return;
 	}
+	if (!('configurations' in config)) {
+		config['configurations'] = [sdkConfig];
+	} else {
+		if (config.configurations.some((o: any) => o?.name === 'Spresense SDK')) {
+			if (force) {
+				config.configurations.map((o: any) => o?.name === 'Spresense SDK' ? sdkConfig : o);
+			}
+		} else {
+			config.configurations.push(sdkConfig);
+		}
+	}
 
-	/* Push Spresense SDK config into configurations */
-	jsonObj['configurations'].push(sdkConfig);
-
-	/* Save modified c_cpp_properties.json */
-	fs.writeFileSync(configurationPath, JSON.stringify(jsonObj, null, 4));
+	fs.writeFileSync(configurationPath, JSON.stringify(config, null, 4));
 }
 
 /**
@@ -897,12 +877,15 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
+	createVscode(folderPath);
+
+    // Setup C/C++ Extension include paths to SDK ones.
+	sdkCppConfig(context, folderPath, force);
+
 	if (!force && isAlreadySetup(folderPath)) {
 		return;
 	}
 
-	/* For C/C++ Extension */
-	sdkCppConfig(context, folderPath);
 
 	/* For build/flash task */
 	await sdkTaskConfig(folderUri, context);
