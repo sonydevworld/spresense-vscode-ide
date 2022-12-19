@@ -72,6 +72,7 @@
 	"spresense.src.update.project.folder": "Spresense: プロジェクトフォルダ設定の更新",
 	"spresense.src.warning.compatibility": "対象プロジェクト {0} がお使いのSpresense SDKと互換性がありません。互換性のあるSpresense SDKをお使いください。",
 	"spresense.src.error.compatibility": "対象プロジェクト {0} がお使いのSpresense SDKと互換性がありません。",
+	"spresense.src.warning.platformmismatch": "別のプラットフォームで作成されたプロジェクト {0} を検出しました。このプロジェクトを使用する場合は設定の更新が必要です。更新を行いますか？",
 
 	"serial.property.baudrate": "シリアルターミナルのボーレートを設定します。",
 	"serial.property.port": "使用するシリアルポートを設定します。",

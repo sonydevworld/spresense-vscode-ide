@@ -21,6 +21,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 /* configuration template for cortex-debug extension */
 
@@ -143,4 +144,30 @@ export function addSubTarget(targetFolder: vscode.Uri, executable: string, cwd: 
 	target.gdbTarget = `localhost:${50000 + subcpuid}`;
 
 	addTarget(targetFolder, target);
+}
+
+/**
+ * Test the launch.json contains windows path delimiter (\)
+ *
+ * @param targetFolder project folder path
+ */
+export function includeWin32Path(targetFolder: vscode.Uri): boolean {
+	const buf = fs.readFileSync(path.join(targetFolder.fsPath, '.vscode', 'launch.json')).toString();
+	return !!buf.match(/\\\\/g);
+}
+
+/**
+ * Fix windows path delimiter (\) to POSIX (/)
+ *
+ * @param targetFolder project folder path
+ */
+export function win32ToPosixPath(targetFolder: vscode.Uri) {
+	const fp = path.join(targetFolder.fsPath, '.vscode', 'launch.json');
+	try {
+		const buf = fs.readFileSync(fp).toString();
+		fs.writeFileSync(fp, buf.replace(/\\\\/g, '/'));
+	} catch (err) {
+		// Ignore if launch.json is missing
+		console.log(err);
+	}
 }

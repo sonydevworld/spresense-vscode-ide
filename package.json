@@ -240,7 +240,7 @@
 							"svdFile": "^\"\\${workspaceFolder:spresense}/sdk/tools/SVD/cxd5602.svd\"",
 							"debuggerArgs": [
 								"-ix",
-								".vscode/.gdbinit"
+								"^\"\\${workspaceFolder:spresense}/sdk/tools/.gdbinit\""
 							],
 							"preLaunchTask": "Clean flash",
 							"overrideLaunchCommands": [

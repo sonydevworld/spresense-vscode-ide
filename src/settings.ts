@@ -32,6 +32,7 @@ import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_V
 
 import * as launch from './launch';
 import * as tasks from './tasks';
+import * as util from './configview/util';
 
 const spresenseExtInterfaceVersion: number = 1003;
 
@@ -879,13 +880,26 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 
 	createVscode(folderPath);
 
-    // Setup C/C++ Extension include paths to SDK ones.
+	// Setup C/C++ Extension include paths to SDK ones.
 	sdkCppConfig(context, folderPath, force);
+
+	let configfile = path.join(folderPath, 'nuttx', '.config');
+	if (!fs.existsSync(configfile)) {
+		configfile = path.join(folderPath, 'sdk.config');
+	}
+	if (launch.includeWin32Path(folderUri) || util.isDifferentHostConfig(configfile)) {
+		const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.warning.platformmismatch",
+		"The project folder {0} is created on different host but it cannnot be used on this systems.\nIt is necessary to convert the configuration, do you want to convert it?", folderPath),
+			{ modal: true}, 'Yes');
+		if (reply === 'Yes') {
+			launch.win32ToPosixPath(folderUri);
+			util.updateHostConfiguration(configfile, path.join(wsFolders[0].uri.fsPath, 'nuttx'));
+		}
+	}
 
 	if (!force && isAlreadySetup(folderPath)) {
 		return;
 	}
-
 
 	/* For build/flash task */
 	await sdkTaskConfig(folderUri, context);

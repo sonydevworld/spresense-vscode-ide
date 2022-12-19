@@ -72,6 +72,7 @@
 	"spresense.src.update.project.folder": "Spresense: Update project folder settings",
 	"spresense.src.warning.compatibility": "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.",
 	"spresense.src.error.compatibility": "Your project folder {0} does not compatible with using Spresense SDK.",
+	"spresense.src.warning.platformmismatch": "The project folder {0} is created on different host but it cannnot be used on this systems.\nIt is necessary to convert the configuration, do you want to convert it?",
 
 	"serial.property.baudrate": "Serial baudrate: Baudrate for serial terminal",
 	"serial.property.port": "Serial port: Port path for serial terminal",
