@@ -100,7 +100,13 @@ export function tweakPlatform(configfile: string) {
  * @param buf Configuration file contents
  */
 export function updateHostConfiguration(configfile: string, kernelDir: string) {
-	let contents = fs.readFileSync(configfile).toString();
+	let contents;
+	try {
+		contents = fs.readFileSync(configfile).toString();
+	} catch(err) {
+		return; // Ignore file missing
+	}
+
 	// Turned off related configurations first
 	contents = contents.replace(/^(CONFIG_HOST_\w+)=y/gm, '# $1 is not set')
 		.replace('CONFIG_TOOLCHAIN_WINDOWS=y', '# CONFIG_TOOLCHAIN_WINDOWS is not set')

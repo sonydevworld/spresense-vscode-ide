@@ -152,8 +152,12 @@ export function addSubTarget(targetFolder: vscode.Uri, executable: string, cwd: 
  * @param targetFolder project folder path
  */
 export function includeWin32Path(targetFolder: vscode.Uri): boolean {
-	const buf = fs.readFileSync(path.join(targetFolder.fsPath, '.vscode', 'launch.json')).toString();
-	return !!buf.match(/\\\\/g);
+	try {
+		const buf = fs.readFileSync(path.join(targetFolder.fsPath, '.vscode', 'launch.json')).toString();
+		return !!buf.match(/\\\\/g);
+	} catch(err) {
+		return false; // file not found as not path included
+	}
 }
 
 /**
