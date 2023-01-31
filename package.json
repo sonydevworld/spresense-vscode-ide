@@ -409,7 +409,8 @@
 	},
 	"extensionDependencies": [
 		"ms-vscode.cpptools",
-		"marus25.cortex-debug"
+		"marus25.cortex-debug",
+		"ms-vscode-remote.remote-wsl"
 	],
 	"devDependencies": {
 		"@types/chai": "^4.3.1",
