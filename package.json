@@ -407,10 +407,12 @@
 		"test": "node ./out/test/runTest.js",
 		"ui-test": "extest setup-and-run -i out/test/*.test.js"
 	},
+	"extensionPack": [
+		"ms-vscode-remote.remote-wsl"
+	],
 	"extensionDependencies": [
 		"ms-vscode.cpptools",
-		"marus25.cortex-debug",
-		"ms-vscode-remote.remote-wsl"
+		"marus25.cortex-debug"
 	],
 	"devDependencies": {
 		"@types/chai": "^4.3.1",
