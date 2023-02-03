@@ -82,7 +82,12 @@ export const kernelCleanTask = {
 export const flashWorkerTask = {
     label: 'Flash worker',
     type: 'shell',
-    command: '[ -z \"`ls out/worker/ 2>/dev/null`\" ] && ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*',
+    command: '${extensionInstallFolder:sony-spresense.spresense-vscode-ide}/scripts/flash_worker.sh',
+    args: [
+        '${config:spresense.sdk.path}',
+        '${config:spresense.serial.port}',
+        '${config:spresense.flashing.speed}'
+    ],
     options: {
         cwd: '${workspaceFolder}'
     },
