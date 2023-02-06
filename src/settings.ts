@@ -23,6 +23,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as cp from 'child_process';
+import * as lodash from 'lodash';
 import * as md5 from 'md5';
 import * as unzip from 'extract-zip';
 
@@ -204,12 +205,12 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 
 	const isAppfolder = !isSpresenseSdkFolder(newFolderPath);
 
-	let buildKernelTask = tasks.buildKernelTask;
-	let buildTask = tasks.buildTask;
-	let sdkCleanTask = tasks.sdkCleanTask;
-	let kernelCleanTask = tasks.kernelCleanTask;
-	let flashTask = tasks.flashTask;
-	let cleanFlashTask = tasks.flashCleanTask;
+	let buildKernelTask = lodash.cloneDeep(tasks.buildKernelTask);
+	let buildTask = lodash.cloneDeep(tasks.buildTask);
+	let sdkCleanTask = lodash.cloneDeep(tasks.sdkCleanTask);
+	let kernelCleanTask = lodash.cloneDeep(tasks.kernelCleanTask);
+	let flashTask = lodash.cloneDeep(tasks.flashTask);
+	let cleanFlashTask = lodash.cloneDeep(tasks.flashCleanTask);
 
 	// Tweak each tasks for user environment
 
