@@ -267,9 +267,6 @@ export function createWorkerApplicationFiles (name: string, worker_name: string,
 		__WORKER_NAME__: worker_name.toUpperCase()
 	};
 
-	/* Setup application folder, if necessary */
-	createProjectMakefiles(folder, resourcePath);
-
 	/* Create worker directory */
 	fs.mkdirSync(destDir);
 
@@ -320,9 +317,6 @@ export function createApplicationFiles (name: string, folder: string, resourcePa
 		__app_name__: name,
 		__APP_NAME__: name.toUpperCase()
 	};
-
-	/* Setup application folder, if necessary */
-	createProjectMakefiles(folder, resourcePath);
 
 	/* Create worker directory */
 	fs.mkdirSync(destDir);

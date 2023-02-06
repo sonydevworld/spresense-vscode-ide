@@ -29,7 +29,7 @@ import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility, getExactPlatform } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility, getExactPlatform, createProjectMakefiles } from './common';
 
 import * as launch from './launch';
 import * as tasks from './tasks';
@@ -911,6 +911,14 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 
 	/* Create file for storing spresense environment */
 	createSpresenseConfFile(folderPath);
+
+	/*
+	 * Create project Makefiles for prevent build error.
+	 */
+	if (!isSpresenseSdkFolder(folderPath)) {
+		const resourcePath = path.join(context.extensionPath, 'resources');
+		createProjectMakefiles(folderPath, resourcePath);
+	}
 }
 
 /**
