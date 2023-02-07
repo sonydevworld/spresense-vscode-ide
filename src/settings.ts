@@ -209,6 +209,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	let buildTask = lodash.cloneDeep(tasks.buildTask);
 	let sdkCleanTask = lodash.cloneDeep(tasks.sdkCleanTask);
 	let kernelCleanTask = lodash.cloneDeep(tasks.kernelCleanTask);
+	let spkCheckTask = lodash.cloneDeep(tasks.spkCheckTask);
 	let flashTask = lodash.cloneDeep(tasks.flashTask);
 	let onlyFlashTask = lodash.cloneDeep(tasks.onlyFlashTask);
 	let cleanFlashTask = lodash.cloneDeep(tasks.flashCleanTask);
@@ -220,6 +221,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	sdkCleanTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
 	kernelCleanTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
 
+	spkCheckTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
 	flashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
 	onlyFlashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
 
@@ -242,6 +244,7 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 		buildTask,
 		kernelCleanTask,
 		sdkCleanTask,
+		spkCheckTask,
 		flashTask,
 		onlyFlashTask,
 		tasks.flashWorkerTask,

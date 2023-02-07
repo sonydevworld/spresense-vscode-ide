@@ -79,6 +79,18 @@ export const kernelCleanTask = {
     problemMatcher: ['$gcc']
 };
 
+export const spkCheckTask = {
+    label: 'Check flashable SPK file',
+    type: 'shell',
+    command: '${extensionInstallFolder:sony-spresense.spresense-vscode-ide}/scripts/check_spk.sh',
+    args: [""],
+    options: {
+        cwd: '${workspaceFolder}'
+    },
+    group: 'test',
+    problemMatcher: ['$gcc']
+};
+
 export const flashWorkerTask = {
     label: 'Flash worker',
     type: 'shell',
@@ -118,6 +130,7 @@ export const onlyFlashTask = {
     type: 'shell',
     dependsOrder: 'sequence',
     dependsOn: [
+        spkCheckTask.label,
         flashWorkerTask.label
     ],
     command: '${config:spresense.sdk.path}/sdk/tools/flash.sh',
