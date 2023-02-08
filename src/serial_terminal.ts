@@ -77,6 +77,7 @@ function getEnv (platform: string) {
 function isFlashTask(taskExec: vscode.TaskExecution): boolean {
 	const flashTasks = [
 		'Build and flash',
+		'Flash application',
 		'Flash worker',
 		'Clean flash',
 		'Burn bootloader'

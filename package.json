@@ -133,6 +133,11 @@
 				"enablement": "spresenseSdkVersionMajor"
 			},
 			{
+				"command": "spresense.onlyflash",
+				"title": "%spresense.command.onlyflash%",
+				"enablement": "spresenseSdkVersionMajor"
+			},
+			{
 				"command": "spresense.msys.path",
 				"title": "%spresense.command.msys.path%",
 				"enablement": "isWindows"
@@ -366,6 +371,11 @@
 					"when": "spresenseSdkVersionMajor",
 					"command": "spresense.flash",
 					"group": "12_SpresenseBuild@1"
+				},
+				{
+					"when": "spresenseSdkVersionMajor",
+					"command": "spresense.onlyflash",
+					"group": "12_SpresenseBuild@6"
 				},
 				{
 					"when": "spresenseSdkVersionMajor",

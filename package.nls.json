@@ -15,6 +15,7 @@
 	"spresense.command.clean.kernel": "Spresense: Kernel clean",
 	"spresense.command.clean.sdk": "Spresense: Application clean",
 	"spresense.command.flash": "Spresense: Build and Flash",
+	"spresense.command.onlyflash": "Spresense: Application flash",
 	"spresense.command.msys.path": "Spresense: Set MSYS install location (Windows only)",
 	"spresense.command.create.app": "Spresense: Create application command",
 	"spresense.command.create.worker": "Spresense: Create ASMP worker program",
