@@ -29,6 +29,8 @@ import * as nls from './localize';
 import { HelperTools } from './helper';
 import * as tasks from './tasks';
 
+import { getExactPlatform } from './common';
+
 let helper: HelperTools;
 
 function getShell(osName: string) : string {
@@ -113,6 +115,27 @@ function getAvailablePortList(): string[] {
 	}
 }
 
+function getTerminalCommand(port: string, baudrate: string): string {
+	const platform = getExactPlatform();
+
+	if (platform === 'win32') {
+		/* For MSYS2 environment */
+		const terminalPath = helper.getToolPath('serialTerminal');
+		const comport = port.match(/COM(\d+)/);
+		if (comport !== null) {
+			const portnum = Number(comport[1]) - 1;
+			return `'${terminalPath}' -c /dev/ttyS${portnum} -b ${baudrate}`;
+		} else {
+			/* Error case */
+			return '';
+		}
+	} else {
+		const terminalPath = helper.getToolPath('miniterm');
+		const opts = '--eol LF --raw -q'; // End of line is LF, no transcoding, quiet app messages
+		return `'${terminalPath}' ${opts} ${port} ${baudrate}`;
+	}
+}
+
 async function showSerialPortSelector(): Promise<string> {
 	const ports = getAvailablePortList();
 	let name = '';
@@ -166,11 +189,15 @@ export function activate(context: vscode.ExtensionContext) {
 				console.log('cancelled');
 				return;
 			}
-			const baudrate = vscode.workspace.getConfiguration().get('spresense.serial.baudrate');
 
-			const terminalPath = helper.getToolPath('miniterm');
-			const opts = '--eol LF --raw -q'; // End of line is LF, no transcoding, quiet app messages
-			const terminalCommand = `'${terminalPath}' ${opts} ${port} ${baudrate}`;
+			const baudrate: string = vscode.workspace.getConfiguration().get('spresense.serial.baudrate') || '115200';
+			const terminalCommand = getTerminalCommand(port, baudrate);
+
+			if (terminalCommand === '') {
+				vscode.window.showErrorMessage(nls.localize("serial.src.select.error",
+					"Can not detect serial port. Please connect Spresense.") + `(${port}:${baudrate})`);
+				return;
+			}
 
 			let flashTask = vscode.tasks.taskExecutions.find(taskExec => isFlashTask(taskExec));
 
