@@ -691,24 +691,25 @@ async function updateSettings(context: vscode.ExtensionContext, progress: vscode
 	/* Initial check done */
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.check", "Checking operating system done.")});
 
-	const ret = cp.execSync(path.resolve(context.extensionPath, 'helper', 'showenv.sh')).toString().trim().split('\n');
-	const envPath = ret[0];
-	const toolchainPath = ret[1].split(':')[1];
-
-	/* Prepare shell environment done */
-	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
-
 	const osName = {
 		win32: 'windows',
 		linux: 'linux',
 		darwin: 'osx',
 		wsl: 'linux'
 	}[platform];
+	const sh: string = termConf.get(`shell.${osName}`) || '/bin/bash';
+	const helper = path.resolve(context.extensionPath, 'helper', 'showenv.sh').replace(/\\/g, '\\\\\\\\');
+	const ret = cp.execFileSync(sh, ['--login',  helper]).toString(); // login needed for expand '~' (user home)
+	const env = JSON.parse(ret);
+	const toolchainPath = env['compiler'];
+
+	/* Prepare shell environment done */
+	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
 	/* Update terminal PATH variable to be able to call the cross toolchain. This process is the same as 'source ~/spresenseenv/setup'. */
 	termConf.update(`env.${osName}`,{
 		// eslint-disable-next-line @typescript-eslint/naming-convention
-		'PATH': envPath
+		'PATH': env['path']
 	}, vscode.ConfigurationTarget.Workspace);
 
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.valid", "Correct toolchain path done.")});
