@@ -725,16 +725,21 @@ async function updateSettings(context: vscode.ExtensionContext, progress: vscode
 			debugConf.update('armToolchainPath', path.join(msysPath, toolchainPath), vscode.ConfigurationTarget.Workspace);
 			debugConf.update('openocdPath', path.join(msysPath, toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
 		}
+		// Set fixed extension path
+		const win32Epath = '/' + context.extensionPath.replace(/\\/g,"/").replace(/:\//g,"/");
+		sprEnvConf.update('extension.path', win32Epath, vscode.ConfigurationTarget.Workspace);
 	} else if (platform === 'wsl') {
 		// Set windows binary path for Cortex-Debug extension can find the cross gdb and openocd.
 		const p = path.resolve(toolchainPath, '..', '..', 'windows', 'bin');
 		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
 		debugConf.update('armToolchainPath', p, vscode.ConfigurationTarget.Workspace);
 		debugConf.update('openocdPath', path.resolve(p, 'openocd'), vscode.ConfigurationTarget.Workspace);
+		sprEnvConf.update('extension.path', path.resolve(context.extensionPath), vscode.ConfigurationTarget.Workspace);
 	} else {
 		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
 		debugConf.update('armToolchainPath', toolchainPath, vscode.ConfigurationTarget.Workspace);
 		debugConf.update('openocdPath', path.resolve(toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
+		sprEnvConf.update('extension.path', path.resolve(context.extensionPath), vscode.ConfigurationTarget.Workspace);
 	}
 }
 

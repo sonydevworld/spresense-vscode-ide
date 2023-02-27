@@ -9,6 +9,8 @@
 	"spresense.property.msys.path.desc": "MSYS2 path(Windows only): Location about Msys install path",
 	"spresense.property.flash.speed.title": "Flashing speed",
 	"spresense.property.flash.speed.desc": "Flashing Speed: Baudrate of flash built image. If you face an error while flashing, please set low speed.",
+	"spresense.property.extension.path.title": "SpresenseIDE Extension Path",
+	"spresense.property.extension.path.desc": "Set the path to the folder where the SpresenseIDE extension is installed. (This will be set automatically.)",
 
 	"spresense.command.build.kernel": "Spresense: Kernel build",
 	"spresense.command.build.app": "Spresense: Application build",

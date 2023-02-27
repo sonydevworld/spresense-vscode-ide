@@ -102,6 +102,13 @@
 						"default": "/dev/ttyUSB0",
 						"description": "%serial.property.port%",
 						"scope": "application"
+					},
+					"spresense.env.extension.path": {
+						"type": "string",
+						"default": "",
+						"title": "%spresense.property.extension.path.title%",
+						"description": "%spresense.property.extension.path.desc%",
+						"scope": "window"
 					}
 				}
 			}

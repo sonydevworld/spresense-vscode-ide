@@ -9,6 +9,8 @@
 	"spresense.property.msys.path.desc": "MSYS2がインストールされているフォルダのパスを設定します。",
 	"spresense.property.flash.speed.title": "ファームウェア転送速度",
 	"spresense.property.flash.speed.desc": "ファームウェア（ビルドしたバイナリ、ブートローダーなど）を書き込む際に、Spresenseボードに転送する速度を設定します。もし書き込みが失敗した際は、転送速度を遅く設定してください。",
+	"spresense.property.extension.path.title": "SpresenseIDE拡張機能へのパス",
+	"spresense.property.extension.path.desc": "SpresenseIDE拡張機能がインストールされているフォルダのパスを設定します。(自動で設定されます)",
 
 	"spresense.command.build.kernel": "Spresense: カーネルのビルド",
 	"spresense.command.build.app": "Spresense: アプリケーションのビルド",

@@ -82,7 +82,7 @@ export const kernelCleanTask = {
 export const spkCheckTask = {
     label: 'Check flashable SPK file',
     type: 'shell',
-    command: '${extensionInstallFolder:sony-spresense.spresense-vscode-ide}/scripts/check_spk.sh',
+    command: '${config:spresense.env.extension.path}/scripts/check_spk.sh',
     args: [""],
     options: {
         cwd: '${workspaceFolder}'
@@ -94,7 +94,7 @@ export const spkCheckTask = {
 export const flashWorkerTask = {
     label: 'Flash worker',
     type: 'shell',
-    command: '${extensionInstallFolder:sony-spresense.spresense-vscode-ide}/scripts/flash_worker.sh',
+    command: '${config:spresense.env.extension.path}/scripts/flash_worker.sh',
     args: [
         '${config:spresense.sdk.path}',
         '${config:spresense.serial.port}',
@@ -145,7 +145,7 @@ export const onlyFlashTask = {
 export const flashCleanTask = {
     label: 'Clean flash',
     type: 'shell',
-    command: '${extensionInstallFolder:sony-spresense.spresense-vscode-ide}/scripts/prepare_debug.sh',
+    command: '${config:spresense.env.extension.path}/scripts/prepare_debug.sh',
     args: [
         '${config:spresense.sdk.path}',
         'linux', // This argument will be replaced at generating task.json
