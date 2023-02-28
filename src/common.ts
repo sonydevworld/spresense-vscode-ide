@@ -575,4 +575,4 @@ export function getExactPlatform(): string {
       p = 'wsl';
     }
     return p;
-  }
+}

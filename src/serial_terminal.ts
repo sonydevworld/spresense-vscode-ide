@@ -247,8 +247,15 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}));
 
+	let flashtaskExitCode: number = -1;
 	context.subscriptions.push(vscode.tasks.onDidEndTaskProcess((taskEndProcess) => {
-		if (taskEndProcess.exitCode === 0 && isFlashTask(taskEndProcess.execution)) {
+		if (isFlashTask(taskEndProcess.execution) && taskEndProcess.exitCode !== undefined) {
+			flashtaskExitCode = taskEndProcess.exitCode;
+		}
+	}));
+
+	context.subscriptions.push(vscode.tasks.onDidEndTask((taskEndProcess) => {
+		if (isFlashTask(taskEndProcess.execution) && flashtaskExitCode === 0) {
 			/* Reset */
 			retryCount = 0;
 
