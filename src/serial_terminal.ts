@@ -74,21 +74,42 @@ function getEnv (platform: string) {
 }
 
 /**
- * Check task is for flashing
+ * Check task is for conflicting with serial terminal
  *
- * This function checking a task is a flashing task or not.
+ * This function checks whether a task uses a serial line.
  *
  * @param taskExec TaskExecution for checking
  * @returns If task is flashing true, else false
  */
 
-function isFlashTask(taskExec: vscode.TaskExecution): boolean {
+function isConflictTask(taskExec: vscode.TaskExecution): boolean {
 	const flashTasks = [
 		tasks.flashTask.label,
 		tasks.onlyFlashTask.label,
 		tasks.flashWorkerTask.label,
 		tasks.flashCleanTask.label,
 		tasks.flashBootTask.label
+	];
+
+	return flashTasks.some((task) => {
+		return task === taskExec.task.name;
+	});
+}
+
+/**
+ * Check task is for starting serial terminal task
+ *
+ * This function checks if the serial terminal needs to be opened at the end of the task.
+ *
+ * @param taskExec TaskExecution for checking
+ * @returns If task is flashing true, else false
+ */
+
+function isAutoSerialTerminalTask(taskExec: vscode.TaskExecution): boolean {
+	const flashTasks = [
+		tasks.flashTask.label,
+		tasks.onlyFlashTask.label,
+		tasks.flashCleanTask.label
 	];
 
 	return flashTasks.some((task) => {
@@ -172,8 +193,6 @@ async function tryGetSerialPort(): Promise<string> {
 
 export function activate(context: vscode.ExtensionContext) {
 	var serialTerminal: vscode.Terminal | undefined;
-	// Temporary: avoid showing error message while flashing
-	var retryCount: number = 0;
 
 	nls.config(context);
 
@@ -199,16 +218,12 @@ export function activate(context: vscode.ExtensionContext) {
 				return;
 			}
 
-			let flashTask = vscode.tasks.taskExecutions.find(taskExec => isFlashTask(taskExec));
+			let flashTask = vscode.tasks.taskExecutions.find(taskExec => isConflictTask(taskExec));
 
 			/* Avoid to conflict common resource */
-			/* TODO: This is a just workaround for avoid show error message when flash task finished */
 			if (flashTask !== undefined) {
-				if (retryCount > 1) {
-					vscode.window.showErrorMessage(nls.localize("serial.src.open.error",
-						"Error to start serial terminal (Serial port in flashing programs)."));
-				}
-				retryCount ++;
+				vscode.window.showErrorMessage(nls.localize("serial.src.open.error",
+					"Error to start serial terminal (Serial port in flashing programs)."));
 				return;
 			}
 
@@ -242,23 +257,20 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.tasks.onDidStartTask((taskStartEvent) => {
-		if (isFlashTask(taskStartEvent.execution)) {
+		if (isConflictTask(taskStartEvent.execution)) {
 			vscode.commands.executeCommand('spresense.serial.close');
 		}
 	}));
 
 	let flashtaskExitCode: number = -1;
 	context.subscriptions.push(vscode.tasks.onDidEndTaskProcess((taskEndProcess) => {
-		if (isFlashTask(taskEndProcess.execution) && taskEndProcess.exitCode !== undefined) {
+		if (isAutoSerialTerminalTask(taskEndProcess.execution) && taskEndProcess.exitCode !== undefined) {
 			flashtaskExitCode = taskEndProcess.exitCode;
 		}
 	}));
 
 	context.subscriptions.push(vscode.tasks.onDidEndTask((taskEndProcess) => {
-		if (isFlashTask(taskEndProcess.execution) && flashtaskExitCode === 0) {
-			/* Reset */
-			retryCount = 0;
-
+		if (isAutoSerialTerminalTask(taskEndProcess.execution) && flashtaskExitCode === 0) {
 			vscode.commands.executeCommand('spresense.serial.open');
 		}
 	}));
