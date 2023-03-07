@@ -732,7 +732,7 @@ async function updateSettings(context: vscode.ExtensionContext, progress: vscode
 		// Set windows binary path for Cortex-Debug extension can find the cross gdb and openocd.
 		const p = path.resolve(toolchainPath, '..', '..', 'windows', 'bin');
 		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
-		debugConf.update('armToolchainPath', p, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('armToolchainPath', toolchainPath, vscode.ConfigurationTarget.Workspace);
 		debugConf.update('openocdPath', path.resolve(p, 'openocd'), vscode.ConfigurationTarget.Workspace);
 		sprEnvConf.update('extension.path', path.resolve(context.extensionPath), vscode.ConfigurationTarget.Workspace);
 	} else {
