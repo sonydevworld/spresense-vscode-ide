@@ -210,12 +210,13 @@ class BaseWidget {
 		let refs = new Set();
 
 		// Shorthands for collecting symbols from expressions into refs
-		const _collect = (expr) => expr && expr.match(/[\w]+/g).forEach((value) => {
+		const _collect = (expr) => expr?.match(/[\w]+/g)?.forEach((value) => {
 			if (!/(^[ymn]$|^[\d]+$)/.test(value)) {
 				refs.add(value);
 			}
 		});
-		const _collectlist = (list) => list && list.forEach((val) => {
+		const _collectlist = (list) => list?.forEach((val) => {
+			_collect(val.default);
 			_collect(val.cond);
 		});
 
@@ -1197,11 +1198,18 @@ function evaluateExpr(s) {
 	_s = _s.replace(/[!<>]?=/g, (x) => {
 		return x === "=" ? "===" : x;
 	});
+	// Replace '!SYMBOL' ('not' pattern) to invert tristate value
+	_s = _s.replace(/!(\d)/g, '(2-$1)');
 
 	//console.debug(`${s} => ${_s}`);
 	let ret;
 	try {
 		ret = eval(_s);
+		if (ret === true) {
+			ret = 2;
+		} else if (ret === false) {
+			ret = 0;
+		}
 	} catch {
 		console.warn(`Caught unexpected exception! "${s}" => "${_s}"`);
 		ret = 0;
@@ -1366,9 +1374,13 @@ function filterConfigs() {
 	results.innerHTML = ""; // Clear all of child nodes
 
 	if (input.value === "") {
-		document.getElementById("search-results").dataset.show = false;
+		results.dataset.show = false;
 		return;
 	}
+	if (input.value.length < 2) {
+		return;
+	}
+	results.dataset.show = false;
 
 	const configs = document.getElementById("configs").querySelectorAll(".config:not(.no-prompt):not(.invisible):not(.comment)");
 
@@ -1411,7 +1423,7 @@ function filterConfigs() {
 			break;
 		}
 	}
-	document.getElementById("search-results").dataset.show = nfound;
+	results.dataset.show = nfound;
 }
 
 function generateConfigFileContent() {
@@ -1545,8 +1557,8 @@ function main() {
 		document.getElementById("visibility-icon").classList.add("off");
 	}
 
-	document.getElementById("search-box").addEventListener("keyup", filterConfigs);
-	document.getElementById("search-box").addEventListener("search", filterConfigs);
+	document.getElementById("search-box").addEventListener("input", filterConfigs);
+
 	document.getElementById("search-icon").addEventListener("click", event => {
 		let search = document.getElementById("search");
 		search.classList.toggle("show");
@@ -1572,12 +1584,18 @@ function main() {
 	document.getElementById("save").addEventListener("click", event => {
 		// Send message with generated .config content to extension main,
 		// and save it because webview javascript can't save it directly.
-
-		vscode.postMessage({command: "save", content: generateConfigFileContent()});
+		showProgress();
+		setTimeout(() => {
+			vscode.postMessage({command: "save", content: generateConfigFileContent()});
+		});
 	});
 
 	document.getElementById("saveas").addEventListener("click", event => {
-		vscode.postMessage({command: "saveas", content: generateConfigFileContent()});
+		showProgress();
+		setTimeout(() => {
+			vscode.postMessage({command: "saveas", content: generateConfigFileContent()});
+			hideProgress();
+		});
 	});
 
 	document.getElementById("load").addEventListener("click", event => {
@@ -1608,6 +1626,7 @@ function main() {
 				if (message.content) {
 					showDefconfigSelection(message.content, (status, data) => {
 						if (status === "ok") {
+							showProgress();
 							vscode.postMessage({command: "load-defconfigs", content: data});
 						}
 					});
@@ -1616,6 +1635,11 @@ function main() {
 
 			case "load-defconfigs":
 				loadConfig(message.content);
+				hideProgress();
+				break;
+
+			case "saved":
+				hideProgress();
 				break;
 		}
 	});

@@ -20,7 +20,6 @@
  */
 
 import * as vscode from 'vscode';
-import * as child_process from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as glob from 'glob';
@@ -28,7 +27,7 @@ import { EventEmitter } from 'events';
 
 import * as cp from '../shell_exec';
 import * as nls from '../localize';
-import { getNonce, isSameContents } from '../common';
+import { getNonce, isSameContents, getNuttXVersion, Version } from '../common';
 import * as util from './util';
 
 export class SDKConfigView2 {
@@ -49,12 +48,13 @@ export class SDKConfigView2 {
 	private _python: string;
 	private _progress: EventEmitter;
 	private _currentProcess: cp.ChildProcess | undefined = undefined;
+	private kernelVer?: Version;
 
 	public static createOrShow(extensionPath: string, targetConfig: string | undefined) {
 		const column = vscode.window.activeTextEditor ?
 			vscode.window.activeTextEditor.viewColumn : undefined;
 
-		if (util.BuildTaskIsRunning()) {
+		if (util.buildTaskIsRunning()) {
 			vscode.window.showErrorMessage(nls.localize("sdkconfig.src.open.error.task",
 				"Can not open configuration while in the build task is running"));
 			return;
@@ -145,7 +145,7 @@ export class SDKConfigView2 {
 						return;
 
 					case "save":
-						if (util.BuildTaskIsRunning()) {
+						if (util.buildTaskIsRunning()) {
 							vscode.window.showErrorMessage(nls.localize("sdkconfig.src.save.error.task",
 								"Save configuration failed because of the build task is running."));
 							return;
@@ -154,6 +154,7 @@ export class SDKConfigView2 {
 							return new Promise<void>((resolve) => {
 								this._saveConfigFile(this._configFile, message.content);
 								this._updateHeaderFiles();
+								this._panel.webview.postMessage({command: "saved"});
 								resolve();
 							});
 						});
@@ -251,36 +252,32 @@ export class SDKConfigView2 {
 	 */
 
 	private _updateHeaderFiles() {
-		let workspaceFolder: vscode.WorkspaceFolder | undefined;
-		let options: object | undefined;
-		let args: Array<string> | undefined;
-		let includePath: string | undefined;
-		let headerPath: string | undefined;
-		let headerFile: string | undefined;
-
-		workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this._configFile));
-
+		const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(this._configFile));
 		if (!workspaceFolder) {
 			return;
 		}
 
-		includePath = path.join(workspaceFolder.uri.fsPath, '.vscode', 'include');
-		headerFile = path.join(this._kernelDir, "include/nuttx/config.h");
-		headerPath = path.join(includePath, 'nuttx');
+		const srcDir = path.resolve(this._kernelDir, "include", "nuttx");
+		const destDir = path.resolve(workspaceFolder.uri.fsPath, '.vscode', 'include', 'nuttx');
+		const options = { cwd: this._kernelDir };
 
-		options = { cwd: this._kernelDir };
-		args = [
-			"include/nuttx/config.h",
-			"include/nuttx/version.h",
-			"include/math.h",
-			"include/float.h",
-			"include/stdarg.h",
-			"dirlinks"
-		];
+		let args;
+		if (this.kernelVer && this.kernelVer.major >= 11) {
+			args = ['clean_context', 'context'];
+		} else {
+			args = [
+				"include/nuttx/config.h",
+				"include/nuttx/version.h",
+				"include/math.h",
+				"include/float.h",
+				"include/stdarg.h",
+				"dirlinks"
+			];
+		}
 
 		try {
 			cp.execFileSync("make", args, options);
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 
@@ -289,14 +286,11 @@ export class SDKConfigView2 {
 			 * config.h may be changed by other projects sharing with Spresense repository.
 			 * So we need to save generated config.h for prevent unexpected code completion.
 			 */
-			if (!fs.existsSync(includePath)) {
-				fs.mkdirSync(includePath);
+			if (!fs.existsSync(destDir)) {
+				fs.mkdirSync(destDir, { recursive: true });
 			}
-			if (!fs.existsSync(headerPath)) {
-				fs.mkdirSync(headerPath);
-			}
-			fs.copyFileSync(headerFile, path.join(headerPath, 'config.h'));
-		} catch (err) {
+			fs.copyFileSync(path.resolve(srcDir, 'config.h'), path.resolve(destDir, 'config.h'));
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 			return;
 		}
@@ -314,7 +308,7 @@ export class SDKConfigView2 {
 				}
 			}
 			vscode.window.showInformationMessage(nls.localize("sdkconfig.src.save.done", "Configuration has been saved. {0}", filePath));
-		} catch (err) {
+		} catch (err: any) {
 			vscode.window.showErrorMessage(err.message);
 		}
 	}
@@ -571,10 +565,13 @@ export class SDKConfigView2 {
 		this._progress.emit("update",
 			nls.localize("sdkconfig.src.progress.parse", "Parsing Kconfig"), 20);
 
+		this.kernelVer = getNuttXVersion(this._kernelDir);
+
 		Promise.resolve().then(() => {
 			return new Promise<void>((resolve, reject) => {
-				console.log("make dirlinks");
-				this._currentProcess = cp.exec("make dirlinks apps_preconfig", options, (error, stdout, stderr) => {
+				console.log("make preconfig");
+				const cmd = this.kernelVer && this.kernelVer.major >= 11 ? 'make apps_preconfig' : 'make dirlinks apps_preconfig';
+				this._currentProcess = cp.exec(cmd, options, (error, stdout, stderr) => {
 					this._currentProcess = undefined;
 					if (error) {
 						if (!error.killed) {
@@ -630,18 +627,17 @@ export class SDKConfigView2 {
 	}
 
 	private _getViewContent() {
-		const mainUri = vscode.Uri.file(path.join(this._resourcePath, 'main.js')).with({
-			scheme: 'vscode-resource'
-		});
-		const progressUri = vscode.Uri.file(path.join(this._resourcePath, "progress.js")).with({
-			scheme: 'vscode-resource'
-		});
-		const cssUri = vscode.Uri.file(path.join(this._resourcePath, 'style.css')).with({
-			scheme: 'vscode-resource'
-		});
-		const defconfigUri = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js")).with({
-			scheme: 'vscode-resource'
-		});
+		const webview = this._panel.webview;
+		const mainPath = vscode.Uri.file(path.join(this._resourcePath, 'main.js'));
+		const mainSrc = webview.asWebviewUri(mainPath);
+		const progressPath = vscode.Uri.file(path.join(this._resourcePath, "progress.js"));
+		const progressSrc = webview.asWebviewUri(progressPath);
+		const cssPath = vscode.Uri.file(path.join(this._resourcePath, 'style.css'));
+		const cssSrc = webview.asWebviewUri(cssPath);
+		const spinnerPath = vscode.Uri.file(path.join(this._resourcePath, 'spinner.css'));
+		const spinnerSrc = webview.asWebviewUri(spinnerPath);
+		const defconfigPath = vscode.Uri.file(path.join(this._resourcePath, "defconfig.js"));
+		const defconfigSrc = webview.asWebviewUri(defconfigPath);
 		const nonce = getNonce();
 
 		const newStr = nls.localize("sdkconfig.src.menu.new", "New");
@@ -650,83 +646,24 @@ export class SDKConfigView2 {
 		const saveasStr = nls.localize("sdkconfig.src.menu.saveas", "Save as...");
 		const visibilityHelp = nls.localize("sdkconfig.src.menu.visible", "Show all options");
 
-		return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta http-equiv="Content-Security-Policy"
-	  content="default-src 'none'; img-src vscode-resource: https:; script-src 'nonce-${nonce}' 'unsafe-eval'; style-src vscode-resource:;"
-/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		let buf = fs.readFileSync(path.join(this._resourcePath, 'index.html.template')).toString();
 
-<link rel="stylesheet" type="text/css" href="${cssUri}">
-<title>Configuration</title>
-</head>
-
-<body>
-	<div class="container">
-		<div class="topmenu">
-			<div class="button" id="new">${newStr}</div>
-			<div class="button" id="save">${saveStr}</div>
-			<div class="button" id="load">${loadStr}</div>
-			<div class="button" id="saveas">${saveasStr}</div>
-			<div class="button" id="search-icon">
-				<div class="icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-				</div>
-			</div>
-			<div class="button" id="visibility-icon">
-				<div class="icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="bevel"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-				</div>
-				<div class="tooltip">${visibilityHelp}</div>
-			</div>
-		</div>
-		<div id="search">
-			<div id="search-menu">
-				<input type="search" id="search-box" placeholder="Search...">
-			</div>
-			<div id="search-results">
-
-			</div>
-		</div>
-
-		<div class="contents" id="configs">
-		</div>
-
-		<div id="help"></div>
-	</div>
-
-	<div id="defconfig" class="modal">
-		<div class="modal-content defconfig">
-			<div id="defconfig-header">
-				<h1>New Configuration</h1>
-			</div>
-			<div id="defconfig-body">
-				<div id="defconfig-selector">
-					<div id="defconfig-category">
-					</div>
-					<div id="defconfig-list"></div>
-				</div>
-				<div id="defconfig-selected">
-					<p>selected defconfigs</p>
-					<div id="selected-defconfig-list"></div>
-				</div>
-			</div>
-			<div id="defconfig-footer">
-				<div id="defconfig-ok">OK</div>
-				<div id="defconfig-cancel">Cancel</div>
-			</div>
-		</div>
-	</div>
-
-	<div id="progress" class="modal">
-	</div>
-
-	<script nonce="${nonce}" src="${progressUri}"></script>
-	<script nonce="${nonce}" src="${mainUri}"></script>
-	<script nonce="${nonce}" src="${defconfigUri}"></script>
-</body>
-</html>`;
+		const replacements: any = {
+			mainUri: mainSrc,
+			progressUri: progressSrc,
+			cssUri: cssSrc,
+			spinnerUri: spinnerSrc,
+			defconfigUri: defconfigSrc,
+			nonce: nonce,
+			newStr: newStr,
+			saveStr: saveStr,
+			loadStr: loadStr,
+			saveasStr: saveasStr,
+			visibilityHelp: visibilityHelp,
+			cspSource: webview.cspSource
+		};
+		return buf.replace(/\${(.*?)}/g, (match, p1) => {
+			return replacements[p1] || match;
+		});
 	}
 }

@@ -1,0 +1,166 @@
+menu "Syntax"
+
+menuconfig MENUCONFIG_BOOL_DEP
+	bool "The menuconfig (bool)"
+	default y
+
+config MENUCONFIG_BOOL_DEP_ITEM
+	bool "item"
+	depends on MENUCONFIG_BOOL_DEP
+
+menuconfig MENUCONFIG_BOOL_IF
+	bool "The menuconfig (bool)"
+	default y
+
+if MENUCONFIG_BOOL_IF
+
+config MENUCONFIG_BOOL_IF_ITEM
+	bool "item"
+
+endif
+
+menuconfig MENUCONFIG_TRI_DEP
+	tristate "The menuconfig (tristate)"
+	default m
+
+config MENUCONFIG_TRI_DEP_ITEM
+	bool "item"
+	depends on MENUCONFIG_TRI_DEP
+
+menuconfig MENUCONFIG_TRI_IF
+	tristate "The menuconfig (tristate)"
+	default y
+
+if MENUCONFIG_TRI_IF
+
+config MENUCONFIG_TRI_IF_ITEM
+	bool "item"
+
+endif
+
+menuconfig MENUCONFIG_STR_DEP
+	string "The menuconfig (string)"
+	default "hello"
+
+config MENUCONFIG_STR_DEP_ITEM
+	bool "item"
+	depends on MENUCONFIG_STR_DEP = "hello"
+
+menuconfig MENUCONFIG_STR_IF
+	string "The menuconfig (string)"
+	default "world"
+
+if MENUCONFIG_STR_IF = "world"
+
+config MENUCONFIG_STR_IF_ITEM
+	bool "item"
+
+endif
+
+menuconfig MENUCONFIG_INT_DEP
+	int "The menuconfig (int)"
+	default 1
+
+config MENUCONFIG_INT_DEP_ITEM
+	bool "item"
+	depends on MENUCONFIG_INT_DEP > 0
+
+menuconfig MENUCONFIG_INT_IF
+	int "The menuconfig (int)"
+	default 2
+
+if MENUCONFIG_INT_IF >= 2
+
+config MENUCONFIG_INT_IF_ITEM
+	bool "item"
+
+endif
+
+menuconfig MENUCONFIG_HEX_DEP
+	hex "The menuconfig (hex)"
+	default 0x1
+
+config MENUCONFIG_HEX_DEP_ITEM
+	bool "item"
+	depends on MENUCONFIG_HEX_DEP > 0x0
+
+menuconfig MENUCONFIG_HEX_IF
+	hex "The menuconfig (hex)"
+	default 0x2
+
+if MENUCONFIG_HEX_IF >= 0x2
+
+config MENUCONFIG_HEX_IF_ITEM
+	bool "item"
+
+endif
+
+config COMMENT_Y
+	bool
+	default y
+
+config COMMENT_N
+	bool
+	default n
+
+comment "This comment should be shown"
+	depends on COMMENT_Y
+
+comment "Hidden comment"
+	depends on COMMENT_N
+
+config MENU_ENABLE
+	bool
+	default y
+
+config MENU_DISABLE
+	bool
+	default n
+
+menu "Enabled menu"
+	depends on MENU_ENABLE
+
+config MENU_ENABLE_ITEM
+	bool "Enabled config"
+	default y
+
+endmenu
+
+menu "Disabled menu"
+	depends on MENU_DISABLE
+
+config MENU_DISABLE_ITEM
+	bool "Disabled config"
+	default y
+
+endmenu
+
+menu "Shown menu"
+	visible if MENU_ENABLE
+
+config MENU_SHOWN_ITEM
+	bool "Shown config"
+	default y
+
+endmenu
+
+menu "Hidden menu"
+	visible if MENU_DISABLE
+
+config MENU_HIDDEN_ITEM
+	bool "Hidden config"
+	default y
+
+endmenu
+
+config IF_ENDIF
+	bool "if/endif"
+
+if IF_ENDIF
+
+config IF_ENDIF_ITEM
+	bool "if/endif block item"
+
+endif
+
+endmenu

@@ -95,6 +95,98 @@ export function tweakPlatform(configfile: string) {
 }
 
 /**
+ * Change kernel configuration to running host platform
+ *
+ * @param buf Configuration file contents
+ */
+export function updateHostConfiguration(configfile: string, kernelDir: string) {
+	let contents;
+	try {
+		contents = fs.readFileSync(configfile).toString();
+	} catch(err) {
+		return; // Ignore file missing
+	}
+
+	// Turned off related configurations first
+	contents = contents.replace(/^(CONFIG_HOST_\w+)=y/gm, '# $1 is not set')
+		.replace('CONFIG_TOOLCHAIN_WINDOWS=y', '# CONFIG_TOOLCHAIN_WINDOWS is not set')
+		.replace('CONFIG_WINDOWS_MSYS=y', '# CONFIG_WINDOWS_MSYS is not set');
+
+	function setConfig(content: string, sym: string, value: boolean): string {
+		if (value) {
+			return content.replace(`CONFIG_${sym}=y`, `# CONFIG_${sym} is not set`);
+		} else {
+			return content.replace(`# CONFIG_${sym} is not set`, `CONFIG_${sym}=y`);
+		}
+	}
+
+	switch (process.platform) {
+		case 'win32':
+			contents = setConfig(contents, 'HOST_WINDOWS', true);
+			contents = setConfig(contents, "TOOLCHAIN_WINDOWS", true);
+			contents = setConfig(contents, "WINDOWS_MSYS", true);
+			break;
+		case 'darwin':
+			contents = setConfig(contents, 'HOST_MACOS', true);
+			break;
+		case 'linux':
+			contents = setConfig(contents, 'HOST_LINUX', true);
+			break;
+		default:
+			// not changed for unsupported platforms
+			break;
+	}
+
+	fs.writeFileSync(configfile, contents);
+
+	// Run 'make olddefconfig to update configuration for resolve HOST configration changes.
+	// If configfile is user application ones, it copy to kernel directory and copy back after
+	// configuration updated.
+
+	function makeOldDefconfig(dir: string) {
+		console.log(`kerneldir: ${dir}`);
+		return cp.execSync('make olddefconfig', { cwd: dir });
+	}
+	let stdout;
+	if (path.dirname(configfile) !== kernelDir) {
+		fs.writeFileSync(path.resolve(kernelDir, '.config'), contents);
+		stdout = makeOldDefconfig(kernelDir);
+		fs.copyFileSync(path.resolve(kernelDir, '.config'), configfile);
+	} else {
+		stdout = makeOldDefconfig(kernelDir);
+	}
+	//console.log(stdout.toString());
+}
+
+export function isDifferentHostConfig(configfile: string): boolean {
+	let contents;
+
+	try {
+		contents = fs.readFileSync(configfile).toString();
+	} catch(err) {
+		// If .config file does not existed, it would be created for host platform.
+		return false;
+	}
+
+	let sym;
+	switch (process.platform) {
+		case 'win32':
+			sym = 'CONFIG_HOST_WINDOWS';
+			break;
+		case 'darwin':
+			sym = 'CONFIG_HOST_MACOS';
+			break;
+		case 'linux':
+			sym = 'CONFIG_HOST_LINUX';
+			break;
+		default:
+			sym = '_CONFIG_NOT_SUPPORTED'; // Any non existed config symbol
+			break;
+	}
+	return !contents.includes(`${sym}=y`);
+}
+
+/**
  * Find any build task is running
  *
  * This function targets only for tasks managed by VS Code.
@@ -102,7 +194,7 @@ export function tweakPlatform(configfile: string) {
  * @return {boolean} true when found build task.
  */
 
-export function BuildTaskIsRunning() : boolean {
+export function buildTaskIsRunning() : boolean {
 	for (let ex of vscode.tasks.taskExecutions) {
 		if (ex.task.group === vscode.TaskGroup.Build) {
 			return true;

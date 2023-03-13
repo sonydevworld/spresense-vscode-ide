@@ -1,0 +1,85 @@
+menu "String"
+
+comment "prompt option"
+
+config STR_PROMPT
+	string
+	prompt "The string config"
+
+config STR_PROMPT_IF_Y
+	string
+	prompt "The string config" if y
+
+config STR_PROMPT_IF_N
+	string
+	prompt "This config not shown" if n
+
+config STR
+	string "The string config"
+
+config STR_HIDDEN
+	string
+	default "This config is hidden"
+
+comment "default option"
+
+config STR_DEF
+	string "This config should be hello, world"
+	default "hello, world"
+
+config STR_DEF_OTHERS
+	string "This config is the same as above"
+	default STR_DEF
+
+config STR_DEF_IF_Y
+	string "This config should be hello, world"
+	default "hello, world" if y
+
+config STR_DEF_IF_N
+	string "This config should be empty"
+	default "hello, world" if n
+
+config STR_DEF_MULTIPLE
+	string "This config should be hello"
+	default "hello"
+	default "world"
+
+config STR_DEF_MULTIPLE_OTHERS
+	string "This config should be hello"
+	default STR_DEF
+	default STR
+
+config STR_DEF_MULTIPLE_IF_Y
+	string "This config should be world"
+	default "hello" if n
+	default "world" if y
+
+config STR_DEF_MULTIPLE_IF_ALL_Y
+	string "This config should be hello"
+	default "hello" if y
+	default "world" if y
+
+config STR_DEF_MULTIPLE_IF_ALL_N
+	string "This config should be empty"
+	default "hello" if n
+	default "world" if n
+
+comment "depends on option"
+
+config STR_DEP_Y
+	string "This config depends on others"
+	depends on STR_DEPENDED_Y
+
+config STR_DEP_N
+	string "This config is disabled"
+	depends on STR_DEPENDED_N
+
+config STR_DEPENDED_Y
+	bool
+	default y
+
+config STR_DEPENDED_N
+	bool
+	default n
+
+endmenu

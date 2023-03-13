@@ -1,0 +1,151 @@
+menu "Hex"
+
+comment "prompt option"
+
+config HEX_PROMPT
+	hex
+	prompt "The hex config"
+
+config HEX_PROMPT_IF_Y
+	hex
+	prompt "The hex config" if y
+
+config HEX_PROMPT_IF_N
+	hex
+	prompt "The hex config" if n
+
+config HEX
+	hex "The hex config"
+
+config HEX_HIDDEN
+	hex
+    default 0x0
+
+comment "default option"
+
+config HEX_DEF
+	hex "This config should be 0x9999"
+	default 0x9999
+
+config HEX_DEF_OTHERS
+	hex "This config is the same as above"
+	default HEX_DEF
+
+config HEX_DEF_IF_Y
+	hex "This config should be 0x999"
+	default 0x999 if y
+
+config HEX_DEF_IF_N
+	hex "This config should be empty"
+	default 0x999 if n
+
+config HEX_DEF_MULTIPLE
+	hex "This config should be 0x999"
+	default 0x999
+	default 0x123
+
+config HEX_DEF_MULTIPLE_OTHERS
+	hex "This config should be 0x9999"
+	default HEX_DEF
+	default HEX_DEF_IF_Y
+
+config HEX_DEF_MULTIPLE_IF_Y
+	hex "This config should be 0x999"
+	default HEX_DEF if n
+	default HEX_DEF_IF_Y if y
+
+config HEX_DEF_MULTIPLE_IF_ALL_Y
+	hex "This config should be 0x9999"
+	default HEX_DEF if y
+	default HEX_DEF_IF_Y if y
+
+config HEX_DEF_MULTIPLE_IF_ALL_N
+	hex "This config should be empty"
+	default HEX_DEF if n
+	default HEX_DEF_IF_Y if n
+
+comment "depends on option"
+
+config HEX_DEP_Y
+	hex "This config depends on others"
+	depends on HEX_DEPENDED_Y
+	default 0x100
+
+config HEX_DEP_N
+	hex "This config is disabled"
+	depends on HEX_DEPENDED_N
+	default 0x100
+
+config HEX_DEPENDED_Y
+	bool
+	default y
+
+config HEX_DEPENDED_N
+	bool
+	default n
+
+comment "range option"
+
+config HEX_RANGE_LOW
+	hex "Low value of range symbol"
+	default 0x10
+
+config HEX_RANGE_HIGH
+	hex "High value of range symbol"
+	default 0x100
+
+config HEX_RANGE_CONST_CONST
+	hex "This config should be 0x100"
+	range 0x10 0x100
+    default 0x1000
+
+config HEX_RANGE_CONST_SYM
+	hex "This config should be 0x100"
+	range 0x10 HEX_RANGE_HIGH
+	default 0x1000
+
+config HEX_RANGE_SYM_CONST
+	hex "This config should be 0x100"
+	range HEX_RANGE_LOW 0x100
+	default 0x0
+
+config HEX_RANGE_SYM_SYM
+	hex "This config should be 0x10"
+	range HEX_RANGE_LOW HEX_RANGE_HIGH
+	default 0x0
+
+config HEX_RANGE_IF_Y
+	hex "This value should be 100"
+	range 0x10 0x100 if y
+	default 0x0
+
+config HEX_RANGE_IF_N
+	hex "This value should be 0"
+	range 0x10 0x100 if n
+	default 0x0
+
+config HEX_RANGE_MULTIPLE
+	hex "This value should be 0x100"
+	range 0x10 0x100
+	range 0x200 0x300
+	default 0x12345
+
+config HEX_RANGE_MULTIPLE_IF_Y
+	hex "This value should be 0x300"
+	range 0x10 0x100 if n
+	range 0x200 0x300 if y
+	default 0x12345
+
+config HEX_RANGE_MULTIPLE_IF_ALL_Y
+	hex "This value should be 0x100"
+	range 0x10 0x100 if y
+	range 0x200 0x300 if y
+	default 0x12345
+
+config HEX_RANGE_MULTIPLE_IF_ALL_N
+	hex "This value should be 0"
+	range 0x10 0x100 if n
+	range 0x200 0x300 if n
+	default 0
+
+endmenu

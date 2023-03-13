@@ -1,0 +1,151 @@
+menu "Int"
+
+comment "prompt option"
+
+config INT_PROMPT
+	int
+	prompt "The int config"
+
+config INT_PROMPT_IF_Y
+	int
+	prompt "The int config" if y
+
+config INT_PROMPT_IF_N
+	int
+	prompt "The int config" if n
+
+config INT
+	int "The int config"
+
+config INT_HIDDEN
+	int
+	default 0
+
+comment "default option"
+
+config INT_DEF
+	int "With default value"
+	default 9999
+
+config INT_DEF_OTHERS
+	int "This value same as above"
+	default INT_DEF
+
+config INT_DEF_IF_Y
+	int "this config should be 999"
+	default 999 if y
+
+config INT_DEF_IF_N
+	int "this config should be empty"
+	default 999 if n
+
+config INT_DEF_MULTIPLE
+	int "this config should be 999"
+	default 999
+	default 123
+
+config INT_DEF_MULTIPLE_OTHERS
+	int "this config should be 9999"
+	default INT_DEF
+	default INT_DEF_IF_Y
+
+config INT_DEF_MULTIPLE_IF_Y
+	int "this config should be 999"
+	default INT_DEF if n
+	default INT_DEF_IF_Y if y
+
+config INT_DEF_MULTIPLE_IF_ALL_Y
+	int "this config should be 9999"
+	default INT_DEF if y
+	default INT_DEF_IF_Y if y
+
+config INT_DEF_MULTIPLE_IF_ALL_N
+	int "this config should be empty"
+	default INT_DEF if n
+	default INT_DEF_IF_Y if n
+
+comment "depends on option"
+
+config INT_DEP_Y
+	int "This config depends on others"
+	depends on INT_DEPENDED_Y
+	default 100
+
+config INT_DEP_N
+	int "This config depends on others"
+	depends on INT_DEPENDED_N
+	default 100
+
+config INT_DEPENDED_Y
+	bool
+	default y
+
+config INT_DEPENDED_N
+	bool
+	default n
+
+comment "range option"
+
+config INT_RANGE_LOW
+	int "Low value of range symbol"
+	default 10
+
+config INT_RANGE_HIGH
+	int "High value of range symbol"
+	default 100
+
+config INT_RANGE_CONST_CONST
+	int "With range option"
+	range 100 200
+	default 1000
+
+config INT_RANGE_CONST_SYM
+	int "With range option"
+	range 100 INT_RANGE_HIGH
+	default 1000
+
+config INT_RANGE_SYM_CONST
+	int "With range option"
+	range INT_RANGE_LOW 100
+	default 0
+
+config INT_RANGE_SYM_SYM
+	int "With range option"
+	range INT_RANGE_LOW INT_RANGE_HIGH
+	default 0
+
+config INT_RANGE_IF_Y
+	int "This value should be 100"
+	range 100 1000 if y
+	default 0
+
+config INT_RANGE_IF_N
+	int "This value should be 0"
+	range 100 1000 if n
+	default 0
+
+config INT_RANGE_MULTIPLE
+	int "This value should be 1000"
+	range 100 1000
+	range 2000 3000
+	default 12345
+
+config INT_RANGE_MULTIPLE_IF_Y
+	int "This value should be 3000"
+	range 100 1000 if n
+	range 2000 3000 if y
+	default 12345
+
+config INT_RANGE_MULTIPLE_IF_ALL_Y
+	int "This value should be 1000"
+	range 100 1000 if y
+	range 2000 3000 if y
+	default 12345
+
+config INT_RANGE_MULTIPLE_IF_ALL_N
+	int "This value should be 0"
+	range 100 1000 if n
+	range 2000 3000 if n
+	default 0
+
+endmenu

@@ -1,0 +1,343 @@
+menu "Tristate"
+
+comment "prompt option"
+
+config TRI_PROMPT
+	tristate
+	prompt "The tristate config"
+	help
+		The tristate config's m value is enabled by modules option.
+		In the NuttX, enable ELF (Binary Loader - Enable the ELF Binary Format) config as a module option.
+
+config TRI_PROMPT_IF_Y
+	tristate
+	prompt "tristate prompt if" if TRI_DEF_Y
+
+config TRI_PROMPT_IF_N
+	tristate
+	prompt "tristate prompt if n" if TRI_DEF_N
+
+config TRI
+	tristate "The tristate config"
+
+config TRI_HIDDEN
+	tristate
+	default m
+
+comment "default option"
+
+config TRI_DEF_Y
+	tristate "This config should be y"
+	default y
+
+config TRI_DEF_M
+	tristate "This config should be m"
+	default m
+
+config TRI_DEF_OTHRES
+	tristate "This config should be m"
+	default TRI_DEF_M
+
+config TRI_DEF_IF_Y
+	tristate "This config should be y"
+	default y if TRI_DEF_Y
+
+config TRI_DEF_IF_M
+	tristate "This config should be y"
+	default y if TRI_DEF_M
+
+config TRI_DEF_IF_N
+	tristate "This config should be n"
+	default y if TRI_DEF_N
+
+config TRI_DEF_MULTI
+	tristate "This config should be m"
+	default m
+	default y
+
+config TRI_DEF_MULTI_OTHERS
+	tristate "This config should be m"
+	default TRI_DEF_M
+	default TRI_DEF_Y
+
+config TRI_DEF_MULTI_IF_Y
+	tristate "This config should be m"
+	default m if TRI_DEF_Y
+	default y if TRI_DEF_N
+
+config TRI_DEF_MULTI_IF_ALL_Y
+	tristate "This config should be m"
+	default m if TRI_DEF_Y
+	default y if TRI_DEF_Y
+
+config TRI_DEF_MULTI_IF_ALL_N
+	tristate "This config should be n"
+	default m if TRI_DEF_N
+	default y if TRI_DEF_N
+
+comment "depends on option"
+
+config TRI_DEP_Y
+	tristate "This config should be enabled"
+	depends on TRI_DEF_Y
+
+config TRI_DEP_M
+	tristate "This config should be enabled"
+	depends on TRI_DEF_M
+
+config TRI_DEP_N
+	tristate "This config should be enabled"
+	depends on TRI_DEF_N
+
+comment "select option"
+
+config TRI_SELECT
+	tristate "This config selects below with y"
+	default y
+	select TRI_SELECTED
+
+config TRI_SELECTED
+	tristate "This config selected by above"
+
+config TRI_SELECT_M
+	tristate "This config selects below with m"
+	default m
+	select TRI_SELECTED_M
+	select TRI_SELECTED_M_BOOL
+
+config TRI_SELECTED_M
+	tristate "This config selected by above"
+
+config TRI_SELECTED_M_BOOL
+	bool "This config selected by above"
+
+config TRI_SELECT_IF_Y
+	tristate "This config selects below with other config"
+	default y
+	select TRI_SELECTED_IF_Y if TRI_DEF_Y
+
+config TRI_SELECTED_IF_Y
+	tristate "This config selected by above"
+
+config TRI_SELECT_IF_M
+	tristate "This config selects below with other config"
+	default m
+	select TRI_SELECTED_IF_M if TRI_DEF_M
+
+config TRI_SELECTED_IF_M
+	tristate "This config selected by above"
+
+config TRI_SELECT_IF_N
+	tristate "This config selects below with other config"
+	default m
+	select TRI_SELECTED_IF_M if TRI_DEF_N
+
+config TRI_SELECTED_IF_N
+	tristate "This config selected by above"
+
+config TRI_SELECT_BOOL
+	bool "This config selects below"
+	select TRI_SELECTED_BOOL
+	default y
+
+config TRI_SELECTED_BOOL
+	tristate "This config selected by above"
+
+comment "imply option"
+
+config TRI_IMPLY_YY
+	tristate "imply below"
+	imply TRI_IMPLIED_YY
+	default y
+
+config TRI_IMPLIED_YY
+	tristate "implied above"
+	depends on TRI_IMPLIED_YY_DEP
+
+config TRI_IMPLIED_YY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_YM
+	tristate "imply below"
+	imply TRI_IMPLIED_YM
+	default y
+
+config TRI_IMPLIED_YM
+	tristate "implied above"
+	depends on TRI_IMPLIED_YM_DEP
+
+config TRI_IMPLIED_YM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_MY
+	tristate "imply below"
+	imply TRI_IMPLIED_MY
+	default m
+
+config TRI_IMPLIED_MY
+	tristate "implied above"
+	depends on TRI_IMPLIED_MY_DEP
+
+config TRI_IMPLIED_MY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_MM
+	tristate "imply below"
+	imply TRI_IMPLIED_MM
+	default m
+
+config TRI_IMPLIED_MM
+	tristate "implied above"
+	depends on TRI_IMPLIED_YM_DEP
+
+config TRI_IMPLIED_MM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_NY
+	tristate "imply below"
+	imply TRI_IMPLIED_NY
+	default n
+
+config TRI_IMPLIED_NY
+	tristate "implied above"
+	depends on TRI_IMPLIED_NY_DEP
+
+config TRI_IMPLIED_NY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_NM
+	tristate "imply below"
+	imply TRI_IMPLIED_NM
+	default n
+
+config TRI_IMPLIED_NM
+	tristate "implied above"
+	depends on TRI_IMPLIED_NM_DEP
+
+config TRI_IMPLIED_NM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_BOOL_YY
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_YY
+	default y
+
+config TRI_IMPLIED_BOOL_YY
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_YY_DEP
+
+config TRI_IMPLIED_BOOL_YY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_BOOL_YM
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_YM
+	default y
+
+config TRI_IMPLIED_BOOL_YM
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_YM_DEP
+
+config TRI_IMPLIED_BOOL_YM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_BOOL_MY
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_MY
+	default m
+
+config TRI_IMPLIED_BOOL_MY
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_MY_DEP
+
+config TRI_IMPLIED_BOOL_MY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_BOOL_MM
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_MM
+	default m
+
+config TRI_IMPLIED_BOOL_MM
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_MM_DEP
+
+config TRI_IMPLIED_BOOL_MM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_BOOL_NY
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_NY
+	default n
+
+config TRI_IMPLIED_BOOL_NY
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_NY_DEP
+
+config TRI_IMPLIED_BOOL_NY_DEP
+	tristate "depended by above"
+	default y
+
+config TRI_IMPLY_BOOL_NM
+	tristate "imply below"
+	imply TRI_IMPLIED_BOOL_NM
+	default n
+
+config TRI_IMPLIED_BOOL_NM
+	bool "implied above"
+	depends on TRI_IMPLIED_BOOL_NM_DEP
+
+config TRI_IMPLIED_BOOL_NM_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_IF_Y
+	tristate "imply below"
+	imply TRI_IMPLIED_IF_Y if TRI_DEF_Y
+	default m
+
+config TRI_IMPLIED_IF_Y
+	tristate "implied above"
+	depends on TRI_IMPLIED_IF_Y_DEP
+
+config TRI_IMPLIED_IF_Y_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_IF_M
+	tristate "imply below"
+	imply TRI_IMPLIED_IF_M if TRI_DEF_M
+	default m
+
+config TRI_IMPLIED_IF_M
+	tristate "implied above"
+	depends on TRI_IMPLIED_IF_M_DEP
+
+config TRI_IMPLIED_IF_M_DEP
+	tristate "depended by above"
+	default m
+
+config TRI_IMPLY_IF_N
+	tristate "imply below"
+	imply TRI_IMPLIED_IF_N if TRI_DEF_N
+	default m
+
+config TRI_IMPLIED_IF_N
+	tristate "implied above"
+	depends on TRI_IMPLIED_IF_N_DEP
+
+config TRI_IMPLIED_IF_N_DEP
+	tristate "depended by above"
+	default m
+
+endmenu

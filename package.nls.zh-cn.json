@@ -9,6 +9,8 @@
 	"spresense.property.msys.path.desc": "设置安装MSYS2的文件夹的路径",
 	"spresense.property.flash.speed.title": "固件传输速度",
 	"spresense.property.flash.speed.desc": "编写固件（内置二进制文件，引导加载程序等）时，将传输速度设置到Spresense板上。 如果写入失败，请设置较低的传输速率。",
+	"spresense.property.extension.path.title": "SpresenseIDE Extension Path",
+	"spresense.property.extension.path.desc": "Set the path to the folder where the SpresenseIDE extension is installed. (This will be set automatically.)",
 
 	"spresense.command.build.kernel": "Spresense: 编译内核",
 	"spresense.command.build.app": "Spresense: 编译应用程序",

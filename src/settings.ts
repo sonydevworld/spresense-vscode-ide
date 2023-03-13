@@ -23,36 +23,23 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as cp from 'child_process';
+import * as lodash from 'lodash';
 import * as md5 from 'md5';
 import * as unzip from 'extract-zip';
 
 import * as nls from './localize';
 
-import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility } from './common';
+import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_VERSION, Version, loadJson, loadSpresenseConfFile, checkSdkCompatibility, getExactPlatform, createProjectMakefiles } from './common';
 
 import * as launch from './launch';
-
+import * as tasks from './tasks';
+import * as util from './configview/util';
 
 const spresenseExtInterfaceVersion: number = 1003;
 
 const configSdkPathKey = 'spresense.sdk.path';
 const configSdkToolsPathKey = 'spresense.sdk.tools.path';
 const configMsysPathKey = 'spresense.msys.path';
-
-/* These label is only for tasks.json. Not a command title.  */
-const taskBuildKernelLabel = 'Build kernel';
-const taskBuildLabel = 'Build application';
-const taskSdkCleanLabel = 'Clean application';
-const taskkernelCleanLabel = 'Clean kernel';
-const taskFlashLabel = 'Build and flash';
-const taskOnlyFlashLabel = 'Flash application';
-const taskWorkerFlashLabel = 'Flash worker';
-const taskCleanFlashLabel = 'Clean flash';
-const taskBootFlashLabel = 'Burn bootloader';
-
-/* For component creation */
-const createAppMode: string = 'app';
-const createWorkerMode: string = 'worker';
 
 /* SDK Version */
 var sdkVersion: Version = {
@@ -130,61 +117,41 @@ function removeWorkspaceFolder(folderUri: vscode.Uri) {
 	}
 }
 
-function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string) {
-	/* Interface for C/C++ Extension .json file */
-	interface CppInterface {
-		[key: string]: string;
-	}
-
+function sdkCppConfig(context: vscode.ExtensionContext, newFolderPath: string, force?: boolean) {
 	let sdkFolder = getFirstFolderPath();
-	let extensionPath = context.extensionPath;
+	const configurationPath = path.join(newFolderPath, '.vscode', 'c_cpp_properties.json');
+	const config = loadJson(configurationPath, true);
 
-	let configurationPath = path.join(newFolderPath, '.vscode', 'c_cpp_properties.json');
-	let presetConfigPath = path.join(extensionPath, 'data', 'config.json');
-
-	const jsonObj = loadJson(configurationPath, true);
-
-	if (!sdkFolder || !jsonObj) {
+	if (!sdkFolder || !config) {
 		return;
 	}
 
-	/* Create .vscode */
-	createVscode(newFolderPath);
-
-	/* Prepare 'env' */
-	if ( !('env' in jsonObj) ) {
-		jsonObj['env'] = {};
+	// Set environemnt variable, it refered by include paths in Spresense SDK configuration at below.
+	if ('env' in config) {
+		config.env.mySpresenseSdkPath = sdkFolder;
+	} else {
+		config.env = { mySpresenseSdkPath: sdkFolder};
 	}
 
-	/* Specify Spresense SDK Path */
-	jsonObj['env']['mySpresenseSdkPath'] = sdkFolder;
-
-	/* Prepare 'configurations' */
-	if ( !('configurations' in jsonObj) ) {
-		jsonObj['configurations'] = [];
-	}
-
-	/* If already exists, remove it only */
-	const configs = jsonObj['configurations'].filter((value: CppInterface) => {
-		return value['name'] !== 'Spresense SDK';
-	});
-
-	/* Replace filtered configurations */
-	jsonObj['configurations'] = configs;
-
-	/* Load Spresense SDK configuration */
-	const sdkConfig = loadJson(presetConfigPath, false);
-
+	// Add SDK include paths configuration
+	const sdkConfig = loadJson(path.join(context.extensionPath, 'data', 'config.json'), false);
 	if(!sdkConfig) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.cpp.config.error", "Preset configuration not exist. Please re-install extension."));
 		return;
 	}
+	if (!('configurations' in config)) {
+		config['configurations'] = [sdkConfig];
+	} else {
+		if (config.configurations.some((o: any) => o?.name === 'Spresense SDK')) {
+			if (force) {
+				config.configurations.map((o: any) => o?.name === 'Spresense SDK' ? sdkConfig : o);
+			}
+		} else {
+			config.configurations.push(sdkConfig);
+		}
+	}
 
-	/* Push Spresense SDK config into configurations */
-	jsonObj['configurations'].push(sdkConfig);
-
-	/* Save modified c_cpp_properties.json */
-	fs.writeFileSync(configurationPath, JSON.stringify(jsonObj, null, 4));
+	fs.writeFileSync(configurationPath, JSON.stringify(config, null, 4));
 }
 
 /**
@@ -231,131 +198,58 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	const newFolderPath = newFolderUri.fsPath;
 	const extensionPath = context.extensionPath;
 	let tasksConfig = vscode.workspace.getConfiguration('tasks', newFolderUri);
-	let buildKenelTask: ConfigInterface = {};
-	let buildTask: ConfigInterface = {};
-	let sdkCleanTask: ConfigInterface = {};
-	let kernelCleanTask: ConfigInterface = {};
-	let flashTask: ConfigInterface = {};
-	let onlyFlashTask: ConfigInterface = {};
-	let flashWrokerTask: ConfigInterface = {};
-	let flashCleanTask: ConfigInterface = {};
-	let flashBootTask: ConfigInterface = {};
-	let isAppfolder: boolean | undefined;
 
 	if (!vscode.workspace.workspaceFolders) {
 		return;
 	}
 
-	/* If folder is not a SDK's onem, it is app folder */
-	isAppfolder = !isSpresenseSdkFolder(newFolderPath);
+	const isAppfolder = !isSpresenseSdkFolder(newFolderPath);
 
-	/* Build Kernel Task */
-	buildKenelTask['label'] = taskBuildKernelLabel;
-	buildKenelTask['type'] = 'shell';
-	buildKenelTask['command'] = '.vscode/build.sh buildkernel';
-	buildKenelTask['options'] = {
-		"env": {
-			"SDK_PATH": "${config:spresense.sdk.path}",
-			"ISAPPFOLDER": `${isAppfolder}`
-		}};
-	buildKenelTask['group'] = 'build';
-	buildKenelTask['problemMatcher'] = ['$gcc'];
+	let buildKernelTask = lodash.cloneDeep(tasks.buildKernelTask);
+	let buildTask = lodash.cloneDeep(tasks.buildTask);
+	let sdkCleanTask = lodash.cloneDeep(tasks.sdkCleanTask);
+	let kernelCleanTask = lodash.cloneDeep(tasks.kernelCleanTask);
+	let spkCheckTask = lodash.cloneDeep(tasks.spkCheckTask);
+	let flashTask = lodash.cloneDeep(tasks.flashTask);
+	let onlyFlashTask = lodash.cloneDeep(tasks.onlyFlashTask);
+	let cleanFlashTask = lodash.cloneDeep(tasks.flashCleanTask);
 
-	/* Build Task */
-	buildTask['label'] = taskBuildLabel;
-	buildTask['type'] = 'shell';
-	buildTask['command'] = '.vscode/build.sh build';
-	buildTask['options'] = {
-		"env": {
-			"SDK_PATH": "${config:spresense.sdk.path}",
-			"ISAPPFOLDER": `${isAppfolder}`
-		}};
-	buildTask['group'] = 'build';
-	buildTask['problemMatcher'] = ['$gcc'];
+	// Tweak each tasks for user environment
 
-	/* Build Clean Task */
-	sdkCleanTask['label'] = taskSdkCleanLabel;
-	sdkCleanTask['type'] = 'shell';
-	sdkCleanTask['command'] = '.vscode/build.sh clean';
-	sdkCleanTask['options'] = {
-		"env": {
-			"SDK_PATH": "${config:spresense.sdk.path}",
-			"ISAPPFOLDER": `${isAppfolder}`
-		}};
-	sdkCleanTask['group'] = 'build';
-	sdkCleanTask['problemMatcher'] = ['$gcc'];
+	buildKernelTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
+	buildTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
+	sdkCleanTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
+	kernelCleanTask.options.env.ISAPPFOLDER = `${isAppfolder}`;
 
-	/* Kernel Build Clean Task */
-	kernelCleanTask['label'] = taskkernelCleanLabel;
-	kernelCleanTask['type'] = 'shell';
-	kernelCleanTask['command'] = '.vscode/build.sh cleankernel';
-	kernelCleanTask['options'] = {
-		"env": {
-			"SDK_PATH": "${config:spresense.sdk.path}",
-			"ISAPPFOLDER": `${isAppfolder}`
-		}};
-	kernelCleanTask['group'] = 'build';
-	kernelCleanTask['problemMatcher'] = ['$gcc'];
+	spkCheckTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
+	flashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
+	onlyFlashTask.args.push(isAppfolder ? 'out/*.nuttx.spk' : 'sdk/nuttx.spk');
 
-	/* Flash and build Task */
-	flashTask['label'] = taskFlashLabel;
-	flashTask['type'] = 'shell';
-	flashTask['dependsOrder'] = 'sequence',
-	flashTask['dependsOn'] = [taskBuildLabel, taskWorkerFlashLabel];
-	flashTask['command'] = 'cd \"${workspaceFolder}\";${config:spresense.sdk.path}/sdk/tools/flash.sh -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed}';
-	if (isAppfolder) {
-		flashTask['command'] += ` out/*.nuttx.spk`;
-	} else {
-		flashTask['command'] += ' sdk/nuttx.spk';
+	// prepare_debug.sh takes 2nd argument for platform, it changes tools directory
+	// in the SDK.
+	let platform = getExactPlatform();
+	switch (platform) {
+		case 'win32':
+		case 'wsl':
+			platform = 'windows';
+			break;
+		case 'darwin':
+			platform = 'macos';
+			break;
 	}
-	flashTask['group'] = 'test';
-	flashTask['problemMatcher'] = ['$gcc'];
-
-	/* Only flash Task */
-	onlyFlashTask['label'] = taskOnlyFlashLabel;
-	onlyFlashTask['type'] = 'shell';
-	onlyFlashTask['dependsOrder'] = 'sequence',
-		onlyFlashTask['dependsOn'] = [taskWorkerFlashLabel];
-	onlyFlashTask['command'] = 'cd \"${workspaceFolder}\";${config:spresense.sdk.path}/sdk/tools/flash.sh -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed}';
-	if (isAppfolder) {
-		onlyFlashTask['command'] += ` out/*.nuttx.spk`;
-	} else {
-		onlyFlashTask['command'] += ' sdk/nuttx.spk';
-	}
-	onlyFlashTask['group'] = 'test';
-	onlyFlashTask['problemMatcher'] = ['$gcc'];
-
-	/* Flash worker Task */
-	flashWrokerTask['label'] = taskWorkerFlashLabel;
-	flashWrokerTask['type'] = 'shell';
-	flashWrokerTask['command'] = 'cd \"${workspaceFolder}\";if [ -d out/worker -a \"`ls out/worker/`\" != \"\" ]; then ${config:spresense.sdk.path}/sdk/tools/flash.sh -w -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed} out/worker/*; fi;';
-	flashWrokerTask['group'] = 'test';
-	flashWrokerTask['problemMatcher'] = ['$gcc'];
-
-	/* Clean flash Task */
-	flashCleanTask['label'] = taskCleanFlashLabel;
-	flashCleanTask['type'] = 'shell';
-	flashCleanTask['command'] = '.vscode/clean_flash.sh -s ${config:spresense.sdk.path} -c ${config:spresense.serial.port}';
-	flashCleanTask['group'] = 'test';
-	flashCleanTask['problemMatcher'] = ['$gcc'];
-
-	/* Clean flash Task */
-	flashBootTask['label'] = taskBootFlashLabel;
-	flashBootTask['type'] = 'shell';
-	flashBootTask['command'] = '${config:spresense.sdk.path}/sdk/tools/flash.sh -l ${config:spresense.sdk.path}/firmware/spresense -c ${config:spresense.serial.port} -b ${config:spresense.flashing.speed}';
-	flashBootTask['group'] = 'test';
-	flashBootTask['problemMatcher'] = ['$gcc'];
+	cleanFlashTask.args[1] = platform;
 
 	const allTasks = [
-		buildKenelTask,
+		buildKernelTask,
 		buildTask,
 		kernelCleanTask,
 		sdkCleanTask,
+		spkCheckTask,
 		flashTask,
 		onlyFlashTask,
-		flashWrokerTask,
-		flashCleanTask,
-		flashBootTask
+		tasks.flashWorkerTask,
+		cleanFlashTask,
+		tasks.flashBootTask
 	];
 
 	/* Apply into tasks.json */
@@ -365,8 +259,6 @@ async function sdkTaskConfig(newFolderUri: vscode.Uri, context: vscode.Extension
 	try {
 		fs.copyFileSync(path.join(extensionPath, 'scripts', 'build.sh'),
 						path.join(newFolderPath, '.vscode', 'build.sh'));
-		fs.copyFileSync(path.join(extensionPath, 'scripts', 'clean_flash.sh'),
-						path.join(newFolderPath, '.vscode', 'clean_flash.sh'));
 		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'application.mk'),
 						path.join(newFolderPath, '.vscode', 'application.mk'));
 		fs.copyFileSync(path.join(extensionPath, 'resources', 'makefiles', 'worker.mk'),
@@ -497,7 +389,7 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
 
 			if (isSpresenseEnvironment()) {
 				/* Reset spresense workspace, if spresense workspace opened */
-				spresenseSdkSetup();
+				spresenseSdkSetup(context);
 			}
 		}
 	}));
@@ -515,7 +407,7 @@ function registerCommonCommands(context: vscode.ExtensionContext) {
  */
 
 function getBootloaderDownloadUrl(requestPath: string, suggestPath: string): string | undefined {
-	const VersionKey = 'LoaderVersion';
+	const versionKey = 'LoaderVersion';
 	const requestJson = loadJson(requestPath, true);
 	const suggestJson = loadJson(suggestPath, true);
 
@@ -523,7 +415,7 @@ function getBootloaderDownloadUrl(requestPath: string, suggestPath: string): str
 		return undefined;
 	}
 
-	if (!suggestJson[VersionKey] || requestJson[VersionKey] !== suggestJson[VersionKey]) {
+	if (!suggestJson[versionKey] || requestJson[versionKey] !== suggestJson[versionKey]) {
 		/* If stored_version.json doesn't have VersionKey or version is not same, need to update. */
 		return requestJson['DownloadURL'];
 	} else {
@@ -631,7 +523,8 @@ async function prepareBootloader(context: vscode.ExtensionContext) {
 		canSelectFolders: false,
 		canSelectMany: false,
 		filters: {
-			"Zip file": ["zip"]
+			// eslint-disable-next-line @typescript-eslint/naming-convention
+			"ZIP file": ["zip"]
 		}
 	});
 
@@ -654,7 +547,7 @@ async function burnBootloader(context: vscode.ExtensionContext) {
 	await prepareBootloader(context);
 
 	/* Kick bootloader flash task */
-	triggerSpresenseTask(wsFolders[0].uri, taskBootFlashLabel);
+	triggerSpresenseTask(wsFolders[0].uri, tasks.flashBootTask.label);
 }
 
 /**
@@ -719,37 +612,37 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	/* Register kernel build command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.build.kernel', (selectedUri) => {
 		/* Do the kernel build */
-		triggerSpresenseTask(selectedUri, taskBuildKernelLabel);
+		triggerSpresenseTask(selectedUri, tasks.buildKernelTask.label);
 	}));
 
 	/* Register build command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.build', (selectedUri) => {
 		/* Do the build */
-		triggerSpresenseTask(selectedUri, taskBuildLabel);
+		triggerSpresenseTask(selectedUri, tasks.buildTask.label);
 	}));
 
 	/* Register clean kernel command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.clean.kernel', (selectedUri) => {
 		/* Do the Kernel clean */
-		triggerSpresenseTask(selectedUri, taskkernelCleanLabel);
+		triggerSpresenseTask(selectedUri, tasks.kernelCleanTask.label);
 	}));
 
 	/* Register clean sdk command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.clean.sdk', (selectedUri) => {
 		/* Do the SDK Clean */
-		triggerSpresenseTask(selectedUri, taskSdkCleanLabel);
+		triggerSpresenseTask(selectedUri, tasks.sdkCleanTask.label);
 	}));
 
 	/* Register flash command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.flash', (selectedUri) => {
 		/* Do the flash */
-		triggerSpresenseTask(selectedUri, taskFlashLabel);
+		triggerSpresenseTask(selectedUri, tasks.flashTask.label);
 	}));
 
 	/* Register only flash command */
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.onlyflash', (selectedUri) => {
 		/* Do the flash */
-		triggerSpresenseTask(selectedUri, taskOnlyFlashLabel);
+		triggerSpresenseTask(selectedUri, tasks.onlyFlashTask.label);
 	}));
 
 	/* Register burn bootloader command */
@@ -770,26 +663,11 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 	}));
 }
 
-async function updateSettings(progress: vscode.Progress<{ message?: string; increment?: number;}>) {
+async function updateSettings(context: vscode.ExtensionContext, progress: vscode.Progress<{ message?: string; increment?: number;}>) {
 	let termConf = vscode.workspace.getConfiguration('terminal.integrated');
+	const platform = getExactPlatform();
 
-	let osName;
-	switch (process.platform) {
-		case 'win32':
-			osName = 'windows';
-			break;
-		case 'linux':
-			osName = 'linux';
-			break;
-		case 'darwin':
-			osName = 'osx';
-			break;
-		default:
-			osName = '';
-			break;
-	}
-
-	if (process.platform === 'win32') {
+	if (platform === 'win32') {
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
 		const winShPath = termConf.get('shell.windows');
 
@@ -803,7 +681,7 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 				termConf = vscode.workspace.getConfiguration('terminal.integrated');
 			}
 		} else if (msysPath) {
-			/* If necessary directory missing, target direcgtory is invalid */
+			/* If necessary directory missing, target directory is invalid */
 			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.msys", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
 		} else {
 			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.nomsys", "Please set Msys install path first. ('F1' -> 'Spresense: Set MSYS install location'"));
@@ -813,65 +691,56 @@ async function updateSettings(progress: vscode.Progress<{ message?: string; incr
 	/* Initial check done */
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.check", "Checking operating system done.")});
 
-	/* Get shell path */
-	let shpath = termConf.get(`shell.${osName}`) || '/bin/bash';
+	const osName = {
+		win32: 'windows',
+		linux: 'linux',
+		darwin: 'osx',
+		wsl: 'linux'
+	}[platform];
+	const sh: string = termConf.get(`shell.${osName}`) || '/bin/bash';
+	const helper = path.resolve(context.extensionPath, 'helper', 'showenv.sh').replace(/\\/g, '\\\\\\\\');
+	const ret = cp.execFileSync(sh, ['--login',  helper]).toString(); // login needed for expand '~' (user home)
+	const env = JSON.parse(ret);
+	const toolchainPath = env['compiler'];
 
-	try {
-		/* && control character for bash */
-		let andCtrl = '&&';
+	/* Prepare shell environment done */
+	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
-		/* In Windows environment(cmd.exe), && need a escape character */
-		if (process.platform === 'win32') {
-			andCtrl = '^&^&';
+	/* Update terminal PATH variable to be able to call the cross toolchain. This process is the same as 'source ~/spresenseenv/setup'. */
+	termConf.update(`env.${osName}`,{
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		'PATH': env['path']
+	}, vscode.ConfigurationTarget.Workspace);
+
+	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.valid", "Correct toolchain path done.")});
+
+	const debugConf = vscode.workspace.getConfiguration('cortex-debug');
+	const sprEnvConf = vscode.workspace.getConfiguration('spresense.env');
+
+	if (platform === 'win32') {
+		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
+
+		if (msysPath) {
+			sprEnvConf.update('toolchain.path', path.join(msysPath, toolchainPath), vscode.ConfigurationTarget.Workspace);
+			debugConf.update('armToolchainPath', path.join(msysPath, toolchainPath), vscode.ConfigurationTarget.Workspace);
+			debugConf.update('openocdPath', path.join(msysPath, toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
 		}
-		/* Get enviroment from bash
-		 * Line 1: PATH
-		 * Line 2: Openocd path
-		 */
-		const shellEnv = cp.execSync(
-			`${shpath} --login -c 'source ~/spresenseenv/setup ${andCtrl} echo $PATH ${andCtrl} which openocd'`
-			).toString().trim().split('\n');
-
-		/* Parse PATH */
-		const envPath     = shellEnv[0]; /* Line 1 */
-		const openocdPath = shellEnv[1]; /* Line 2 */
-
-		/* Get toolchain directory by openocd path */
-		const sprEnvPath = path.dirname(openocdPath);
-
-		/* Prepare shell environment done */
-		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
-
-		/* Set PATH */
-		termConf.update(`env.${osName}`,{
-			'PATH': envPath
-		}, vscode.ConfigurationTarget.Workspace);
-
-		/* Check spresenseenv done(If not exist, skip it) */
-		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.valid", "Correct toolchain path done.")});
-
-		const ocdConf = vscode.workspace.getConfiguration('cortex-debug');
-		const sprEnvConf = vscode.workspace.getConfiguration('spresense.env');
-
-		if (process.platform === 'win32') {
-			const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
-
-			if (msysPath) {
-				sprEnvConf.update('toolchain.path', path.join(msysPath, sprEnvPath), vscode.ConfigurationTarget.Workspace);
-				ocdConf.update('armToolchainPath', path.join(msysPath, sprEnvPath), vscode.ConfigurationTarget.Workspace);
-				ocdConf.update('openocdPath', path.join(msysPath, openocdPath), vscode.ConfigurationTarget.Workspace);
-			}
-		} else {
-			sprEnvConf.update('toolchain.path', sprEnvPath, vscode.ConfigurationTarget.Workspace);
-			ocdConf.update('armToolchainPath', sprEnvPath, vscode.ConfigurationTarget.Workspace);
-			ocdConf.update('openocdPath', openocdPath, vscode.ConfigurationTarget.Workspace);
-		}
-	} catch (error) {
-		/* nop: Use system environment */
+		// Set fixed extension path
+		const win32Epath = '/' + context.extensionPath.replace(/\\/g,"/").replace(/:\//g,"/");
+		sprEnvConf.update('extension.path', win32Epath, vscode.ConfigurationTarget.Workspace);
+	} else if (platform === 'wsl') {
+		// Set windows binary path for Cortex-Debug extension can find the cross gdb and openocd.
+		const p = path.resolve(toolchainPath, '..', '..', 'windows', 'bin');
+		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('armToolchainPath', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('openocdPath', path.resolve(p, 'openocd'), vscode.ConfigurationTarget.Workspace);
+		sprEnvConf.update('extension.path', path.resolve(context.extensionPath), vscode.ConfigurationTarget.Workspace);
+	} else {
+		sprEnvConf.update('toolchain.path', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('armToolchainPath', toolchainPath, vscode.ConfigurationTarget.Workspace);
+		debugConf.update('openocdPath', path.resolve(toolchainPath, 'openocd'), vscode.ConfigurationTarget.Workspace);
+		sprEnvConf.update('extension.path', path.resolve(context.extensionPath), vscode.ConfigurationTarget.Workspace);
 	}
-
-	/* Inform complete */
-	progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
 }
 
 function isSpresenseEnvironment() {
@@ -906,7 +775,7 @@ function isSpresenseEnvironment() {
 	}
 }
 
-function spresenseSdkSetup() {
+function spresenseSdkSetup(context: vscode.ExtensionContext) {
 	let firstFolder = getFirstFolderPath();
 	let configuration = vscode.workspace.getConfiguration();
 
@@ -935,7 +804,8 @@ function spresenseSdkSetup() {
 		progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.start", "Started to setup.")});
 
 		/* Update settings.json */
-		await updateSettings(progress);
+		await updateSettings(context, progress);
+		progress.report({increment: 100, message: nls.localize("spresense.src.setting.progress.done", "Setup complete.")});
 
 		return new Promise<void>((resolve) => {
 			setTimeout(() => {
@@ -945,26 +815,22 @@ function spresenseSdkSetup() {
 	});
 }
 
-/* Add spresense_prj.json file for detecting spresense project folder. */
-/* If spresense_prj.json is exist, spresense extension detect it to spresense project folder */
+/**
+ * Add spresense_prj.json file for detecting spresense project folder.
+ * If spresense_prj.json is exist, spresense extension detect it to spresense project folder
+ */
+
 function createSpresenseConfFile(folderPath: string) {
-	/* Interface for spresense_prj.json file */
-	interface SpresenseJsonInterface {
-		[key: string]: string | number;
-	}
-
-	const sprConfFile = path.join(folderPath, '.vscode', 'spresense_prj.json');
-	let jsonItem: SpresenseJsonInterface = {};
-
-	/* Append item (SDK version) */
-	jsonItem['SdkVersion'] = sdkVersion.str;
-
-	/* Append item (Spresense Extension compatibility revision) */
-	jsonItem['SpresenseExtInterfaceVersion'] = spresenseExtInterfaceVersion;
+	const sprConfFile = path.resolve(folderPath, '.vscode', 'spresense_prj.json');
+	const data = {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		SdkVersion: sdkVersion.str,
+		// eslint-disable-next-line @typescript-eslint/naming-convention
+		SpresenseExtInterfaceVersion: spresenseExtInterfaceVersion
+	};
 
 	try {
-		/* Save spresense_prj.json */
-		fs.writeFileSync(sprConfFile, JSON.stringify(jsonItem, null, 4));
+		fs.writeFileSync(sprConfFile, JSON.stringify(data, null, 4));
 	} catch (err) {
 		vscode.window.showErrorMessage(nls.localize("spresense.src.create.conf.error", "Cannot create file ({0}).", sprConfFile));
 	}
@@ -1031,22 +897,46 @@ async function spresenseEnvSetup(context: vscode.ExtensionContext, folderUri: vs
 		return;
 	}
 
+	createVscode(folderPath);
+
+	// Setup C/C++ Extension include paths to SDK ones.
+	sdkCppConfig(context, folderPath, force);
+
+	let configfile = path.join(folderPath, 'nuttx', '.config');
+	if (!fs.existsSync(configfile)) {
+		configfile = path.join(folderPath, 'sdk.config');
+	}
+	if (launch.includeWin32Path(folderUri) || util.isDifferentHostConfig(configfile)) {
+		const reply = await vscode.window.showInformationMessage(nls.localize("spresense.src.warning.platformmismatch",
+		"The project folder {0} is created on different host but it cannnot be used on this systems.\nIt is necessary to convert the configuration, do you want to convert it?", folderPath),
+			{ modal: true}, 'Yes');
+		if (reply === 'Yes') {
+			launch.win32ToPosixPath(folderUri);
+			util.updateHostConfiguration(configfile, path.join(wsFolders[0].uri.fsPath, 'nuttx'));
+		}
+	}
+
 	if (!force && isAlreadySetup(folderPath)) {
 		return;
 	}
 
-	/* For C/C++ Extension */
-	sdkCppConfig(context, folderPath);
-
 	/* For build/flash task */
 	await sdkTaskConfig(folderUri, context);
 
-	if (! setupDebugEnv(folderUri)) {
+	if (!setupDebugEnv(folderUri)) {
 		return;
 	}
 
 	/* Create file for storing spresense environment */
 	createSpresenseConfFile(folderPath);
+
+	/*
+	 * Create project Makefiles for prevent build error.
+	 */
+	if (!isSpresenseSdkFolder(folderPath)) {
+		const resourcePath = path.join(context.extensionPath, 'resources');
+		createProjectMakefiles(folderPath, resourcePath);
+	}
 }
 
 /**
@@ -1118,7 +1008,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}));
 
 		/* Setup every activate timing for open folder */
-		spresenseSdkSetup();
+		spresenseSdkSetup(context);
 
 		if (vscode.workspace.workspaceFolders) {
 			vscode.workspace.workspaceFolders.forEach((folder) => {
