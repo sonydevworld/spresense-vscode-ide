@@ -1,5 +1,63 @@
 # Change Log
 
+# v1.4.100
+
+## Summary
+
+* Feature improvements are available
+* This release has a **new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader)** before use.
+
+## New features and feature enhancements
+
+* [Build] Support Windows11 as one of operation system supported for development environment.
+  * The support environment on Windows11 is only WSL2. the environment on Windows11 with MSYS2 is not supported.
+  * Build times are significantly reduced using WSL2.
+
+## Improved features
+
+* [SDK Config] Fix an issue that get stuck when there are many search targets when using the search in the SDK config.
+
+* [SerialTerminal] Fixed an issue that the serial terminal may not open automatically after writing the application.
+
+## Contribution
+
+* Add a menu of `Application flash`. (Thanks to @ROMAINPC)
+
+## Confirmation Information
+
+* VSCode: v1.75.1
+
+------------------------
+
+(Below is in Japanese)
+
+## 概要
+
+* 機能改善を行いました。
+* 今回のリリースにより **[ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール)** が必要になります。
+
+## 新規機能追加および機能拡張
+
+* Windows11に対応しました。
+  * Windows11上でのサポート環境はWSL2になります。(Windows11でのMSYS2は非サポートとなります。)
+  * WSL2になったことにより、ビルド時間が大幅に短縮されます。
+
+## 改善された機能
+
+* [SDK Config] SDKコンフィグ内での検索を使っている際、検索対象が多い場合固まってしまう問題を修正しました。
+
+* [シリアルターミナル] アプリケーションの書き込み後、自動でシリアルターミナルが開かない場合がある問題を修正しました。
+
+## コントリビューション
+
+* `アプリケーションの書き込み` メニューを追加しました。 (Thanks to @ROMAINPC)
+
+## 動作確認情報
+
+以下のバージョンのVSCodeと組み合わせて動作確認をしています。
+
+* VSCode: v1.75.1
+
 # v1.3.200
 
 (日本語の説明文は英語の後に記載しています。)
