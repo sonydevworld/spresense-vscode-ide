@@ -3,7 +3,7 @@
 	"publisher": "sony-spresense",
 	"displayName": "Spresense VSCode IDE",
 	"description": "Spresense Extension for VSCode",
-	"version": "1.4.100",
+	"version": "1.4.101",
 	"license": "MIT",
 	"author": {
 		"name": "Sony Semiconductor Solutions"
