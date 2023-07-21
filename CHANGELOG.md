@@ -1,6 +1,6 @@
 # Change Log
 
-# Spresense VSCode IDE v1.4.101 release (2023/7/13)
+# Spresense VSCode IDE v1.4.101 release (2023/7/21)
 
 ## Summary
 
