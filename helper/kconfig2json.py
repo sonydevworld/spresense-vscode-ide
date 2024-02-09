@@ -228,4 +228,5 @@ if __name__ == '__main__':
     else:
         f.write(json.dumps(d))
 
-    f.close()
+    if opts.output:
+        f.close()
