@@ -556,7 +556,11 @@ export class SDKConfigView2 {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"EXTERNALDIR": "dummy",
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				"KCONFIG_CONFIG": this._configFile
+				"KCONFIG_CONFIG": this._configFile,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				"APPSBINDIR": appsDir,
+				// eslint-disable-next-line @typescript-eslint/naming-convention
+				"BINDIR": this._kernelDir,
 			},
 			maxBuffer: 10 * 1024 * 1024
 		};
