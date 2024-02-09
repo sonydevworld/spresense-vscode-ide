@@ -62,6 +62,7 @@ def create_index_html():
         'progressUri': progress_uri,
         'mainUri': main_uri,
         'defconfigUri': defconfig_uri,
+        'cspSource': '',
     }
 
     with open(template) as fh:
@@ -93,7 +94,9 @@ def create_kconfig_menudata():
     proc = sp.run(cmd, env={
         'srctree': TOPDIR,
         'APPSDIR': '../sdk/apps',
-        'EXTERNALDIR': 'dummy'
+        'EXTERNALDIR': 'dummy',
+        'APPSBINDIR': '../sdk/apps',
+        'BINDIR': TOPDIR,
     })
     proc.check_returncode()
 
@@ -108,7 +111,7 @@ def cleanup_driver_process():
 def load_test_suite(suite):
     name = suite + '_test'
     spec = importlib.util.spec_from_file_location(name, f'suite/{suite}_test.py')
-    assert spec, 'test suite "%s" not found' % suite
+    assert spec, f'test suite "{suite}" not found'
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -150,7 +153,8 @@ if __name__ == '__main__':
 
     dc = DesiredCapabilities.CHROME
     dc['goog:loggingPrefs'] = { 'browser': 'ALL' }
-    driver = webdriver.Chrome(options=options, desired_capabilities=dc)
+    service = webdriver.ChromeService(log_output=sp.STDOUT)
+    driver = webdriver.Chrome(options=options, service=service)
     driver.set_window_position(0, 0)
     driver.set_window_size(1600, 1024)
 
