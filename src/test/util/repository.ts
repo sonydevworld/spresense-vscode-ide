@@ -15,6 +15,7 @@ export function setupRepository(dest?: string, sdkRepositoryUrl?: string, testRe
         console.log(`If you want to update the repository, please update manually or remove ${dest}.`);
     } else {
         console.log(`Cloning repository ${dest}`);
+        fs.mkdirsSync(testenv.wsPath);
         const _dest = path.resolve(dest, '..');
         cmd = `git -C ${_dest} clone --recursive ${url}`;
         child_process.execSync(cmd);
