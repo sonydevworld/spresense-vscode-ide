@@ -562,7 +562,7 @@ export class SDKConfigView2 {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"BINDIR": this._kernelDir,
 			},
-			maxBuffer: 10 * 1024 * 1024
+			maxBuffer: 20 * 1024 * 1024
 		};
 		console.log("Creating kernel config data");
 
