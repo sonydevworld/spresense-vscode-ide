@@ -26,8 +26,9 @@ before(async () => {
     }
 
     const browser = VSBrowser.instance;
+    const driver = browser.driver;
     await browser.openResources(testenv.spresensePath);
-    await browser.driver.wait(async () => {
+    await driver.wait(async () => {
         const notifications = await new Workbench().getNotifications();
         for (const notification of notifications) {
             const message = await notification.getMessage();
@@ -46,7 +47,7 @@ before(async () => {
     // Wait for progress notification is dismissed (as ready to use).
     // If taking a long time to open configuration editor, it is fail.
 
-    await VSBrowser.instance.driver.wait(async () => {
+    await driver.wait(async () => {
         const notifications = await new Workbench().getNotifications();
         return notifications.length === 0;
     }, 10 * 60 * 1000);
@@ -55,7 +56,8 @@ before(async () => {
 });
 
 describe('SDK Configuration', async () => {
-    describe('Internal core function', evaluationTests);
+    // Temporary disabled until Kconfig test vector is ready to use.
+    //describe('Internal core function', evaluationTests);
     describe('Bool type config test', boolTests);
     describe('Syntax related config test', syntaxTests);
     describe('New button test', defconfigTests);

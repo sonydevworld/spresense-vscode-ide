@@ -36,8 +36,9 @@ export function cleanupRepository(dest?: string) {
     child_process.execSync(`git -C ${nuttx} clean -xdf`);
     child_process.execSync(`git -C ${apps} clean -xdf`);
 
+    // Temporary disabled
     // Copying test vector should run after sdk directory clean.
-    copyTestVector(dest);
+    //copyTestVector(dest);
 
     child_process.execSync('./tools/config.py default -- +ELF', {
         cwd: path.resolve(dest, 'sdk')
