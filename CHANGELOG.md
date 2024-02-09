@@ -1,5 +1,53 @@
 # Change Log
 
+# Spresense VSCode IDE v1.5.100 release (2024/02/09)
+
+## Summary
+
+* Feature improvements are available
+* This release has a **new [bootloader which have to be loaded](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html#_installing_the_boot_loader)** before use.
+
+## Improved features
+
+* [SDK Build] Fixed an issue that prevented configuration build with VSCode 1.80.2 or later.
+* [SDK Config] Improved the startup speed of Kconfig UI.
+
+## Confirmation Information
+
+* VSCode: v1.86.0
+
+## Documentation
+
+Please refer to the following document for detailed usage.
+
+[Spresense SDK Getting Started Guide (IDE)](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_en.html) 
+
+------------------------
+
+(Below is in Japanese)
+
+## 概要
+
+* 機能改善を行いました。
+* 今回のリリースにより **[ブートローダーの更新](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html#_ブートローダのインストール)** が必要になります。
+
+## 改善された機能
+
+* [SDK Build] VSCode 1.80.2以降でコンフィグレーション・ビルド出来ない不具合を修正しました。
+* [SDK Config] KconfigのUIの起動速度を改善しました。
+
+## 動作確認情報
+
+以下のバージョンのVSCodeと組み合わせて動作確認をしています。
+
+* VSCode: v1.86.0
+
+## ドキュメント
+
+詳しい使い方については以下のドキュメントを参照してください。
+
+[Spresense SDK スタートガイド (IDE 版)](https://developer.sony.com/develop/spresense/docs/sdk_set_up_ide_ja.html)
+
 # Spresense VSCode IDE v1.4.101 release (2023/7/21)
 
 ## Summary
