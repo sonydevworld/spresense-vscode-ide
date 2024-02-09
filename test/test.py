@@ -194,3 +194,5 @@ if __name__ == '__main__':
 
         if not args.nc:
             driver.close()
+    else:
+        input()
