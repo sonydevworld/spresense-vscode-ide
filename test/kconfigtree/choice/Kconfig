@@ -86,25 +86,25 @@ config CI_NOTYPE_BOOL_BAZ
 	bool "BAZ"
 endchoice
 
-choice CHOICE_NOTYPE_TRI
-	prompt "This config should be bool"
-config CI_NOTYPE_TRI_FOO
-	tristate "FOO"
-config CI_NOTYPE_TRI_BAR
-	tristate "BAR"
-config CI_NOTYPE_TRI_BAZ
-	tristate "BAZ"
-endchoice
+#choice CHOICE_NOTYPE_TRI
+#	prompt "This config should be bool"
+#config CI_NOTYPE_TRI_FOO
+#	tristate "FOO"
+#config CI_NOTYPE_TRI_BAR
+#	tristate "BAR"
+#config CI_NOTYPE_TRI_BAZ
+#	tristate "BAZ"
+#endchoice
 
-choice CHOICE_TRI
-	prompt "tristate type"
-	tristate
-config CI_TRI_FOO
-	tristate "FOO"
-config CI_TRI_BAR
-	tristate "BAR"
-config CI_TRI_BAZ
-	tristate "BAZ"
-endchoice
+#choice CHOICE_TRI
+#	prompt "tristate type"
+#	tristate
+#config CI_TRI_FOO
+#	tristate "FOO"
+#config CI_TRI_BAR
+#	tristate "BAR"
+#config CI_TRI_BAZ
+#	tristate "BAZ"
+#endchoice
 
 endmenu

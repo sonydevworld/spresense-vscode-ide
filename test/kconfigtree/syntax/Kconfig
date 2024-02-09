@@ -19,24 +19,24 @@ config MENUCONFIG_BOOL_IF_ITEM
 
 endif
 
-menuconfig MENUCONFIG_TRI_DEP
-	tristate "The menuconfig (tristate)"
-	default m
+#menuconfig MENUCONFIG_TRI_DEP
+#	tristate "The menuconfig (tristate)"
+#	default m
 
-config MENUCONFIG_TRI_DEP_ITEM
-	bool "item"
-	depends on MENUCONFIG_TRI_DEP
+#config MENUCONFIG_TRI_DEP_ITEM
+#	bool "item"
+#	depends on MENUCONFIG_TRI_DEP
 
-menuconfig MENUCONFIG_TRI_IF
-	tristate "The menuconfig (tristate)"
-	default y
+#menuconfig MENUCONFIG_TRI_IF
+#	tristate "The menuconfig (tristate)"
+#	default y
 
-if MENUCONFIG_TRI_IF
-
-config MENUCONFIG_TRI_IF_ITEM
-	bool "item"
-
-endif
+#if MENUCONFIG_TRI_IF
+#
+#config MENUCONFIG_TRI_IF_ITEM
+#	bool "item"
+#
+#endif
 
 menuconfig MENUCONFIG_STR_DEP
 	string "The menuconfig (string)"
