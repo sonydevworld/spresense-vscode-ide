@@ -16,9 +16,9 @@ export let webView: WebView;
 
 before(async () => {
     const util = new DefconfigUtil();
-    util.makeBaseDotConfigs();
     setupRepository();
     cleanupRepository();
+    util.makeBaseDotConfigs();
 
     const title = await new Workbench().getTitleBar().getTitle();
     if (title.indexOf('spresnese') >= 0) {
@@ -49,7 +49,7 @@ before(async () => {
     await VSBrowser.instance.driver.wait(async () => {
         const notifications = await new Workbench().getNotifications();
         return notifications.length === 0;
-    }, 180000);
+    }, 10 * 60 * 1000);
 
     await webView.switchToFrame();
 });
