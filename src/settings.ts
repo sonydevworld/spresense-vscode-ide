@@ -34,6 +34,7 @@ import { isMsysInstallFolder, isSpresenseSdkFolder, getSDKVersion, UNKNOWN_SDK_V
 import * as launch from './launch';
 import * as tasks from './tasks';
 import * as util from './configview/util';
+import { getDefaultShellPath } from './shell_exec';
 
 const spresenseExtInterfaceVersion: number = 1003;
 
@@ -664,27 +665,38 @@ function registerSpresenseCommands(context: vscode.ExtensionContext) {
 }
 
 async function updateSettings(context: vscode.ExtensionContext, progress: vscode.Progress<{ message?: string; increment?: number;}>) {
-	let termConf = vscode.workspace.getConfiguration('terminal.integrated');
 	const platform = getExactPlatform();
 
 	if (platform === 'win32') {
 		const msysPath: string | undefined = vscode.workspace.getConfiguration().get(configMsysPathKey);
-		const winShPath = termConf.get('shell.windows');
 
-		if (msysPath && isMsysInstallFolder(msysPath)) {
-			const bashPath = path.join(msysPath, 'usr', 'bin', 'bash.exe');
+		if (msysPath === undefined) {
+			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.nomsys",
+				"Please set Msys install path first. ('F1' -> 'Spresense: Set MSYS install location'"));
+			return;
+		}
+		if (!isMsysInstallFolder(msysPath)) {
+			// If necessary directory missing, target directory is invalid
+			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.msys",
+				"{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
+			return;
+		}
 
-			if (!winShPath || bashPath !== winShPath) {
-				await termConf.update('shell.windows', bashPath, vscode.ConfigurationTarget.Workspace);
+		const profiles = vscode.workspace.getConfiguration('terminal.integrated.profiles');
+		const profname = 'MSYS2 bash native';
 
-				/* Reload configuration */
-				termConf = vscode.workspace.getConfiguration('terminal.integrated');
-			}
-		} else if (msysPath) {
-			/* If necessary directory missing, target directory is invalid */
-			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.msys", "{0} is not a Msys install directory. Please set valid path (ex. c:\\msys64)", msysPath));
-		} else {
-			vscode.window.showErrorMessage(nls.localize("spresense.src.setting.error.nomsys", "Please set Msys install path first. ('F1' -> 'Spresense: Set MSYS install location'"));
+		if (!profiles.has(`windows.${profname}`)) {
+			let i = profiles.inspect('windows');
+			let profs = i?.workspaceValue || Object();
+			profs[profname] = {
+				"path": path.join(msysPath, 'usr', 'bin', 'bash.exe')
+			};
+			await profiles.update('windows', profs, vscode.ConfigurationTarget.Workspace);
+		}
+
+		const defaultProfile = vscode.workspace.getConfiguration('terminal.integrated.defaultProfile') || undefined;
+		if (defaultProfile) {
+			await defaultProfile.update('windows', profname, vscode.ConfigurationTarget.Workspace);
 		}
 	}
 
@@ -697,16 +709,16 @@ async function updateSettings(context: vscode.ExtensionContext, progress: vscode
 		darwin: 'osx',
 		wsl: 'linux'
 	}[platform];
-	const sh: string = termConf.get(`shell.${osName}`) || '/bin/bash';
+	const termConf = vscode.workspace.getConfiguration('terminal.integrated');
+	const sh: string = getDefaultShellPath();
 	const helper = path.resolve(context.extensionPath, 'helper', 'showenv.sh').replace(/\\/g, '\\\\\\\\');
 	const ret = cp.execFileSync(sh, ['--login',  helper]).toString(); // login needed for expand '~' (user home)
 	const env = JSON.parse(ret);
 	const toolchainPath = env['compiler'];
 
-	/* Prepare shell environment done */
 	progress.report({increment: 20, message: nls.localize("spresense.src.setting.progress.env", "Get shell environment done.")});
 
-	/* Update terminal PATH variable to be able to call the cross toolchain. This process is the same as 'source ~/spresenseenv/setup'. */
+	// Update terminal PATH variable to be able to call the cross toolchain. This process is the same as 'source ~/spresenseenv/setup'.
 	termConf.update(`env.${osName}`,{
 		// eslint-disable-next-line @typescript-eslint/naming-convention
 		'PATH': env['path']
