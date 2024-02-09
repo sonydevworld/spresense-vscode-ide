@@ -60,8 +60,6 @@ export function deactivate() {
 }
 
 class ItemWizard extends WizardBase {
-    private static readonly ITEM_TYPE_APP_COMMAND = 'app-command';
-    private static readonly ITEM_TYPE_ASMP_WORKER = 'asmp-worker';
 
     public static currentPanel: ItemWizard | undefined;
 
@@ -204,10 +202,10 @@ class ItemWizard extends WizardBase {
         }
 
         if ('type' in message && 'folder' in message && 'name' in message) {
-            if (message.type === ItemWizard.ITEM_TYPE_APP_COMMAND) {
+            if (message.type === 'app-command') {
                 /* Create a application template for using new worker */
                 createApplicationFiles(message.name, message.folder, this._resourcePath);
-            } else if (message.type === ItemWizard.ITEM_TYPE_ASMP_WORKER) {
+            } else if (message.type === 'asmp-worker') {
                 /* Create worker template */
                 createWorkerFiles(message.name, message.sampleName, message.folder, this._resourcePath);
             }
