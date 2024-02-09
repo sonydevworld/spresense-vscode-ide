@@ -11,9 +11,12 @@ export async function defconfigTests() {
         const driver = VSBrowser.instance.driver;
         const util = new DefconfigUtil();
         const defconfigs = util.getDefconfigNames();
-        //const defconfigs = ['feature/subcore', 'examples/lowpower'];
+        //const defconfigs = ['examples/lvgldemo'];
 
         for (let name of defconfigs) {
+            let progress = await driver.findElement(By.id('progress'));
+            await driver.wait(until.elementIsNotVisible(progress), 10 * 1000);
+
             let _new = await driver.findElement(By.id('new'));
             await _new?.click();
             let modal = await driver.wait(until.elementLocated(By.id('defconfig')), 5000);

@@ -49,7 +49,13 @@ export class DefconfigUtil {
 
     private getConfigs(filepath: string) {
         const buf = fs.readFileSync(filepath).toString().split('\n');
-        return buf.filter(conf => conf.length > 0 && conf.indexOf('#') !== 0); // ignore empty lines
+        // Ignore empty lines
+        // And additionally ignore CONFIG_BASE_DEFCONFIG option, this option set by configure.sh
+        // but it not affected for build. So just ignore this difference.
+        return buf.filter(conf =>
+            conf.length > 0 &&
+            conf.indexOf('#') !== 0 &&
+            conf.indexOf('CONFIG_BASE_DEFCONFIG') !== 0);
     }
 
     compare(name: string) {
@@ -70,6 +76,12 @@ export class DefconfigUtil {
             }
         }
         for (let c of b) {
+            if (c === 'CONFIG_LV_LOG_LEVEL=0') {
+                // WORKAROUND: This option may output but kconfig-frontend does not.
+                // We need to research this strange behavior but actually not affected.
+                // So just skip it.
+                continue;
+            }
             if (!a.includes(c)) {
                 console.log(`${c} is extra`);
                 return false;

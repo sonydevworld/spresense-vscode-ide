@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* --------------------------------------------------------------------------------------------
  * Copyright 2019 Sony Semiconductor Solutions Corporation
  *
@@ -26,44 +27,57 @@ export interface ExecOptions extends cp.ExecOptions {}
 export interface ChildProcess extends cp.ChildProcess {}
 export interface ExecException extends cp.ExecException {}
 
-export function getEnv () {
-	/* Interface for platform environment */
-	interface EnvInterface {
-		[key: string]: string;
-	}
-
-	const config = vscode.workspace.getConfiguration('terminal.integrated');
-	let os;
+function getOSName() {
 	switch (process.platform) {
 		case 'win32':
-			os = 'windows';
-			break;
-		case 'linux':
-			os = 'linux';
-			break;
+			return 'windows';
 		case 'darwin':
-			os = 'osx';
-			break;
+			return 'osx';
 		default:
-			os = '';
-			break;
+			return process.platform;
+	}
+}
+
+export function getDefaultShellPath() {
+	const os = getOSName();
+	const config = vscode.workspace.getConfiguration('terminal.integrated');
+	// Take automationProfile first to use shell in tasks
+	const p: any = config.get(`automationProfile.${os}`);
+	if (p) {
+		if (typeof(p) === 'string') {
+			return p;
+		} else if ('path' in p && p.path !== '') {
+			return p.path;
+		}
 	}
 
-	const defaultShell = '/bin/bash';
-	const defaultPath = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
+	const profname: string | undefined = config.get(`defaultProfile.${os}`);
+	if (profname === null || profname === undefined) {
+		const profs: any | undefined = config.get(`profiles.${os}`);
+		if (profs) {
+			const p: any = Object.values(profs)[0];
+			if (p && 'path' in p && p.path !== '') {
+				return p.path;
+			}
+		}
+		return '/bin/bash';
+	} else {
+		const path: string | undefined = config.get(`profiles.${os}.${profname}.path`);
+		return path ? path : '/bin/bash';
+	}
+}
 
-	const osEnv: EnvInterface = config.get(`env.${os}`) || {};
-	const osShell = config.get(`shell.${os}`);
-
-	return {
-		SHELL: osShell ? osShell : defaultShell,
-		PATH: osEnv.PATH ? osEnv.PATH : defaultPath
-	};
+function getEnvPATH() {
+	const config = vscode.workspace.getConfiguration('terminal.integrated');
+	const os = getOSName();
+	const e: any = config.get(`env.${os}`);
+	console.log(e);
+	return e ? e.PATH : '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin';
 }
 
 export function exec(cmd: string, options?: cp.ExecOptions, callback?: (error: cp.ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => void): cp.ChildProcess {
-	const env = getEnv();
-	const shell = env.SHELL;
+	const shell = getDefaultShellPath();
+	const pathVar = getEnvPATH();
 	let command = `${shell} -c \'${cmd}\'`;
 
 	if (!options) {
@@ -71,9 +85,9 @@ export function exec(cmd: string, options?: cp.ExecOptions, callback?: (error: c
 	}
 
 	if (options.env) {
-		options.env['PATH'] = env.PATH;
+		options.env['PATH'] = pathVar;
 	} else {
-		options.env = {PATH: env.PATH};
+		options.env = {PATH: pathVar};
 	}
 
 	/* For windows file path delimiter */
@@ -95,8 +109,8 @@ export function execFile(file: string, args: string[], options?: cp.ExecOptions,
 }
 
 export function execSync(command: string, options?: cp.ExecOptions): Buffer | string {
-	const env = getEnv();
-	const shell = env.SHELL;
+	const pathVar = getEnvPATH();
+	const shell = getDefaultShellPath();
 
 	command = `${shell} -c \'${command}\'`;
 
@@ -105,9 +119,9 @@ export function execSync(command: string, options?: cp.ExecOptions): Buffer | st
 	}
 
 	if (options.env) {
-		options.env['PATH'] = env.PATH;
+		options.env['PATH'] = pathVar;
 	} else {
-		options.env = {PATH: env.PATH};
+		options.env = {PATH: pathVar};
 	}
 
 	/* For windows file path delimiter */

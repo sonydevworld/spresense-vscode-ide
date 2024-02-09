@@ -155,6 +155,8 @@ def build_nodetree(node, nodelist):
 
         if node.prompt:
             d['prompt'] = node.prompt[0] # prompt text
+            if type(node.prompt[1]) is tuple or not node.prompt[1].is_constant:
+                d['cond'] = _expr_str(node.prompt[1])
 
         if len(node.defaults) > 0:
             d['defaults'] = make_default_list(node.defaults)
@@ -226,4 +228,5 @@ if __name__ == '__main__':
     else:
         f.write(json.dumps(d))
 
-    f.close()
+    if opts.output:
+        f.close()

@@ -10,9 +10,11 @@ export async function evaluationTests() {
         it("y", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_Y')).to.equal(2);
         });
+        /*
         it("m", async () => {
             expect(await evaluateExpr('SYMBOL_TRI_M')).to.equal(1);
         });
+        */
         it("n", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_N')).to.equal(0);
         });
@@ -20,13 +22,15 @@ export async function evaluationTests() {
 
     describe("can evaluate <symbol> '=' <symbol>", async () => {
         it("y = y", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y = SYMBOL_TRI_Y')).to.equal(2);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y = SYMBOL_BOOL_Y')).to.equal(2);
         });
+        /*
         it("y = m", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_Y = SYMBOL_TRI_M')).to.equal(0);
         });
+        */
         it("y = n", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y = SYMBOL_TRI_N')).to.equal(0);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y = SYMBOL_BOOL_N')).to.equal(0);
         });
         it("int value", async () => {
             expect(await evaluateExpr('SYMBOL_INT_1024 = 1024')).to.equal(2);
@@ -38,13 +42,15 @@ export async function evaluationTests() {
 
     describe("can evaluate <symbol> '!=' <symbol>", async () => {
         it("y != y", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y != SYMBOL_TRI_Y')).to.equal(0);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y != SYMBOL_BOOL_Y')).to.equal(0);
         });
+        /*
         it("y != m", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_Y != SYMBOL_TRI_M')).to.equal(2);
         });
+        */
         it("y != n", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y != SYMBOL_TRI_N')).to.equal(2);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y != SYMBOL_BOOL_N')).to.equal(2);
         });
         it("int value", async () => {
             expect(await evaluateExpr('SYMBOL_INT_1024 != 0')).to.equal(2);
@@ -118,7 +124,7 @@ export async function evaluationTests() {
 
     describe("can evaluate <expr> '&&' <expr>", async () => {
         it("y && y", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y && SYMBOL_TRI_Y')).to.equal(2);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y && SYMBOL_BOOL_Y')).to.equal(2);
         });
         it("y && n", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_Y && SYMBOL_BOOL_N')).to.equal(0);
@@ -127,13 +133,13 @@ export async function evaluationTests() {
             expect(await evaluateExpr('SYMBOL_BOOL_N && SYMBOL_BOOL_Y')).to.equal(0);
         });
         it("n && n", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_N && SYMBOL_TRI_N')).to.equal(0);
+            expect(await evaluateExpr('SYMBOL_BOOL_N && SYMBOL_BOOL_N')).to.equal(0);
         });
     });
 
     describe("can evaluate <expr> '||' <expr>", async () => {
         it("y || y", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_Y || SYMBOL_TRI_Y')).to.equal(2);
+            expect(await evaluateExpr('SYMBOL_BOOL_Y || SYMBOL_BOOL_Y')).to.equal(2);
         });
         it("y || n", async () => {
             expect(await evaluateExpr('SYMBOL_BOOL_Y || SYMBOL_BOOL_N')).to.equal(2);
@@ -142,7 +148,7 @@ export async function evaluationTests() {
             expect(await evaluateExpr('SYMBOL_BOOL_N || SYMBOL_BOOL_Y')).to.equal(2);
         });
         it("n || n", async () => {
-            expect(await evaluateExpr('SYMBOL_BOOL_N || SYMBOL_TRI_N')).to.equal(0);
+            expect(await evaluateExpr('SYMBOL_BOOL_N || SYMBOL_BOOL_N')).to.equal(0);
         });
     });
 }

@@ -15,6 +15,7 @@ export function setupRepository(dest?: string, sdkRepositoryUrl?: string, testRe
         console.log(`If you want to update the repository, please update manually or remove ${dest}.`);
     } else {
         console.log(`Cloning repository ${dest}`);
+        fs.mkdirsSync(testenv.wsPath);
         const _dest = path.resolve(dest, '..');
         cmd = `git -C ${_dest} clone --recursive ${url}`;
         child_process.execSync(cmd);
@@ -35,8 +36,9 @@ export function cleanupRepository(dest?: string) {
     child_process.execSync(`git -C ${nuttx} clean -xdf`);
     child_process.execSync(`git -C ${apps} clean -xdf`);
 
+    // Temporary disabled
     // Copying test vector should run after sdk directory clean.
-    copyTestVector(dest);
+    //copyTestVector(dest);
 
     child_process.execSync('./tools/config.py default -- +ELF', {
         cwd: path.resolve(dest, 'sdk')

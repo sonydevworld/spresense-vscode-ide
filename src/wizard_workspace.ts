@@ -194,7 +194,7 @@ class WorkspaceWizard extends WizardBase {
                 result = false;
                 text = nls.localize("spresense.workspace.wizard.path.space.error", "Selected path has space ' ', please choose different folder.");
             }
-        } catch (e) {
+        } catch (e: any) {
             result = false;
             text = e.message;
         }

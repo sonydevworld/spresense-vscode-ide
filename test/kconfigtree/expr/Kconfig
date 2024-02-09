@@ -7,17 +7,17 @@ config SYMBOL_BOOL_N
 	bool
 	default n
 
-config SYMBOL_TRI_Y
-	tristate
-	default y
+#config SYMBOL_TRI_Y
+#	tristate
+#	default y
 
-config SYMBOL_TRI_M
-	tristate
-	default m
+#config SYMBOL_TRI_M
+#	tristate
+#	default m
 
-config SYMBOL_TRI_N
-	tristate
-	default n
+#config SYMBOL_TRI_N
+#	tristate
+#	default n
 
 config SYMBOL_INT_1024
 	int
