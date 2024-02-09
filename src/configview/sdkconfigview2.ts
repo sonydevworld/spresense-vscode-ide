@@ -547,6 +547,18 @@ export class SDKConfigView2 {
 
 	private _genKernelConfigMenuData() {
 		const appsDir = path.join("..", "sdk", "apps");
+		let kernelDir = this._kernelDir;
+
+		let cygpath = undefined;
+		try {
+			cygpath = cp.execSync('which cygpath').toString().trim();
+			kernelDir = kernelDir.replace(/\\/g, '/');
+			kernelDir = cp.execSync(`${cygpath} -u ${kernelDir}`).toString().trim();
+			console.log(`Convert python path to ${this._kernelDir} to ${kernelDir}`);
+		} catch {
+			// Ignore cygpath is missing
+		}
+
 		// Tentative: KCONFIG_CONFIG will be remove
 		const options = {
 			cwd: this._kernelDir,
@@ -560,7 +572,7 @@ export class SDKConfigView2 {
 				// eslint-disable-next-line @typescript-eslint/naming-convention
 				"APPSBINDIR": appsDir,
 				// eslint-disable-next-line @typescript-eslint/naming-convention
-				"BINDIR": this._kernelDir,
+				"BINDIR": kernelDir,
 			},
 			maxBuffer: 20 * 1024 * 1024
 		};
