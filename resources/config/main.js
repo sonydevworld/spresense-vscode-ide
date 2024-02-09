@@ -216,6 +216,7 @@ class BaseWidget {
 			}
 		});
 		const _collectlist = (list) => list?.forEach((val) => {
+			_collect(val.name);
 			_collect(val.default);
 			_collect(val.cond);
 		});
