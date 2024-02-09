@@ -221,14 +221,12 @@ class BaseWidget {
 			_collect(val.cond);
 		});
 
+		_collect(this._node.cond);
 		_collect(this._node.dep);
 		_collect(this._node.rev_dep);
 		_collect(this._node.weak_rev_dep);
 		_collectlist(this._node.defaults);
 		_collectlist(this._node.ranges);
-		// Collect 'if' option expressions
-		_collectlist(this._node.selects);
-		_collectlist(this._node.implies);
 
 		// Register this object to depended options.
 		for (let r of refs) {
@@ -262,7 +260,12 @@ class BaseWidget {
 	}
 
 	evaluate() {
-		let active = this._node.dep ? evaluateCond(this._node.dep) : true;
+		let active = true;
+		if (this._node.cond) {
+			active = evaluateCond(this._node.cond);
+		} else if (this._node.dep) {
+			active = evaluateCond(this._node.dep);
+		}
 
 		this._active = active;
 		this._activate(active);
@@ -686,8 +689,12 @@ class TristateWidget extends BaseWidget {
 
 		switch (this._value) {
 			case "n":
-				if (MODULES.value === "y") {
-					this._value = 'm';
+				if (MODULES) {
+					if (MODULES.value === "y") {
+						this._value = 'm';
+					} else {
+						this._value = 'y';
+					}
 				} else {
 					this._value = 'y';
 				}
@@ -819,7 +826,9 @@ class ChoiceWidget extends BaseWidget {
 	evaluate() {
 		let active = true;
 
-		if (this._node.dep) {
+		if (this._node.cond) {
+			active = evaluateCond(this._node.cond);
+		} else if (this._node.dep) {
 			active = evaluateCond(this._node.dep);
 		}
 		if (active) {
