@@ -11,7 +11,7 @@
 	"icon": "icons/Spresense.png",
 	"repository": "https://github.com/sonydevworld/spresense-vscode-ide",
 	"engines": {
-		"vscode": "^1.56.0"
+		"vscode": "^1.75.0"
 	},
 	"keywords": [
 		"Spresense",
@@ -439,7 +439,7 @@
 		"@types/md5": "^2.3.0",
 		"@types/mocha": "^8.0.4",
 		"@types/node": "^12.11.7",
-		"@types/vscode": "^1.56.0",
+		"@types/vscode": "^1.75.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
 		"chai": "^4.3.6",
