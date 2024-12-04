@@ -168,22 +168,26 @@ export function isDifferentHostConfig(configfile: string): boolean {
 		return false;
 	}
 
-	let sym;
-	switch (process.platform) {
-		case 'win32':
-			sym = 'CONFIG_HOST_WINDOWS';
-			break;
-		case 'darwin':
-			sym = 'CONFIG_HOST_MACOS';
-			break;
-		case 'linux':
-			sym = 'CONFIG_HOST_LINUX';
-			break;
-		default:
-			sym = '_CONFIG_NOT_SUPPORTED'; // Any non existed config symbol
-			break;
+	let hostWin = contents.includes('CONFIG_HOST_WINDOWS=y');
+	let hostMac = contents.includes('CONFIG_HOST_MACOS=y');
+	let hostLinux = contents.includes('CONFIG_HOST_LINUX=y');
+
+	if (hostWin || hostMac || hostLinux) {
+		// Return HOST configuration other than running platform
+		switch (process.platform) {
+			case 'win32':
+				return hostMac || hostLinux;
+			case 'darwin':
+				return hostWin || hostLinux;
+			case 'linux':
+				return hostWin || hostMac;
+			default:
+				return true; // Running platform is not supported.
+		}
+	} else {
+		// When no HOST_* configuration found, it treated with the same as .config not found.
+		return false;
 	}
-	return !contents.includes(`${sym}=y`);
 }
 
 /**

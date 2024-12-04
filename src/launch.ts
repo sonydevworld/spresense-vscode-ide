@@ -32,6 +32,8 @@ const launchMainSkelton = {
 	"request": "launch",
 	"type": "cortex-debug",
 	"servertype": "openocd",
+	"numberOfProcessors": 6,
+	"targetProcessor": 0,
 	"configFiles": [
 		"interface/cmsis-dap.cfg",
 		"cxd5602.cfg"
@@ -79,7 +81,7 @@ function addTarget(targetFolder: vscode.Uri, target: any) {
 	}
 
 	let configs: Array<any> | undefined = config.get('configurations');
-	console.log(configs);
+	//console.log(configs);
 	if (configs) {
 		const found = configs.find((element: any) => {
 			return element.name === target.name;
@@ -108,12 +110,9 @@ function addTarget(targetFolder: vscode.Uri, target: any) {
  */
 
 export function addMainTarget(targetFolder: vscode.Uri, executable: string, cwd: string, sdkPath: string) {
-	let target = launchMainSkelton;
+	let target = structuredClone(launchMainSkelton);
 	target.executable = executable;
 	target.cwd = cwd;
-
-	target.searchDir = [ path.join(sdkPath, "sdk", "tools") ];
-	target.svdFile = path.join(sdkPath, "sdk", "tools", "SVD", "cxd5602.svd");
 
 	addTarget(targetFolder, target);
 }
@@ -130,7 +129,7 @@ export function addMainTarget(targetFolder: vscode.Uri, executable: string, cwd:
  */
 
 export function addSubTarget(targetFolder: vscode.Uri, executable: string, cwd: string, subcpuid: number) {
-	let target = launchSubSkelton;
+	let target = structuredClone(launchSubSkelton);
 	target.executable= executable;
 	target.cwd = cwd;
 	target.name = `Sub Core ${subcpuid}`;
