@@ -30,48 +30,9 @@ import { HelperTools } from './helper';
 import * as tasks from './tasks';
 
 import { getExactPlatform } from './common';
+import { getDefaultShellPath } from './shell_exec';
 
 let helper: HelperTools;
-
-function getShell(osName: string) : string {
-	const defaultShell = '/bin/bash';
-	const config = vscode.workspace.getConfiguration('terminal.integrated.shell');
-	const shell = config.get(osName);
-
-	return typeof shell === 'string' ? shell : defaultShell;
-}
-
-function getEnv (platform: string) {
-
-	switch (platform) {
-		case 'win32':
-			return {
-				'shell': getShell('windows'),
-				'prefix': '/dev/ttyS',
-				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-			};
-		case 'linux':
-			return {
-				'shell': getShell('linux'),
-				'prefix': '/dev/ttyUSB',
-				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-			};
-
-		case 'darwin':
-			return {
-				'shell': getShell('osx'),
-				'prefix': '/dev/cu.SLAB_USBtoUART',
-				'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-			};
-
-		default:
-			return {
-				'shell': '',
-				'prefix': '',
-				'PATH': ''
-			};
-	}
-}
 
 /**
  * Check task is for conflicting with serial terminal
@@ -200,8 +161,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('spresense.serial.open', async () => {
 		if (serialTerminal === undefined) {
-			const osEnv = getEnv(process.platform);
-
 			/* Take configuration from preference */
 			const port = await tryGetSerialPort();
 			if (port === '') {
@@ -230,8 +189,7 @@ export function activate(context: vscode.ExtensionContext) {
 			/* Create serial terminal */
 			serialTerminal = vscode.window.createTerminal({
 				name: nls.localize("serial.src.terminal.title", "Serial terminal"),
-				env: osEnv,
-				shellPath: osEnv.shell,
+				shellPath: getDefaultShellPath(),
 				shellArgs: ['-c', terminalCommand]});
 			serialTerminal.show();
 		} else {

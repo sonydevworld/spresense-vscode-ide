@@ -861,7 +861,6 @@ function isAlreadySetup(folderPath: string): boolean {
 			vscode.window.showWarningMessage(nls.localize("spresense.src.warning.compatibility", "Your project folder {0} does not compatible with using Spresense SDK. Please use compatible version of Spresense SDK.", folderPath));
 		}
 
-		/* TODO: WIll implement for update .vscode */
 		if (isNaN(projectVersion)) {
 			/* Force update for alpha version. There are no compatibility between alpha version and later version.
 			 * So, force update.
